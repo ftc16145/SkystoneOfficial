@@ -42,7 +42,7 @@ public class Map {
                  q = vert r
                 */
                 double int side;
-                switch( a ){
+                switch( myTeam ){
                     case blue:
                         side = -1;
                         break;
