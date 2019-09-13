@@ -1,5 +1,4 @@
-package org.firstinspires.ftc.teamcode;
-
+import javax.swing.JOptionPane;
 import java.lang.Math;
 public class SimpleCalculus {
 
@@ -23,7 +22,7 @@ public class SimpleCalculus {
         
             } catch (Exception e) {
                 // TODO: handle exception
-
+                JOptionPane.showMessageDialog(null, "The function is not integrable between " + from + " and " + to);
                 System.exit(0);
             }
         }
