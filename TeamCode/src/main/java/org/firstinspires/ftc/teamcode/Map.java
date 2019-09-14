@@ -5,7 +5,7 @@ public static class Map {
         blue,red;
     }
     public int[][] map;
-    private int rx,ry;
+    private double rx,ry;
     private Alliance myTeam;
     public int[] toCoord( int x, int y ){
         return new int[]{ x - 73, -y + 73 };
@@ -16,7 +16,7 @@ public static class Map {
     public static int toCoordY( int y ){
         return -y + 73;
     }
-    public void addRobot( int rx, int ry, double a ){
+    public void addRobot( double rx, double ry ){
         this.rx = rx;
         this.ry = ry;
         for(int x = 0; x < 146; x++){
@@ -25,10 +25,7 @@ public static class Map {
                 int ny = toCoord( x, y )[1];
                 //int rotnx = nx;
                 //int rotny = ny;
-                double angle = (a) * (Math.PI/180); // Convert to radians
-                double rotnx = Math.cos(angle) * (nx - rx) - Math.sin(angle) * (ny-ry);
-                double rotny = Math.sin(angle) * (nx - rx) + Math.cos(angle) * (ny - ry);
-                if(Math.abs(((rotnx-rx)/13)+((rotny-ry)/13))+Math.abs(((rotnx-rx)/13)-((rotny-ry)/13))<=2){
+                if(Math.pow(nx-rx,2)+Math.pow(ny-ry,2) <= 13*13){
                     map[x][y]+=2;
                 }
             }
