@@ -31,8 +31,27 @@ public static class Map {
             }
         }
     }
-    public void addForbidden( int xtl, int ytl, int xbr, int ybr ){
-
+    public void addForbiddenRect( double xmin, double ymin, double xmax, double ymax ){
+        for(int x = 0; x < 146; x++){
+            for(int y = 0; y < 146; y++){
+                int nx = toCoord( x, y )[0];
+                int ny = toCoord( x, y )[1];
+                if(nx > xmin && nx < xmax && ny > ymin && ny < ymax){
+                    map[x][y] = 1;
+                }
+            }
+        }
+    }
+    public void addForbiddenCirc( double fx, double fy, double r ){
+        for(int x = 0; x < 146; x++){
+            for(int y = 0; y < 146; y++){
+                int nx = toCoord( x, y )[0];
+                int ny = toCoord( x, y )[1];
+                if(Math.pow(nx-fx,2)+Math.pow(ny-fy,2) <= r*r){
+                    map[x][y] = 1;
+                }
+            }
+        }
     }
     public void refresh(){
         for( int[] i : map ){
@@ -53,9 +72,7 @@ public static class Map {
                 //if( !( ( Math.pow( ( Math.abs( nx ) - 24.5 ), 2 ) / Math.pow( ( 4 / 3 ) + 13, 2 ) ) + ( Math.pow( ( ny ), 2 ) / Math.pow( 15, 2 ) ) > 1 ) ){
                 //   map[x][y]=1;
                 //}
-                if(Math.abs(((anx-24.5)/2)+(ny/4))+Math.abs(((anx-24.5)/2)-(ny/4))<=2){
-                    map[x][y]=1;
-                }
+
 
                 if( x == 0 || x == 145 || y == 0 || y == 145 ) map[x][y] = 1;
                 /*
@@ -100,7 +117,9 @@ public static class Map {
                 if(Math.abs(((anx)/24.5)+(ny/4))+Math.abs(((anx)/24.5)-(ny/4))<=2){
                     map[x][y]=0;
                 }
-
+                if(Math.abs(((anx-24.5)/3)+(ny/5))+Math.abs(((anx-24.5)/3)-(ny/5))<=2){
+                    map[x][y]=1;
+                }
             }
         }
     }
