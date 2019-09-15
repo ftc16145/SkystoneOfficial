@@ -1,13 +1,33 @@
 Map m;
+int[] roboP;
+int[][] test;
+Path currentPath;
+boolean havePath;
 void setup(){
   size(146,146);
-  m = new Map(Map.Alliance.red);
+  m = new Map(Map.Alliance.blue);
+  roboP = m.toCoord(14,72-24);
+  currentPath=new Path(new int[]{0,roboP[1]});
 }
 void draw(){
   noStroke();
   background(255,0,255);
+  if(currentPath.getXY(roboP)[0]==0 && currentPath.getXY(roboP)[1]==0){
+    currentPath.nextStage();
+  }
+  if(currentPath.isDone()){
+    System.out.println("Done!");
+  }else{
+      System.out.println("Current Running Path on Stage: " + currentPath.getStage() + ", XY = " + currentPath.getXY(roboP)[0]+", "+currentPath.getXY(roboP)[1]);
+      
+    roboP[0]+=currentPath.getXY(roboP)[0];
+    roboP[1]+=currentPath.getXY(roboP)[1];
+  }
+  //System.out.println(havePath);
   m.refresh();
-  m.addRobot(Map.toCoordX(mouseX),Map.toCoordY(mouseY));
+  
+  m.addRobot(roboP);
+  
   for(int x = 0; x < 146; x++){
     for(int y = 0; y < 146; y++){
       switch(m.map[x][y]){
@@ -27,7 +47,7 @@ void draw(){
       rect(x,y,1,1);       
     }
   }
-  System.out.println(m.isConflict());
+  //System.out.println(m.isConflict());
   noStroke();
   fill(168,155,50);
   //rect(1+46,(height/2)-8,45+8,16);
@@ -47,3 +67,10 @@ void draw(){
   line(width/2,height/2,width/2,(height/2)+16);
   line(mouseX,mouseY,mouseX-13,mouseY);
 } 
+void mousePressed(){
+  currentPath = PathFinder.findPath(roboP,new int[]{0,-36},Map.Alliance.blue);
+  if(currentPath==new Path(roboP)){
+    System.out.println("No Path Found");
+    havePath=false;
+  } else havePath=true;
+}

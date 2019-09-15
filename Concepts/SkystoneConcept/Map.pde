@@ -16,6 +16,15 @@ public static class Map {
     public static int toCoordY( int y ){
       return -y + 73;
     }
+    public int[] antiCoord( int x, int y ){
+        return new int[]{ x + 73, -y + 73 };
+    }
+    public static int antiCoordX( int x ){
+      return x + 73;
+    }
+    public static int antiCoordY( int y ){
+      return -y + 73;
+    }
     public void addRobot( double rx, double ry ){
         this.rx = rx;
         this.ry = ry;
@@ -30,6 +39,9 @@ public static class Map {
             }
           }  
         }
+    }
+    public void addRobot( int[] xy ){
+      addRobot(xy[0],xy[1]);
     }
     public void addForbiddenRect( double xmin, double ymin, double xmax, double ymax ){
         for(int x = 0; x < 146; x++){
