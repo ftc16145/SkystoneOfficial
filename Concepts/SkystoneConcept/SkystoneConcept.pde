@@ -68,9 +68,9 @@ void draw(){
   line(mouseX,mouseY,mouseX-13,mouseY);
 } 
 void mousePressed(){
-  currentPath = PathFinder.findPath(roboP,new int[]{0,-36},Map.Alliance.blue);
-  if(currentPath==new Path(roboP)){
-    System.out.println("No Path Found");
-    havePath=false;
-  } else havePath=true;
+  //currentPath = PathFinder.findPath(roboP,new int[]{0,-36},Map.Alliance.blue);
+  //if(currentPath==new Path(roboP)){
+  //  System.out.println("No Path Found");
+  //  havePath=false;
+  //} else havePath=true;
 }
