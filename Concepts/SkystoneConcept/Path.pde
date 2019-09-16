@@ -17,16 +17,15 @@ public static class Path{
    }
    public double[] getXY( double currentX, double currentY ){
      double m = (stageP[1]-currentY)/(stageP[0]-currentX);
-     if(m==0 ){
-       return new double[]{0,0};
-     }else if(m>1){
-       return new double[]{1/m,1};
-     }else if(Double.isNaN(m)){
-       return new double[]{0,Math.signum(stageP[1]-currentY)};
-     }else{
-       return new double[]{1,m};
-     }
-   }
+       if(m==0 ){
+         return new double[]{Math.signum(stageP[0]-currentX),0};
+       }else if(m>1){
+         return new double[]{1/m,1};
+       }else if(Double.isNaN(m)){
+         return new double[]{0,Math.signum(stageP[1]-currentY)};
+       }else{
+         return new double[]{1,m};
+       }   }
    public double[] getXY( int[] currentP ){
      return getXY(currentP[0],currentP[1]);
    }

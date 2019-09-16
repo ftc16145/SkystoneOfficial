@@ -3,25 +3,26 @@ int[] roboP;
 int[][] test;
 Path currentPath;
 boolean havePath;
+PathFinder[] paths;
 void setup(){
   size(146,146);
   m = new Map(Map.Alliance.blue);
   roboP = m.toCoord(14,72-24);
-  currentPath=new Path(new int[]{0,roboP[1]});
+  
+  paths = new PathFinder[]{new DirectPathFinder(), new X2YPathFinder()};
 }
 void draw(){
   noStroke();
   background(255,0,255);
-  if(currentPath.getXY(roboP)[0]==0 && currentPath.getXY(roboP)[1]==0){
-    currentPath.nextStage();
-  }
-  if(currentPath.isDone()){
-    System.out.println("Done!");
-  }else{
-      System.out.println("Current Running Path on Stage: " + currentPath.getStage() + ", XY = " + currentPath.getXY(roboP)[0]+", "+currentPath.getXY(roboP)[1]);
+  if(havePath){
+    if(currentPath.isDone()){
+      System.out.println("Done!");
+    }else{
+        System.out.println("Current Running Path on Stage: " + currentPath.getStage() + ", XY = " + currentPath.getXY(roboP)[0]+", "+currentPath.getXY(roboP)[1]);
       
-    roboP[0]+=currentPath.getXY(roboP)[0];
-    roboP[1]+=currentPath.getXY(roboP)[1];
+      roboP[0]+=currentPath.getXY(roboP)[0];
+      roboP[1]+=currentPath.getXY(roboP)[1];
+    }
   }
   //System.out.println(havePath);
   m.refresh();
@@ -68,6 +69,21 @@ void draw(){
   line(mouseX,mouseY,mouseX-13,mouseY);
 } 
 void mousePressed(){
+  Path errorPath = new Path(new int[]{(int) Double.NaN, (int) Double.NaN});
+  havePath = false;
+  for(int i = 0; i < paths.length; i++){
+    System.out.println("Trying path " + i);
+     //paths[i].findPath(roboP, new int[]{Map.toCoordX(mouseX),Map.toCoordY(mouseY)},Map.Alliance.blue)
+     try{
+       currentPath = paths[i].findPath(roboP, new int[]{0,-36},Map.Alliance.blue);
+       havePath = true;
+       break;
+     }
+     catch(IllegalArgumentException ex){
+       System.out.println("Error on " + i + ": " + ex.getMessage());
+     }
+  }
+  System.out.println(havePath);
   //currentPath = PathFinder.findPath(roboP,new int[]{0,-36},Map.Alliance.blue);
   //if(currentPath==new Path(roboP)){
   //  System.out.println("No Path Found");

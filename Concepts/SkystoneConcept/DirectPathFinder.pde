@@ -5,30 +5,19 @@ public static class DirectPathFinder extends PathFinder{
   //private static Map m;
   @Override
   public Path findPath(int[] start, int[] end, Map.Alliance a){
-    super.pathSetup(start,end,a);
+    pathSetup(start,end,a);
     if(!goodPath){
-        return new Path(start);
+        return new Path(s);
     } else{
-      p = new Path(end);
-      double[] direct = p.getXY(start);
-      if( m.map[Map.antiCoordX(end[0])][Map.antiCoordY(end[1])]==1){
-        return new Path(start);
-      }
-      for(int x = (int) rx; x < end[0]; x++){
-        m.refresh();
-        m.addRobot(rx,ry);
-        if(m.isConflict()){
-          System.out.println("Direct Failed.");
-          goodPath = false;
-        }else{
-          rx+=direct[0];
-          ry+=direct[1];
-        }
-      }
+      p = new Path(e);
+      System.out.println("Staring testStage");
+      super.testStage(p);
       if(goodPath){
+        System.out.println("Direct is Valid.");
         return p;
       } else {
-        return new Path(start);
+        System.out.println("Direct is NOT Valid.");
+        throw new IllegalArgumentException("Invalid Path");
       }
 
     }
