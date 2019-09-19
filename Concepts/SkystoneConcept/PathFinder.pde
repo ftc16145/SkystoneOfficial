@@ -30,8 +30,9 @@ public static class PathFinder{
   }
   protected void testStage(Path p){
     this.p=p;
+    //System.out.println("Stage: " + p.getStage());
     //System.out.println("Running testStage");
-    for(int s =0; s < p.getNumberPts();s++){
+      
       boolean running = true;
       double[] pxy = p.getXY(rx,ry);
       for(int i = 0;i < pxy.length;i++){
@@ -42,8 +43,16 @@ public static class PathFinder{
       
       
       while(running){
-        
-        if( p.getStageP()[0]-rx == 0.0 && p.getStageP()[1]-ry == 0.0 ){
+        // Updates our slope
+        pxy = p.getXY(rx,ry);
+        for(int i = 0;i < pxy.length;i++){
+          if(pxy[i] == Double.NaN){
+            pxy[i]=0;
+          }
+        }
+        // 
+        if( p.getStageDone() ){
+          System.out.println("I guess we're here");
           running = false;
           break;
         }
@@ -56,7 +65,7 @@ public static class PathFinder{
             break;
           }else{
             System.out.println("Robot " + rx + ", " + ry);
-            System.out.println("Moving " + pxy[0] + ", " + pxy[1]);
+            System.out.println("Moving " + pxy[0] + ", " + pxy[1] + "my taget is" + p.getStageP()[0] + ", " + p.getStageP()[1] + "Stage: " + p.getStage());
             rx+=pxy[0];
             ry+=pxy[1];
           }
@@ -64,8 +73,5 @@ public static class PathFinder{
      
         System.out.println("Starting new stage!");
         p.nextStage();
-      
-    }  
-    System.out.println("Done!");
   }
 }

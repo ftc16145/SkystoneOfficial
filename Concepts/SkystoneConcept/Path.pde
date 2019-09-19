@@ -3,6 +3,7 @@ public static class Path{
    int stage;
    int[] stageP;
    boolean pathDone;
+   boolean stageDone;
    public Path(int[]... points){
      this.points = points;
      stage=0;
@@ -20,21 +21,28 @@ public static class Path{
    }
    public double[] getXY( double currentX, double currentY ){
      double m = (stageP[1]-currentY)/(stageP[0]-currentX);
+     //System.out.println(m);
        if(m==0 ){
          System.out.println("Horizontal");
          return new double[]{Math.signum(stageP[0]-currentX),0};
-       }else if(m>1){
-         return new double[]{1/m,1};
+       }else if(Math.abs(m)>1){
+         return new double[]{1/m,Math.signum(stageP[1]-currentY)};
        }else if(Double.isNaN(m)){
-         System.out.println("Verical");
+         System.out.println("Verical, I need to get to "+ stageP[0] + ", " + stageP[1] + ", but I'm at " + currentX + ", " + currentY );
          if(stageP[1]-currentY<0){
            return new double[]{0,-1};
-         }else{
+         }else if (stageP[1]-currentY>0){
            return new double[]{0,1};
+         }else if(Math.abs(m) < 1){
+           return new double[]{Math.signum(stageP[0]-currentX),m};
+       }else{
+           stageDone = true;
+           return new double[]{0,0};
          }
        }else{
          return new double[]{1,m};
-       }   }
+       }   
+     }
    public double[] getXY( int[] currentP ){
      return getXY(currentP[0],currentP[1]);
    }
@@ -46,6 +54,7 @@ public static class Path{
        stage++;
        stageP=points[stage];
      }
+     stageDone = false;
    }
    public int[] getStageP(){
      return stageP;
@@ -55,5 +64,8 @@ public static class Path{
    }
    public boolean isDone(){
      return pathDone;
+   }
+   public boolean getStageDone(){
+     return stageDone;
    }
 }

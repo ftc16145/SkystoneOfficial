@@ -1,3 +1,10 @@
+/*
+KNOWN BUGS:
+WILL GO THROUGH BLOCKED ZONES THINKING IT IS RIGHT
+DOES X2Y WHEN DIRECT IS VALID
+MERGES 2 PATHFINDER MODES
+
+*/
 Map m;
 int[] roboP;
 int[][] test;
@@ -9,7 +16,7 @@ void setup(){
   m = new Map(Map.Alliance.blue);
   roboP = m.toCoord(14,72-24);
   //roboP = new int[]{10,25};
-  paths = new PathFinder[]{new DirectPathFinder(), new X2YPathFinder()};
+  paths = new PathFinder[]{new DirectPathFinder(), new X2YPathFinder(), new Y2XPathFinder()};
 }
 void draw(){
   noStroke();
@@ -22,6 +29,9 @@ void draw(){
       
       roboP[0]+=currentPath.getXY(roboP)[0];
       roboP[1]+=currentPath.getXY(roboP)[1];
+      if(currentPath.getStageDone()){
+        currentPath.nextStage();
+      }
     }
   }
   //System.out.println(havePath);
@@ -75,7 +85,8 @@ void mousePressed(){
     System.out.println("Trying path " + i);
      //paths[i].findPath(roboP, new int[]{Map.toCoordX(mouseX),Map.toCoordY(mouseY)},Map.Alliance.blue)
      try{
-       currentPath = new Path(paths[i].findPath(roboP, new int[]{0,-36},Map.Alliance.blue).getAllPts());
+       //currentPath = new Path(paths[i].findPath(roboP, new int[]{0,-36},Map.Alliance.blue).getAllPts());
+       currentPath = new Path(paths[i].findPath(roboP, Map.toCoord(mouseX,mouseY),Map.Alliance.blue).getAllPts());
        havePath = true;
        break;
      }

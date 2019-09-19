@@ -7,6 +7,7 @@ public static class DirectPathFinder extends PathFinder{
   public Path findPath(int[] start, int[] end, Map.Alliance a){
     pathSetup(start,end,a);
     if(!goodPath){
+      System.out.println("I can't do that!");
         return new Path(s);
     } else{
       p = new Path(e);

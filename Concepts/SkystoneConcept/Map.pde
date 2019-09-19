@@ -7,7 +7,7 @@ public static class Map {
     public int[][] map;
     private double rx,ry;
     private Alliance myTeam;
-    public int[] toCoord( int x, int y ){
+    public static int[] toCoord( int x, int y ){
         return new int[]{ x - 73, -y + 73 };
     }
     public static int toCoordX( int x ){
