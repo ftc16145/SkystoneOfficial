@@ -30,7 +30,7 @@ public static class PathFinder{
   }
   protected void testStage(Path p){
     this.p=p;
-    System.out.println("Running testStage");
+    //System.out.println("Running testStage");
     for(int s =0; s < p.getNumberPts();s++){
       boolean running = true;
       double[] pxy = p.getXY(rx,ry);
@@ -40,9 +40,10 @@ public static class PathFinder{
         }
       }
       
-      System.out.println("pxy = " + pxy[0] + ", " +pxy[1]);
+      
       while(running){
-        if( pxy[0] == 0 && pxy[1] ==0 ){
+        
+        if( p.getStageP()[0]-rx == 0.0 && p.getStageP()[1]-ry == 0.0 ){
           running = false;
           break;
         }
@@ -54,16 +55,17 @@ public static class PathFinder{
             goodPath = false;
             break;
           }else{
-            System.out.println("Good to move again, at " + rx + ", " + ry);
+            System.out.println("Robot " + rx + ", " + ry);
+            System.out.println("Moving " + pxy[0] + ", " + pxy[1]);
             rx+=pxy[0];
             ry+=pxy[1];
           }
-      
+      }
      
         System.out.println("Starting new stage!");
         p.nextStage();
-      }
+      
     }  
-    
+    System.out.println("Done!");
   }
 }

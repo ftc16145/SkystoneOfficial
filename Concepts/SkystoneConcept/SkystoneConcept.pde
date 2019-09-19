@@ -8,7 +8,7 @@ void setup(){
   size(146,146);
   m = new Map(Map.Alliance.blue);
   roboP = m.toCoord(14,72-24);
-  
+  //roboP = new int[]{10,25};
   paths = new PathFinder[]{new DirectPathFinder(), new X2YPathFinder()};
 }
 void draw(){
@@ -75,7 +75,7 @@ void mousePressed(){
     System.out.println("Trying path " + i);
      //paths[i].findPath(roboP, new int[]{Map.toCoordX(mouseX),Map.toCoordY(mouseY)},Map.Alliance.blue)
      try{
-       currentPath = paths[i].findPath(roboP, new int[]{0,-36},Map.Alliance.blue);
+       currentPath = new Path(paths[i].findPath(roboP, new int[]{0,-36},Map.Alliance.blue).getAllPts());
        havePath = true;
        break;
      }

@@ -5,7 +5,7 @@ public static class X2YPathFinder extends PathFinder{
       if(!goodPath){
         return new Path(s);
       } else{
-        p = new Path(new int[]{e[0],s[1]},e);
+        p = new Path(new int[]{e[0],s[1]});
         super.testStage(p);
         if(goodPath){
           System.out.println("X2Y Returned");
