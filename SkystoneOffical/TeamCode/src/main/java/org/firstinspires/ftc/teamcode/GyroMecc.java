@@ -53,9 +53,9 @@ import com.qualcomm.robotcore.util.ElapsedTime;
  * Remove or comment out the @Disabled line to add this opmode to the Driver Station OpMode list
  */
 
-@TeleOp(name="Standard", group="Mecanum")
+@TeleOp(name="Gyro Correction", group="Mecanum")
 
-public class Mecc extends OpMode
+public class GyroMecc extends OpMode
 {
     // Declare OpMode members.
     private ElapsedTime runtime = new ElapsedTime();
@@ -152,8 +152,13 @@ public class Mecc extends OpMode
      */
     @Override
     public void loop() {
-        double r = Math.hypot(-gamepad1.left_stick_x, gamepad1.left_stick_y);
-        double robotAngle = Math.atan2(gamepad1.left_stick_y, -gamepad1.left_stick_x) - Math.PI / 4;
+        double x = -gamepad1.left_stick_x;
+        double y = gamepad1.left_stick_y;
+        double heading = -1*Math.toRadians(gyro.getHeading());
+        x = Math.cos(heading)*x - Math.sin(heading)*y;
+        y = Math.sin(heading)*x + Math.cos(heading)*y;
+        double r = Math.hypot(x, y);
+        double robotAngle = Math.atan2(y, x) - Math.PI / 4;
         double rightX = gamepad1.right_stick_x;
         final double v1 = r * Math.cos(robotAngle) + rightX;
         final double v2 = r * Math.sin(robotAngle) - rightX;
@@ -174,8 +179,6 @@ public class Mecc extends OpMode
             drivetrain[i].setPower(vals[i]);
         }
 
-
-
         if(gamepad1.dpad_down){
             found.setDirection(DcMotor.Direction.FORWARD);
             found.setPower(1);
@@ -187,6 +190,7 @@ public class Mecc extends OpMode
         }else{
             found.setPower(0);
         }
+
 
 
         telemetry.addData("Status", "Run Time: " + runtime.toString());
