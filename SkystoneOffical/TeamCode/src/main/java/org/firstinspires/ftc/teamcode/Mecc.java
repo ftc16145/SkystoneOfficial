@@ -30,13 +30,16 @@
 package org.firstinspires.ftc.teamcode;
 
 import android.content.Context;
+import android.view.MotionEvent;
 
 import com.qualcomm.ftccommon.SoundPlayer;
+import com.qualcomm.hardware.motors.NeveRest40Gearmotor;
 import com.qualcomm.robotcore.eventloop.opmode.OpMode;
 import com.qualcomm.robotcore.eventloop.opmode.TeleOp;
 import com.qualcomm.robotcore.hardware.CRServo;
 import com.qualcomm.robotcore.hardware.DcMotor;
 import com.qualcomm.robotcore.hardware.GyroSensor;
+import com.qualcomm.robotcore.hardware.Servo;
 import com.qualcomm.robotcore.util.ElapsedTime;
 
 /**
@@ -59,10 +62,12 @@ public class Mecc extends OpMode
 {
     // Declare OpMode members.
     private ElapsedTime runtime = new ElapsedTime();
-    private DcMotor leftFront, leftBack, rightFront, rightBack;
-    private GyroSensor gyro;
-    DcMotor[] drivetrain;
+    private NeveRest40Gearmotor leftFront, leftBack, rightFront, rightBack;
+    //private GyroSensor gyro;
+    NeveRest40Gearmotor[] drivetrain;
     private CRServo found;
+    private Servo test;
+    double num = 0;
     String  sounds[] =  {"ss_alarm", "ss_bb8_down", "ss_bb8_up", "ss_darth_vader", "ss_fly_by",
             "ss_mf_fail", "ss_laser", "ss_laser_burst", "ss_light_saber", "ss_light_saber_long", "ss_light_saber_short",
             "ss_light_speed", "ss_mine", "ss_power_up", "ss_r2d2_up", "ss_roger_roger", "ss_siren", "ss_wookie" };
@@ -113,22 +118,24 @@ public class Mecc extends OpMode
 
         // Tell the driver that initialization is complete.
         telemetry.addData("Status", "Initialized");
-        leftFront = hardwareMap.get( DcMotor.class, "leftFront" );
-        rightFront = hardwareMap.get( DcMotor.class, "rightFront" );
-        leftBack = hardwareMap.get( DcMotor.class, "leftBack" );
-        rightBack = hardwareMap.get( DcMotor.class, "rightBack" );
-        drivetrain = new DcMotor[]{leftFront,leftBack,rightFront,rightBack};
+        leftFront = hardwareMap.get( NeveRest40Gearmotor.class, "leftFront" );
+        rightFront = hardwareMap.get( NeveRest40Gearmotor.class, "rightFront" );
+        leftBack = hardwareMap.get( NeveRest40Gearmotor.class, "leftBack" );
+        rightBack = hardwareMap.get( NeveRest40Gearmotor.class, "rightBack" );
+        drivetrain = new NeveRest40Gearmotor[]{leftFront,leftBack,rightFront,rightBack};
         found = hardwareMap.get( CRServo.class, "foundation");
+        test = hardwareMap.get( Servo.class, "test");
         leftFront.setDirection(DcMotor.Direction.FORWARD);
         leftBack.setDirection(DcMotor.Direction.FORWARD);
         rightFront.setDirection(DcMotor.Direction.REVERSE);
         rightBack.setDirection(DcMotor.Direction.REVERSE);
-        for( DcMotor d : drivetrain ){
-            d.setMode(DcMotor.RunMode.RUN_USING_ENCODER);
+        for( NeveRest40Gearmotor d : drivetrain ){
+            d.setMode(NeveRest40Gearmotor.RunMode.RUN_USING_ENCODER);
             d.setZeroPowerBehavior(DcMotor.ZeroPowerBehavior.BRAKE);
-        }
-        gyro = hardwareMap.get( GyroSensor.class, "gyro" );
-        gyro.calibrate();
+
+          }
+        //gyro = hardwareMap.get( GyroSensor.class, "gyro" );
+        //gyro.calibrate();
         playSound("ss_light_saber");
 
     }
@@ -187,10 +194,16 @@ public class Mecc extends OpMode
         }else{
             found.setPower(0);
         }
-
+        if(gamepad1.a){
+            num+=5;
+        }else if(gamepad1.y){
+            num-=5;
+        }
+        test.setPosition(num/100);
 
         telemetry.addData("Status", "Run Time: " + runtime.toString());
-
+        telemetry.addData("y x", gamepad1.left_stick_y + " " + -gamepad1.left_stick_x);
+        telemetry.addData("lf rf lb rb",v1 + " " + v2 + " " + v3 + " " + v4);
     }
 
     /*
