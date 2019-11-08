@@ -62,9 +62,9 @@ public class Mecc extends OpMode
 {
     // Declare OpMode members.
     private ElapsedTime runtime = new ElapsedTime();
-    private NeveRest40Gearmotor leftFront, leftBack, rightFront, rightBack;
+    private DcMotor leftFront, leftBack, rightFront, rightBack;
     //private GyroSensor gyro;
-    NeveRest40Gearmotor[] drivetrain;
+    DcMotor[] drivetrain;
     private CRServo found;
     private Servo test;
     double num = 0;
@@ -118,19 +118,19 @@ public class Mecc extends OpMode
 
         // Tell the driver that initialization is complete.
         telemetry.addData("Status", "Initialized");
-        leftFront = hardwareMap.get( NeveRest40Gearmotor.class, "leftFront" );
-        rightFront = hardwareMap.get( NeveRest40Gearmotor.class, "rightFront" );
-        leftBack = hardwareMap.get( NeveRest40Gearmotor.class, "leftBack" );
-        rightBack = hardwareMap.get( NeveRest40Gearmotor.class, "rightBack" );
-        drivetrain = new NeveRest40Gearmotor[]{leftFront,leftBack,rightFront,rightBack};
+        leftFront = hardwareMap.get( DcMotor.class, "leftFront" );
+        rightFront = hardwareMap.get( DcMotor.class, "rightFront" );
+        leftBack = hardwareMap.get( DcMotor.class, "leftBack" );
+        rightBack = hardwareMap.get( DcMotor.class, "rightBack" );
+        drivetrain = new DcMotor[]{leftFront,leftBack,rightFront,rightBack};
         found = hardwareMap.get( CRServo.class, "foundation");
         test = hardwareMap.get( Servo.class, "test");
         leftFront.setDirection(DcMotor.Direction.FORWARD);
         leftBack.setDirection(DcMotor.Direction.FORWARD);
         rightFront.setDirection(DcMotor.Direction.REVERSE);
         rightBack.setDirection(DcMotor.Direction.REVERSE);
-        for( NeveRest40Gearmotor d : drivetrain ){
-            d.setMode(NeveRest40Gearmotor.RunMode.RUN_USING_ENCODER);
+        for( DcMotor d : drivetrain ){
+            d.setMode(DcMotor.RunMode.RUN_USING_ENCODER);
             d.setZeroPowerBehavior(DcMotor.ZeroPowerBehavior.BRAKE);
 
           }
