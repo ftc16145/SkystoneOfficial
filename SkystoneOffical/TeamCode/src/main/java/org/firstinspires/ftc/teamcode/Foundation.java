@@ -30,16 +30,14 @@
 package org.firstinspires.ftc.teamcode;
 
 import android.content.Context;
-import android.view.MotionEvent;
 
 import com.qualcomm.ftccommon.SoundPlayer;
-import com.qualcomm.hardware.motors.NeveRest40Gearmotor;
+import com.qualcomm.robotcore.eventloop.opmode.Autonomous;
 import com.qualcomm.robotcore.eventloop.opmode.OpMode;
 import com.qualcomm.robotcore.eventloop.opmode.TeleOp;
 import com.qualcomm.robotcore.hardware.CRServo;
 import com.qualcomm.robotcore.hardware.DcMotor;
 import com.qualcomm.robotcore.hardware.GyroSensor;
-import com.qualcomm.robotcore.hardware.Servo;
 import com.qualcomm.robotcore.util.ElapsedTime;
 
 /**
@@ -56,18 +54,25 @@ import com.qualcomm.robotcore.util.ElapsedTime;
  * Remove or comment out the @Disabled line to add this opmode to the Driver Station OpMode list
  */
 
-@TeleOp(name="Standard", group="Mecanum")
+@Autonomous(name="Standard", group="Mecanum")
 
-public class Mecc extends OpMode
+public class Foundation extends OpMode
 {
     // Declare OpMode members.
+    PIDController pidX, pidY;
+    double x=0,y=0,feta=0;
+    double posX = 0, posY = 0;
+    double pastLF=0, pastRF=0, pastLB=0, pastRB=0;
+    double dLF=0, dRF=0, dLB=0, dRB=0;
     private ElapsedTime runtime = new ElapsedTime();
-    private DcMotor leftFront, leftBack, rightFront, rightBack, armBack, claw;
-    //private GyroSensor gyro;
+    private DcMotor leftFront, leftBack, rightFront, rightBack;
+    private GyroSensor gyro;
     DcMotor[] drivetrain;
+    double[][] points;
+    int pointSt=0;
+    double[] pastE = new double[]{pastLF, pastRF, pastLB, pastRB};
+    double[] dE = new double[]{dLF, dRF, dLB, dRB};
     private CRServo found;
-    private Servo test;
-    double num = 0;
     String  sounds[] =  {"ss_alarm", "ss_bb8_down", "ss_bb8_up", "ss_darth_vader", "ss_fly_by",
             "ss_mf_fail", "ss_laser", "ss_laser_burst", "ss_light_saber", "ss_light_saber_long", "ss_light_saber_short",
             "ss_light_speed", "ss_mine", "ss_power_up", "ss_r2d2_up", "ss_roger_roger", "ss_siren", "ss_wookie" };
@@ -75,7 +80,6 @@ public class Mecc extends OpMode
     int soundIndex, soundID;
     Context myApp;
     SoundPlayer.PlaySoundParams params;
-    ConceptVuforiaSkyStoneNavigation vision;
     //public Drivetrain drive;
     private void playSound(String sound){
         if(!soundPlaying) {
@@ -103,7 +107,15 @@ public class Mecc extends OpMode
         soundIndex = 0;
         soundID = -1;
         myApp = hardwareMap.appContext;
-        //vision = new ConceptVuforiaSkyStoneNavigation(0,0,0,0,0,0);
+        pidX = new PIDController(0.002,0,0);
+        pidY= new PIDController(0.002,0,0);
+        pidX.setOutputRange(0,1);
+        pidY.setOutputRange(0,1);
+        pidX.setInputRange(-99999999,999999999);
+        pidY.setInputRange(-99999999,999999999);
+
+        pidX.enable();
+        pidY.enable();
         // create a sound parameter that holds the desired player parameters.
         params = new SoundPlayer.PlaySoundParams();
         params.loopControl = 0;
@@ -125,20 +137,25 @@ public class Mecc extends OpMode
         rightBack = hardwareMap.get( DcMotor.class, "rightBack" );
         drivetrain = new DcMotor[]{leftFront,leftBack,rightFront,rightBack};
         found = hardwareMap.get( CRServo.class, "foundation");
-        test = hardwareMap.get( Servo.class, "test");
         leftFront.setDirection(DcMotor.Direction.FORWARD);
         leftBack.setDirection(DcMotor.Direction.FORWARD);
         rightFront.setDirection(DcMotor.Direction.REVERSE);
         rightBack.setDirection(DcMotor.Direction.REVERSE);
-        for( DcMotor d : drivetrain ){
-            d.setMode(DcMotor.RunMode.RUN_USING_ENCODER);
-            d.setZeroPowerBehavior(DcMotor.ZeroPowerBehavior.BRAKE);
+        for( int i = 0; i < 4; i++ ){
+            drivetrain[i].setMode(DcMotor.RunMode.RUN_USING_ENCODER);
+            drivetrain[i].setZeroPowerBehavior(DcMotor.ZeroPowerBehavior.BRAKE);
+            pastE[i] = 0;
+            dE[i] = 0;
+        }
 
-          }
-        //gyro = hardwareMap.get( GyroSensor.class, "gyro" );
-        //gyro.calibrate();
+        gyro = hardwareMap.get( GyroSensor.class, "gyro" );
+        gyro.calibrate();
         playSound("ss_light_saber");
-
+        points = new double[][]{
+                {12,17},
+                {12,0},
+                {0,0}
+        };
     }
 
     /*
@@ -146,7 +163,6 @@ public class Mecc extends OpMode
      */
     @Override
     public void init_loop() {
-        //vision.initial();
     }
 
     /*
@@ -156,15 +172,10 @@ public class Mecc extends OpMode
     public void start() {
         runtime.reset();
     }
-    /*
-     * Code to run REPEATEDLY after the driver hits PLAY but before they hit STOP
-     */
-    @Override
-    public void loop() {
-        //vision.periodic();
-        double r = Math.hypot(-gamepad1.left_stick_x, gamepad1.left_stick_y);
-        double robotAngle = Math.atan2(gamepad1.left_stick_y, -gamepad1.left_stick_x) - Math.PI / 4;
-        double rightX = gamepad1.right_stick_x;
+    private void drive(double x,double y){
+        double r = Math.hypot(x, y);
+        double robotAngle = Math.atan2(y, x) - Math.PI / 4;
+        double rightX = feta;
         final double v1 = r * Math.cos(robotAngle) + rightX;
         final double v2 = r * Math.sin(robotAngle) - rightX;
         final double v3 = r * Math.sin(robotAngle) + rightX;
@@ -176,26 +187,64 @@ public class Mecc extends OpMode
                 max = Math.abs(v);
             }
         }
+
         for( int i = 0; i < 4; i++ ) {
             if (max > 1){
                 vals[i] /= max;
             }
-                drivetrain[i].setPower(vals[i]);
+            drivetrain[i].setPower(vals[i]);
         }
-        if(gamepad1.dpad_down){
-            found.setDirection(DcMotor.Direction.FORWARD);
-            found.setPower(1);
-            playSound("ss_wookie");
-        }else if(gamepad1.dpad_up){
-            found.setDirection(DcMotor.Direction.REVERSE);
-            found.setPower(1);
-            playSound("ss_roger_roger");
-        }else{
-            found.setPower(0);
-        }
+    }
+    /*
+     * Code to run REPEATEDLY after the driver hits PLAY but before they hit STOP
+     */
+        @Override
+        public void loop() {
+            pidX.setSetpoint(points[pointSt][0]);
+            pidY.setSetpoint(points[pointSt][1]);
+            for(int i = 0; i < 4; i++){
+                dE[i] = drivetrain[i].getCurrentPosition() - pastE[i];
+            }
+            double gyroHead = Math.toRadians(gyro.getHeading());
+            double dX = ( (dE[0] + dE[3] ) - (dE[1] + dE[2]))/4;
+            double dY = (dE[0] + dE[3] + dE[1] + dE[2])/4;
+            posX += (Math.cos(gyroHead)*dX - Math.sin(gyroHead)*dY)*((Math.PI*4)/280);
+            posY += (Math.sin(gyroHead)*dX + Math.cos(gyroHead)*dY)*((Math.PI*4)/280);
+            x = pidX.performPID(posX);
+            y = pidY.performPID(posY);
+            if(pidX.onTarget() && pidY.onTarget()){
+                drive(0,0);
+                if(pointSt == 0){
+                    found.setDirection(DcMotor.Direction.REVERSE);
+                    found.setPower(1);
+                    Thread.sleep(1000);
+                    found.setPower(0);
+                } else if(pointSt == 1){
+                    drive(0,0.3);
+                    Thread.sleep(500);
+                    drive(0,0);
+                    found.setDirection(DcMotor.Direction.FORWARD);
+                    found.setPower(1);
+                    Thread.sleep(1000);
+                    found.setPower(0);
+                    drive(0,0.3);
+                    Thread.sleep(500);
+                    drive(0,-0.3);
+                }
+                pointSt++;
+
+            } else {
+                drive(x, y);
+            }
+
+
+
+
+
         telemetry.addData("Status", "Run Time: " + runtime.toString());
-        telemetry.addData("y x", gamepad1.left_stick_y + " " + -gamepad1.left_stick_x);
-        telemetry.addData("lf rf lb rb",v1 + " " + v2 + " " + v3 + " " + v4);
+        for( int i = 0; i < 4; i++ ){
+            pastE[i] = drivetrain[i].getCurrentPosition();
+        }
     }
 
     /*
@@ -209,7 +258,6 @@ public class Mecc extends OpMode
         rightBack.setPower(0);
         found.setPower(0);
         //  drive.stop();
-        //vision.visionStop();
     }
 
 }
