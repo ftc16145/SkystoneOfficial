@@ -34,9 +34,11 @@ import android.view.MotionEvent;
 
 import com.qualcomm.ftccommon.SoundPlayer;
 import com.qualcomm.hardware.motors.NeveRest40Gearmotor;
+import com.qualcomm.robotcore.eventloop.opmode.Autonomous;
 import com.qualcomm.robotcore.eventloop.opmode.OpMode;
 import com.qualcomm.robotcore.eventloop.opmode.TeleOp;
 import com.qualcomm.robotcore.hardware.CRServo;
+import com.qualcomm.robotcore.hardware.ColorSensor;
 import com.qualcomm.robotcore.hardware.DcMotor;
 import com.qualcomm.robotcore.hardware.GyroSensor;
 import com.qualcomm.robotcore.hardware.Servo;
@@ -56,13 +58,14 @@ import com.qualcomm.robotcore.util.ElapsedTime;
  * Remove or comment out the @Disabled line to add this opmode to the Driver Station OpMode list
  */
 
-@TeleOp(name="Standard", group="Mecanum")
+@Autonomous(name="Auto1Red", group="Auto Red")
 
-public class Mecc extends OpMode
+public class Auto1Red extends OpMode
 {
     // Declare OpMode members.
     private ElapsedTime runtime = new ElapsedTime();
     private DcMotor leftFront, leftBack, rightFront, rightBack, slide, claw, arm;
+    ColorSensor color;
     //SLIDE MOTOR
     // 1120 Ticks/rev
     // d = 3cm, r = 1.5cm, C = 3pi cm
@@ -73,7 +76,6 @@ public class Mecc extends OpMode
     DcMotor[] drivetrain;
     private CRServo found;
     double num = 0;
-    boolean clawLock = false;
     String  sounds[] =  {"ss_alarm", "ss_bb8_down", "ss_bb8_up", "ss_darth_vader", "ss_fly_by",
             "ss_mf_fail", "ss_laser", "ss_laser_burst", "ss_light_saber", "ss_light_saber_long", "ss_light_saber_short",
             "ss_light_speed", "ss_mine", "ss_power_up", "ss_r2d2_up", "ss_roger_roger", "ss_siren", "ss_wookie" };
@@ -108,7 +110,7 @@ public class Mecc extends OpMode
         soundIndex = 0;
         soundID = -1;
         myApp = hardwareMap.appContext;
-
+        color = hardwareMap.get( ColorSensor.class, "color" );
         // create a sound parameter that holds the desired player parameters.
         params = new SoundPlayer.PlaySoundParams();
         params.loopControl = 0;
@@ -141,7 +143,7 @@ public class Mecc extends OpMode
             d.setMode(DcMotor.RunMode.RUN_USING_ENCODER);
             d.setZeroPowerBehavior(DcMotor.ZeroPowerBehavior.BRAKE);
 
-          }
+        }
         //gyro = hardwareMap.get( GyroSensor.class, "gyro" );
         //gyro.calibrate();
         playSound("ss_light_saber");
@@ -167,65 +169,17 @@ public class Mecc extends OpMode
      */
     @Override
     public void loop() {
-        double r = Math.hypot(-gamepad1.left_stick_x, gamepad1.left_stick_y);
-        double robotAngle = Math.atan2(gamepad1.left_stick_y, -gamepad1.left_stick_x) - Math.PI / 4;
-        double rightX = gamepad1.right_stick_x;
-        final double v1 = r * Math.cos(robotAngle) - rightX;
-        final double v2 = r * Math.sin(robotAngle) - rightX;
-        final double v3 = r * Math.sin(robotAngle) + rightX;
-        final double v4 = r * Math.cos(robotAngle) + rightX;
-        double[] vals = new double[]{v1,v2,v3,v4};
-        double max = 0;
-        for( double v : vals ){
-            if( Math.abs(v) > max ){
-                max = Math.abs(v);
+        if( color.red() > 200 ){
+            for( DcMotor d : drivetrain ){
+                d.setPower(0);
+            }
+        }else{
+            for( DcMotor d : drivetrain ){
+                d.setPower(0.5);
             }
         }
 
-        for( int i = 0; i < 4; i++ ) {
-            if (max > 1){
-                vals[i] /= max;
-            }
-            drivetrain[i].setPower(vals[i]);
-        }
-
-
-
-        if(gamepad1.dpad_down){
-            found.setDirection(DcMotor.Direction.FORWARD);
-            found.setPower(1);
-            playSound("ss_wookie");
-        }else if(gamepad1.dpad_up){
-            found.setDirection(DcMotor.Direction.REVERSE);
-            found.setPower(1);
-            playSound("ss_roger_roger");
-        }else{
-            found.setPower(0);
-        }
-
-        if( gamepad2.right_bumper ){
-            claw.setPower(0.5);
-            //playSound("ss_bb8_up");
-        }else if( gamepad2.right_trigger >= 0.5 ){
-            claw.setPower(-0.5);
-            //playSound("ss_bb8_down");
-        }else{
-            claw.setPower(0);
-        }
-        if( gamepad2.left_bumper ){
-            arm.setPower(-0.25);
-            //playSound("ss_r2d2_up");
-        }else if( gamepad2.left_trigger >= 0.5 ){
-            arm.setPower(0.25);
-            //playSound("ss_r2d2_down");
-        }else{
-            arm.setPower(0);
-        }
-        slide.setPower(-0.5*gamepad2.left_stick_y);
-
-        telemetry.addData("Status", "Run Time: " + runtime.toString());
-        telemetry.addData("y x", gamepad1.left_stick_y + " " + -gamepad1.left_stick_x);
-        telemetry.addData("lf rf lb rb",v1 + " " + v2 + " " + v3 + " " + v4);
+        telemetry.addData("RGB",color.red() + " " + color.green() + " " + color.blue() );
     }
 
     /*
@@ -238,7 +192,7 @@ public class Mecc extends OpMode
         leftBack.setPower(0);
         rightBack.setPower(0);
         found.setPower(0);
-        //playSound("ss_alarm");
+        playSound("ss_alarm");
         //  drive.stop();
     }
 
