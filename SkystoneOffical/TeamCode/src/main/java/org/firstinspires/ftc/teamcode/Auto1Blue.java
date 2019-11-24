@@ -61,11 +61,10 @@ import com.qualcomm.robotcore.util.ElapsedTime;
 @Autonomous(name="Auto1Blue", group="Auto Blue")
 
 public class Auto1Blue extends OpMode
-{
-    // Declare OpMode members.
+{// Declare OpMode members.
     private ElapsedTime runtime = new ElapsedTime();
-    private DcMotor leftFront, leftBack, rightFront, rightBack, slide, claw, arm;
-    ColorSensor color;
+    private Hardware robot = new Hardware();
+    //private DcMotor leftFront, leftBack, rightFront, rightBack, slide, claw, arm;
     //SLIDE MOTOR
     // 1120 Ticks/rev
     // d = 3cm, r = 1.5cm, C = 3pi cm
@@ -73,48 +72,26 @@ public class Auto1Blue extends OpMode
     // 32cm length
     // MAX ENCODER = (32/3pi * 1120) = 3802.7, 3802 ticks+
     //private GyroSensor gyro;
-    DcMotor[] drivetrain;
-    private CRServo found;
+    //DcMotor[] drivetrain;
+    //private CRServo found;
     double num = 0;
-    String  sounds[] =  {"ss_alarm", "ss_bb8_down", "ss_bb8_up", "ss_darth_vader", "ss_fly_by",
-            "ss_mf_fail", "ss_laser", "ss_laser_burst", "ss_light_saber", "ss_light_saber_long", "ss_light_saber_short",
-            "ss_light_speed", "ss_mine", "ss_power_up", "ss_r2d2_up", "ss_roger_roger", "ss_siren", "ss_wookie" };
-    boolean soundPlaying = false;
-    int soundIndex, soundID;
-    Context myApp;
-    SoundPlayer.PlaySoundParams params;
+    boolean clawLock = false;
+
+
+
     //public Drivetrain drive;
-    private void playSound(String sound){
-        if(!soundPlaying) {
-            if ((soundID = myApp.getResources().getIdentifier(sound, "raw", myApp.getPackageName())) != 0) {
 
-                // Signal that the sound is now playing.
-                soundPlaying = true;
-
-                // Start playing, and also Create a callback that will clear the playing flag when the sound is complete.
-                SoundPlayer.getInstance().startPlaying(myApp, soundID, params, null,
-                        new Runnable() {
-                            public void run() {
-                                soundPlaying = false;
-                            }
-                        });
-            }
-        }
-    }
     /*
      * Code to run ONCE when the driver hits INIT
      */
     @Override
     public void init() {
+        robot.init( hardwareMap, telemetry );
         telemetry.addData("Status", "Initialized");
-        soundIndex = 0;
-        soundID = -1;
-        myApp = hardwareMap.appContext;
-        color = hardwareMap.get( ColorSensor.class, "color" );
+
+
         // create a sound parameter that holds the desired player parameters.
-        params = new SoundPlayer.PlaySoundParams();
-        params.loopControl = 0;
-        params.waitForNonLoopingSoundsToFinish = true;
+
         // Initialize the hardware variables. Note that the strings used here as parameters
         // to 'get' must correspond to the names assigned during the robot configuration
         // step (using the FTC Robot Controller app on the phone).
@@ -126,27 +103,10 @@ public class Auto1Blue extends OpMode
 
         // Tell the driver that initialization is complete.
         telemetry.addData("Status", "Initialized");
-        leftFront = hardwareMap.get( DcMotor.class, "leftFront" );
-        rightFront = hardwareMap.get( DcMotor.class, "rightFront" );
-        leftBack = hardwareMap.get( DcMotor.class, "leftBack" );
-        rightBack = hardwareMap.get( DcMotor.class, "rightBack" );
-        drivetrain = new DcMotor[]{leftFront,leftBack,rightFront,rightBack};
-        found = hardwareMap.get( CRServo.class, "foundation");
-        claw = hardwareMap.get( DcMotor.class,"claw");
-        slide = hardwareMap.get( DcMotor.class, "slide");
-        arm = hardwareMap.get( DcMotor.class, "arm");
-        leftFront.setDirection(DcMotor.Direction.REVERSE);
-        leftBack.setDirection(DcMotor.Direction.REVERSE);
-        rightFront.setDirection(DcMotor.Direction.FORWARD);
-        rightBack.setDirection(DcMotor.Direction.FORWARD);
-        for( DcMotor d : drivetrain ){
-            d.setMode(DcMotor.RunMode.RUN_USING_ENCODER);
-            d.setZeroPowerBehavior(DcMotor.ZeroPowerBehavior.BRAKE);
 
-        }
         //gyro = hardwareMap.get( GyroSensor.class, "gyro" );
         //gyro.calibrate();
-        playSound("ss_light_saber");
+
 
     }
 
@@ -169,17 +129,13 @@ public class Auto1Blue extends OpMode
      */
     @Override
     public void loop() {
-        if( color.red() > 200 ){
-            for( DcMotor d : drivetrain ){
-                d.setPower(0);
-            }
+        if( robot.color.blue() > 200 ){
+            robot.mecanumDrive(0,0,0 );
         }else{
-            for( DcMotor d : drivetrain ){
-                d.setPower(0.5);
-            }
+            robot.mecanumDrive(0,0.5,0 );
         }
 
-        telemetry.addData("RGB",color.red() + " " + color.green() + " " + color.blue() );
+        telemetry.addData("RGB",robot.color.red() + " " + robot.color.green() + " " + robot.color.blue() );
     }
 
     /*
@@ -187,12 +143,7 @@ public class Auto1Blue extends OpMode
      */
     @Override
     public void stop() {
-        leftFront.setPower(0);
-        rightFront.setPower(0);
-        leftBack.setPower(0);
-        rightBack.setPower(0);
-        found.setPower(0);
-        playSound("ss_alarm");
+        robot.stop();
         //  drive.stop();
     }
 

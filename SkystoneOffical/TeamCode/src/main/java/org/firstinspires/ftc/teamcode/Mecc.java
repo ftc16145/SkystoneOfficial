@@ -62,7 +62,8 @@ public class Mecc extends OpMode
 {
     // Declare OpMode members.
     private ElapsedTime runtime = new ElapsedTime();
-    private DcMotor leftFront, leftBack, rightFront, rightBack, slide, claw, arm;
+    private Hardware robot = new Hardware();
+    //private DcMotor leftFront, leftBack, rightFront, rightBack, slide, claw, arm;
     //SLIDE MOTOR
     // 1120 Ticks/rev
     // d = 3cm, r = 1.5cm, C = 3pi cm
@@ -70,49 +71,26 @@ public class Mecc extends OpMode
     // 32cm length
     // MAX ENCODER = (32/3pi * 1120) = 3802.7, 3802 ticks+
     //private GyroSensor gyro;
-    DcMotor[] drivetrain;
-    private CRServo found;
+    //DcMotor[] drivetrain;
+    //private CRServo found;
     double num = 0;
     boolean clawLock = false;
-    String  sounds[] =  {"ss_alarm", "ss_bb8_down", "ss_bb8_up", "ss_darth_vader", "ss_fly_by",
-            "ss_mf_fail", "ss_laser", "ss_laser_burst", "ss_light_saber", "ss_light_saber_long", "ss_light_saber_short",
-            "ss_light_speed", "ss_mine", "ss_power_up", "ss_r2d2_up", "ss_roger_roger", "ss_siren", "ss_wookie" };
-    boolean soundPlaying = false;
-    int soundIndex, soundID;
-    Context myApp;
-    SoundPlayer.PlaySoundParams params;
+
+
+
     //public Drivetrain drive;
-    private void playSound(String sound){
-        if(!soundPlaying) {
-            if ((soundID = myApp.getResources().getIdentifier(sound, "raw", myApp.getPackageName())) != 0) {
 
-                // Signal that the sound is now playing.
-                soundPlaying = true;
-
-                // Start playing, and also Create a callback that will clear the playing flag when the sound is complete.
-                SoundPlayer.getInstance().startPlaying(myApp, soundID, params, null,
-                        new Runnable() {
-                            public void run() {
-                                soundPlaying = false;
-                            }
-                        });
-            }
-        }
-    }
     /*
      * Code to run ONCE when the driver hits INIT
      */
     @Override
     public void init() {
+        robot.init( hardwareMap, telemetry );
         telemetry.addData("Status", "Initialized");
-        soundIndex = 0;
-        soundID = -1;
-        myApp = hardwareMap.appContext;
+
 
         // create a sound parameter that holds the desired player parameters.
-        params = new SoundPlayer.PlaySoundParams();
-        params.loopControl = 0;
-        params.waitForNonLoopingSoundsToFinish = true;
+
         // Initialize the hardware variables. Note that the strings used here as parameters
         // to 'get' must correspond to the names assigned during the robot configuration
         // step (using the FTC Robot Controller app on the phone).
@@ -124,27 +102,10 @@ public class Mecc extends OpMode
 
         // Tell the driver that initialization is complete.
         telemetry.addData("Status", "Initialized");
-        leftFront = hardwareMap.get( DcMotor.class, "leftFront" );
-        rightFront = hardwareMap.get( DcMotor.class, "rightFront" );
-        leftBack = hardwareMap.get( DcMotor.class, "leftBack" );
-        rightBack = hardwareMap.get( DcMotor.class, "rightBack" );
-        drivetrain = new DcMotor[]{leftFront,leftBack,rightFront,rightBack};
-        found = hardwareMap.get( CRServo.class, "foundation");
-        claw = hardwareMap.get( DcMotor.class,"claw");
-        slide = hardwareMap.get( DcMotor.class, "slide");
-        arm = hardwareMap.get( DcMotor.class, "arm");
-        leftFront.setDirection(DcMotor.Direction.REVERSE);
-        leftBack.setDirection(DcMotor.Direction.REVERSE);
-        rightFront.setDirection(DcMotor.Direction.FORWARD);
-        rightBack.setDirection(DcMotor.Direction.FORWARD);
-        for( DcMotor d : drivetrain ){
-            d.setMode(DcMotor.RunMode.RUN_USING_ENCODER);
-            d.setZeroPowerBehavior(DcMotor.ZeroPowerBehavior.BRAKE);
 
-          }
         //gyro = hardwareMap.get( GyroSensor.class, "gyro" );
         //gyro.calibrate();
-        playSound("ss_light_saber");
+
 
     }
 
@@ -167,65 +128,13 @@ public class Mecc extends OpMode
      */
     @Override
     public void loop() {
-        double r = Math.hypot(-gamepad1.left_stick_x, gamepad1.left_stick_y);
-        double robotAngle = Math.atan2(gamepad1.left_stick_y, -gamepad1.left_stick_x) - Math.PI / 4;
-        double rightX = gamepad1.right_stick_x;
-        final double v1 = r * Math.cos(robotAngle) - rightX;
-        final double v2 = r * Math.sin(robotAngle) - rightX;
-        final double v3 = r * Math.sin(robotAngle) + rightX;
-        final double v4 = r * Math.cos(robotAngle) + rightX;
-        double[] vals = new double[]{v1,v2,v3,v4};
-        double max = 0;
-        for( double v : vals ){
-            if( Math.abs(v) > max ){
-                max = Math.abs(v);
-            }
-        }
-
-        for( int i = 0; i < 4; i++ ) {
-            if (max > 1){
-                vals[i] /= max;
-            }
-            drivetrain[i].setPower(vals[i]);
-        }
-
-
-
-        if(gamepad1.dpad_down){
-            found.setDirection(DcMotor.Direction.FORWARD);
-            found.setPower(1);
-            playSound("ss_wookie");
-        }else if(gamepad1.dpad_up){
-            found.setDirection(DcMotor.Direction.REVERSE);
-            found.setPower(1);
-            playSound("ss_roger_roger");
-        }else{
-            found.setPower(0);
-        }
-
-        if( gamepad2.right_bumper ){
-            claw.setPower(0.5);
-            //playSound("ss_bb8_up");
-        }else if( gamepad2.right_trigger >= 0.5 ){
-            claw.setPower(-0.5);
-            //playSound("ss_bb8_down");
-        }else{
-            claw.setPower(0);
-        }
-        if( gamepad2.left_bumper ){
-            arm.setPower(-0.25);
-            //playSound("ss_r2d2_up");
-        }else if( gamepad2.left_trigger >= 0.5 ){
-            arm.setPower(0.25);
-            //playSound("ss_r2d2_down");
-        }else{
-            arm.setPower(0);
-        }
-        slide.setPower(-0.5*gamepad2.left_stick_y);
-
+        robot.mecanumDrive( gamepad1.left_stick_x, gamepad1.left_stick_y, gamepad1.right_stick_x );
+        robot.foundationControls( gamepad1.dpad_down, gamepad1.dpad_up );
+        robot.armMechanismControls( gamepad2.right_bumper, gamepad2.right_trigger >= 0.5, gamepad2.left_bumper, gamepad2.left_trigger >= 0.5, -0.5*gamepad2.left_stick_y);
+        robot.visionTeleop();
         telemetry.addData("Status", "Run Time: " + runtime.toString());
-        telemetry.addData("y x", gamepad1.left_stick_y + " " + -gamepad1.left_stick_x);
-        telemetry.addData("lf rf lb rb",v1 + " " + v2 + " " + v3 + " " + v4);
+
+
     }
 
     /*
@@ -233,11 +142,7 @@ public class Mecc extends OpMode
      */
     @Override
     public void stop() {
-        leftFront.setPower(0);
-        rightFront.setPower(0);
-        leftBack.setPower(0);
-        rightBack.setPower(0);
-        found.setPower(0);
+        robot.stop();
         //playSound("ss_alarm");
         //  drive.stop();
     }
