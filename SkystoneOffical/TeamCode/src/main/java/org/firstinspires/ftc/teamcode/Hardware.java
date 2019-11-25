@@ -182,9 +182,11 @@ public class Hardware
     Orientation robotFieldRot;
     VectorF robotBlockPos;
     Orientation robotBlockRot;
+    // radians
 
-    public double heading;
-    double[] estimateXYZ;
+    // inches
+    double prevGyro;
+    double[] prevXYZH;
     /* Constructor */
     public Hardware(){
 
@@ -211,11 +213,11 @@ public class Hardware
         //return imu.getAngularOrientation(AxesReference.INTRINSIC, AxesOrder.ZYX, AngleUnit.RADIANS).firstAngle;
     //}
     /* Initialize standard Hardware interfaces */
-    public void init( HardwareMap ahwMap, Telemetry atel, double initHeading ) {
+    public void init( HardwareMap ahwMap, Telemetry atel, double initX, double initY, double initHeading ) {
         // Save reference to Hardware map
         hwMap = ahwMap;
         tel = atel;
-        heading = initHeading;
+        prevXYZH = new double[]{ initX, initY, 0,initHeading };
         leftFront = hwMap.get( DcMotor.class, "leftFront" );
         rightFront = hwMap.get( DcMotor.class, "rightFront" );
         leftBack = hwMap.get( DcMotor.class, "leftBack" );
@@ -289,8 +291,8 @@ public class Hardware
         tel.addData("lf lb rf rb",vals[0] + " " + vals[1] + " " + vals[2] + " " + vals[3]);
     }
     public void mecanumDriveFieldOrient( double x, double y, double rot ){
-        double newX = Math.cos( -heading )*x - Math.sin( -heading )*y;
-        double newY = Math.sin( -heading )*x + Math.cos( -heading )*y;
+        double newX = Math.cos( -prevXYZH[3] )*x - Math.sin( -prevXYZH[3] )*y;
+        double newY = Math.sin( -prevXYZH[3] )*x + Math.cos( -prevXYZH[3] )*y;
         mecanumDrive( newX, newY, rot );
     }
     public void foundationControls( boolean forward, boolean backward ){
@@ -546,7 +548,7 @@ public class Hardware
             if(notBlock){
                 robotFieldPos = translation;
                 robotFieldRot = rotation;
-                heading = rotation.thirdAngle;
+
             }else{
                 robotBlockPos = translation;
                 robotBlockRot = rotation;
@@ -555,14 +557,24 @@ public class Hardware
         else {
             tel.addData("Visible Target", "none");
         }
+        prevXYZH = xyzh();
+        prevGyro = imu.getAngularOrientation(AxesReference.INTRINSIC, AxesOrder.ZYX, AngleUnit.RADIANS).firstAngle;
         tel.update();
     }
     public double[] xyzh(){
         if(notBlock){
-            return new double[]{ robotFieldPos.get(0) / mmPerInch, robotFieldPos.get(1) / mmPerInch, robotFieldPos.get(2) / mmPerInch, robotBlockRot.thirdAngle };
+            return new double[]{ robotFieldPos.get(0) / mmPerInch, robotFieldPos.get(1) / mmPerInch, robotFieldPos.get(2) / mmPerInch, Math.toRadians(robotFieldRot.thirdAngle) };
         }else{
-            // not done
-            return new double[]{ 0 };
+            double lf = leftFront.getCurrentPosition()/280*(4*Math.PI);
+            double rf = rightFront.getCurrentPosition()/280*(4*Math.PI);
+            double lb = leftBack.getCurrentPosition()/280*(4*Math.PI);
+            double rb = rightBack.getCurrentPosition()/280*(4*Math.PI);
+            double predx = ((lf + rb) - (rf + lb))/4;
+            double predy = (lf + rf + lb +  rb)/4;
+            double da = prevXYZH[3] + (imu.getAngularOrientation(AxesReference.INTRINSIC, AxesOrder.ZYX, AngleUnit.RADIANS).firstAngle - prevGyro);
+            predx = Math.cos(-da)*predx - Math.sin(-da)*predy;
+            predy = Math.sin(-da)*predx + Math.cos(-da)*predy;
+            return new double[]{ predx, predy, prevXYZH[2], da };
         }
     }
  }
