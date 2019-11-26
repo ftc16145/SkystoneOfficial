@@ -114,6 +114,7 @@ public class Mecc extends OpMode
      */
     @Override
     public void init_loop() {
+        robot.visionTeleop();
     }
 
     /*
@@ -132,6 +133,11 @@ public class Mecc extends OpMode
         robot.foundationControls( gamepad1.dpad_down, gamepad1.dpad_up );
         robot.armMechanismControls( gamepad2.right_bumper, gamepad2.right_trigger >= 0.5, gamepad2.left_bumper, gamepad2.left_trigger >= 0.5, -0.5*gamepad2.left_stick_y);
         robot.visionTeleop();
+        if(gamepad1.a){
+            robot.setSearchMode(Hardware.searchMode.block);
+        }else if(gamepad1.b){
+            robot.setSearchMode(Hardware.searchMode.location);
+        }
         telemetry.addData("Status", "Run Time: " + runtime.toString());
 
 

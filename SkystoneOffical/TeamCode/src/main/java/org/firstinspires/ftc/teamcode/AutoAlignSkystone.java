@@ -29,19 +29,8 @@
 
 package org.firstinspires.ftc.teamcode;
 
-import android.content.Context;
-import android.view.MotionEvent;
-
-import com.qualcomm.ftccommon.SoundPlayer;
-import com.qualcomm.hardware.motors.NeveRest40Gearmotor;
 import com.qualcomm.robotcore.eventloop.opmode.Autonomous;
 import com.qualcomm.robotcore.eventloop.opmode.OpMode;
-import com.qualcomm.robotcore.eventloop.opmode.TeleOp;
-import com.qualcomm.robotcore.hardware.CRServo;
-import com.qualcomm.robotcore.hardware.ColorSensor;
-import com.qualcomm.robotcore.hardware.DcMotor;
-import com.qualcomm.robotcore.hardware.GyroSensor;
-import com.qualcomm.robotcore.hardware.Servo;
 import com.qualcomm.robotcore.util.ElapsedTime;
 
 /**
@@ -58,9 +47,9 @@ import com.qualcomm.robotcore.util.ElapsedTime;
  * Remove or comment out the @Disabled line to add this opmode to the Driver Station OpMode list
  */
 
-@Autonomous(name="Auto1Blue", group="Auto Blue")
+@Autonomous(name="AlignSkystone", group="Auto Blue")
 
-public class Auto1Blue extends OpMode
+public class AutoAlignSkystone extends OpMode
 {// Declare OpMode members.
     private ElapsedTime runtime = new ElapsedTime();
     private Hardware robot = new Hardware();
@@ -87,6 +76,7 @@ public class Auto1Blue extends OpMode
     @Override
     public void init() {
         robot.init( hardwareMap, telemetry,0,0,90 );
+        robot.setSearchMode( Hardware.searchMode.block );
         telemetry.addData("Status", "Initialized");
 
 
@@ -115,6 +105,7 @@ public class Auto1Blue extends OpMode
      */
     @Override
     public void init_loop() {
+        robot.visionTeleop();
     }
 
     /*
@@ -129,13 +120,21 @@ public class Auto1Blue extends OpMode
      */
     @Override
     public void loop() {
-        if( robot.color.blue() > 200 ){
-            robot.mecanumDrive(0,0,0 );
-        }else{
-            robot.mecanumDrive(0,0.5,0 );
+        // First, rotate the  robot to be parallel to the face of the block
+        if(robot.blockxyh()!=null) {
+            double[] block = robot.blockxyh();
+            double degree = Math.toDegrees(block[2]);
+            if( Math.abs(degree % 360) > 5 ){
+                if( Math.cos(block[2]) > 0 ){
+                    robot.mecanumDrive(0,0,-0.5 );
+                }else{
+                    robot.mecanumDrive(0,0,0.5 );
+                }
+            }else {
+                // End up 12 inches in front of the block
+                robot.mecanumDrive(-0.06 * robot.blockxyh()[0], -0.06 * (robot.blockxyh()[1] + 12), 0);
+            }
         }
-
-        telemetry.addData("RGB",robot.color.red() + " " + robot.color.green() + " " + robot.color.blue() );
     }
 
     /*
