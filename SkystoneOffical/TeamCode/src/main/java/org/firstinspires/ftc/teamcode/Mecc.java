@@ -85,7 +85,7 @@ public class Mecc extends OpMode
      */
     @Override
     public void init() {
-        robot.init( hardwareMap, telemetry,0,0,90 );
+        robot.init( hardwareMap, telemetry,0,0, true );
         telemetry.addData("Status", "Initialized");
 
 
@@ -101,7 +101,7 @@ public class Mecc extends OpMode
         //drive = Drivetrain.init( 0, 0, 0, Drivetrain.driveType.fourWheel );
 
         // Tell the driver that initialization is complete.
-        telemetry.addData("Status", "Initialized");
+        telemetry.addData("Status", "Initialized" );
 
         //gyro = hardwareMap.get( GyroSensor.class, "gyro" );
         //gyro.calibrate();
@@ -131,14 +131,14 @@ public class Mecc extends OpMode
     public void loop() {
         robot.mecanumDrive( gamepad1.left_stick_x, gamepad1.left_stick_y, gamepad1.right_stick_x );
         robot.foundationControls( gamepad1.dpad_down, gamepad1.dpad_up );
-        robot.armMechanismControls( gamepad2.right_bumper, gamepad2.right_trigger >= 0.5, gamepad2.left_bumper, gamepad2.left_trigger >= 0.5, -0.5*gamepad2.left_stick_y);
+        robot.armMechanismControls( gamepad2.right_bumper, gamepad2.right_trigger >= 0.5, gamepad2.left_bumper, gamepad2.left_trigger >= 0.5, -0.5*gamepad2.left_stick_y );
         robot.visionTeleop();
-        if(gamepad1.a){
-            robot.setSearchMode(Hardware.searchMode.block);
+        if( gamepad1.a ){
+            robot.setSearchMode( Hardware.searchMode.block );
         }else if(gamepad1.b){
-            robot.setSearchMode(Hardware.searchMode.location);
+            robot.setSearchMode( Hardware.searchMode.location );
         }
-        telemetry.addData("Status", "Run Time: " + runtime.toString());
+        telemetry.addData("Status", "Run Time: " + runtime.toString() );
 
 
     }

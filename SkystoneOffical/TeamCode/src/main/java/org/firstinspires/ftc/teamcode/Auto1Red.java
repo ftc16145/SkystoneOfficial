@@ -74,8 +74,6 @@ public class Auto1Red extends OpMode
     //private GyroSensor gyro;
     //DcMotor[] drivetrain;
     //private CRServo found;
-    double num = 0;
-    boolean clawLock = false;
 
 
 
@@ -86,8 +84,8 @@ public class Auto1Red extends OpMode
      */
     @Override
     public void init() {
-        robot.init( hardwareMap, telemetry,0,0,90 );
-        telemetry.addData("Status", "Initialized");
+        robot.init( hardwareMap, telemetry,0,0,true );
+        telemetry.addData("Status", "Initialized" );
 
 
         // create a sound parameter that holds the desired player parameters.
@@ -102,7 +100,7 @@ public class Auto1Red extends OpMode
         //drive = Drivetrain.init( 0, 0, 0, Drivetrain.driveType.fourWheel );
 
         // Tell the driver that initialization is complete.
-        telemetry.addData("Status", "Initialized");
+
 
         //gyro = hardwareMap.get( GyroSensor.class, "gyro" );
         //gyro.calibrate();
@@ -130,12 +128,12 @@ public class Auto1Red extends OpMode
     @Override
     public void loop() {
         if (robot.color.red() > 200) {
-            robot.mecanumDrive(0, 0, 0);
+            robot.mecanumDrive(0, 0, 0 );
         } else {
-            robot.mecanumDrive(0, 0.5, 0);
+            robot.mecanumDrive(0, 0.5, 0 );
         }
 
-        telemetry.addData("RGB", robot.color.red() + " " + robot.color.green() + " " + robot.color.blue());
+        telemetry.addData("RGB", robot.color.red() + " " + robot.color.green() + " " + robot.color.blue() );
     }
     /*
      * Code to run ONCE after the driver hits STOP

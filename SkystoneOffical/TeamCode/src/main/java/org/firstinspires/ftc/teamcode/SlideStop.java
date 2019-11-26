@@ -59,7 +59,7 @@ public class SlideStop extends OpMode
 {// Declare OpMode members.
     private ElapsedTime runtime = new ElapsedTime();
     Hardware robot = new Hardware();
-    double slideLimit = (28.5/(3*Math.PI)) * 288;
+    double slideLimit = ( 28.5 / ( 3  * Math.PI ) ) * 288;
     //SLIDE MOTOR
     // 1120 Ticks/rev
     // d = 3cm, r = 1.5cm, C = 3pi cm
@@ -71,9 +71,9 @@ public class SlideStop extends OpMode
      */
     @Override
     public void init() {
-        telemetry.addData("Status", "Initialized");
-        robot.init( hardwareMap, telemetry );
-        robot.slide.setMode(DcMotor.RunMode.RUN_TO_POSITION);
+        telemetry.addData("Status", "Initialized" );
+        robot.init( hardwareMap, telemetry,0,0,true );
+        robot.slide.setMode( DcMotor.RunMode.RUN_TO_POSITION );
         // Initialize the hardware variables. Note that the strings used here as parameters
         // to 'get' must correspond to the names assigned during the robot configuration
         // step (using the FTC Robot Controller app on the phone).
@@ -83,8 +83,7 @@ public class SlideStop extends OpMode
 
         //drive = Drivetrain.init( 0, 0, 0, Drivetrain.driveType.fourWheel );
 
-        // Tell the driver that initialization is complete.
-        telemetry.addData("Status", "Initialized");
+
 
         //gyro = hardwareMap.get( GyroSensor.class, "gyro" );
         //gyro.calibrate();
@@ -118,8 +117,8 @@ public class SlideStop extends OpMode
         * limit enc = (limit rev) * (enc/rev)
         * */
 
-        robot.slide.setTargetPosition((int)slideLimit);
-        robot.slide.setPower(0.5);
+        robot.slide.setTargetPosition( ( int )slideLimit );
+        robot.slide.setPower( 0.5 );
 
 
     }

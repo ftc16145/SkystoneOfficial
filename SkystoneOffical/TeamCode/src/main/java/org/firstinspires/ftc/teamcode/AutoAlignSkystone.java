@@ -63,8 +63,7 @@ public class AutoAlignSkystone extends OpMode
     //private GyroSensor gyro;
     //DcMotor[] drivetrain;
     //private CRServo found;
-    double num = 0;
-    boolean clawLock = false;
+
 
 
 
@@ -75,9 +74,9 @@ public class AutoAlignSkystone extends OpMode
      */
     @Override
     public void init() {
-        robot.init( hardwareMap, telemetry,0,0,90 );
+        robot.init( hardwareMap, telemetry,0,0,true );
         robot.setSearchMode( Hardware.searchMode.block );
-        telemetry.addData("Status", "Initialized");
+        telemetry.addData("Status", "Initialized" );
 
 
         // create a sound parameter that holds the desired player parameters.
@@ -92,7 +91,6 @@ public class AutoAlignSkystone extends OpMode
         //drive = Drivetrain.init( 0, 0, 0, Drivetrain.driveType.fourWheel );
 
         // Tell the driver that initialization is complete.
-        telemetry.addData("Status", "Initialized");
 
         //gyro = hardwareMap.get( GyroSensor.class, "gyro" );
         //gyro.calibrate();
@@ -121,18 +119,18 @@ public class AutoAlignSkystone extends OpMode
     @Override
     public void loop() {
         // First, rotate the  robot to be parallel to the face of the block
-        if(robot.blockxyh()!=null) {
+        if( robot.blockxyh() != null ) {
             double[] block = robot.blockxyh();
-            double degree = Math.toDegrees(block[2]);
-            if( Math.abs(degree % 360) > 5 ){
-                if( Math.cos(block[2]) > 0 ){
+            double degree = Math.toDegrees( block[ 2 ] );
+            if( Math.abs( degree % 360 ) > 5 ){
+                if( Math.cos( block[ 2 ] ) > 0 ){
                     robot.mecanumDrive(0,0,-0.5 );
                 }else{
                     robot.mecanumDrive(0,0,0.5 );
                 }
             }else {
                 // End up 12 inches in front of the block
-                robot.mecanumDrive(-0.06 * robot.blockxyh()[0], -0.06 * (robot.blockxyh()[1] + 12), 0);
+                robot.mecanumDrive(-0.06 * robot.blockxyh()[ 0 ], -0.06 * ( robot.blockxyh()[ 1 ] + 12 ), 0 );
             }
         }
     }

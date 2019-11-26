@@ -74,8 +74,7 @@ public class Auto1Blue extends OpMode
     //private GyroSensor gyro;
     //DcMotor[] drivetrain;
     //private CRServo found;
-    double num = 0;
-    boolean clawLock = false;
+
 
 
 
@@ -86,7 +85,7 @@ public class Auto1Blue extends OpMode
      */
     @Override
     public void init() {
-        robot.init( hardwareMap, telemetry,0,0,90 );
+        robot.init( hardwareMap, telemetry,0,0,false );
         telemetry.addData("Status", "Initialized");
 
 

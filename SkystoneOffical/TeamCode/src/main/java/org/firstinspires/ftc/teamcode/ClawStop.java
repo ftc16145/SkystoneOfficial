@@ -72,9 +72,9 @@ public class ClawStop extends OpMode
      */
     @Override
     public void init() {
-        telemetry.addData("Status", "Initialized");
-        robot.init( hardwareMap, telemetry );
-        robot.claw.setMode(DcMotor.RunMode.RUN_TO_POSITION);
+        telemetry.addData("Status", "Initialized" );
+        robot.init( hardwareMap, telemetry, 0,0, true );
+        robot.claw.setMode( DcMotor.RunMode.RUN_TO_POSITION );
         // Initialize the hardware variables. Note that the strings used here as parameters
         // to 'get' must correspond to the names assigned during the robot configuration
         // step (using the FTC Robot Controller app on the phone).
@@ -84,8 +84,6 @@ public class ClawStop extends OpMode
 
         //drive = Drivetrain.init( 0, 0, 0, Drivetrain.driveType.fourWheel );
 
-        // Tell the driver that initialization is complete.
-        telemetry.addData("Status", "Initialized");
 
         //gyro = hardwareMap.get( GyroSensor.class, "gyro" );
         //gyro.calibrate();
@@ -118,8 +116,8 @@ public class ClawStop extends OpMode
         * 133/360 = 0.3694444444...
         * 0.3694444... * 288 = 106.4 EXACT
         * */
-        robot.claw.setTargetPosition((int)clawLimit);
-        robot.claw.setPower(0.5);
+        robot.claw.setTargetPosition( ( int )clawLimit );
+        robot.claw.setPower( 0.5 );
     }
 
     /*

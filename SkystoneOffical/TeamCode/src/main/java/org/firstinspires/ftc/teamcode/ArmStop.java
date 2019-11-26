@@ -66,8 +66,8 @@ public class ArmStop extends OpMode
     @Override
     public void init() {
         telemetry.addData("Status", "Initialized");
-        robot.init( hardwareMap, telemetry );
-        robot.arm.setMode(DcMotor.RunMode.RUN_TO_POSITION);
+        robot.init( hardwareMap, telemetry, 0,0,true );
+        robot.arm.setMode( DcMotor.RunMode.RUN_TO_POSITION );
         // Initialize the hardware variables. Note that the strings used here as parameters
         // to 'get' must correspond to the names assigned during the robot configuration
         // step (using the FTC Robot Controller app on the phone).
@@ -77,8 +77,6 @@ public class ArmStop extends OpMode
 
         //drive = Drivetrain.init( 0, 0, 0, Drivetrain.driveType.fourWheel );
 
-        // Tell the driver that initialization is complete.
-        telemetry.addData("Status", "Initialized");
 
         //gyro = hardwareMap.get( GyroSensor.class, "gyro" );
         //gyro.calibrate();
@@ -112,8 +110,8 @@ public class ArmStop extends OpMode
         * max enc = 30/(rev circ) * (enc/rev)
         *
         * */
-        robot.arm.setTargetPosition(100);
-        robot.arm.setPower(0.5);
+        robot.arm.setTargetPosition( 100 );
+        robot.arm.setPower( 0.5 );
     }
 
     /*

@@ -120,7 +120,7 @@ public class Hardware
     private ElapsedTime period  = new ElapsedTime();
 
 
-    String  sounds[] =  {"ss_alarm", "ss_bb8_down", "ss_bb8_up", "ss_darth_vader", "ss_fly_by",
+    String  sounds[] =  { "ss_alarm", "ss_bb8_down", "ss_bb8_up", "ss_darth_vader", "ss_fly_by",
             "ss_mf_fail", "ss_laser", "ss_laser_burst", "ss_light_saber", "ss_light_saber_long", "ss_light_saber_short",
             "ss_light_speed", "ss_mine", "ss_power_up", "ss_r2d2_up", "ss_roger_roger", "ss_siren", "ss_wookie" };
     boolean soundPlaying = false;
@@ -156,7 +156,7 @@ public class Hardware
     // Since ImageTarget trackables use mm to specifiy their dimensions, we must use mm for all the physical dimension.
     // We will define some constants and conversions here
     private static final float mmPerInch        = 25.4f;
-    private static final float mmTargetHeight   = (6) * mmPerInch;          // the height of the center of the target image above the floor
+    private static final float mmTargetHeight   = ( 6 ) * mmPerInch;          // the height of the center of the target image above the floor
 
     // Constant for Stone Target
     private static final float stoneZ = 2.00f * mmPerInch;
@@ -177,11 +177,11 @@ public class Hardware
     private OpenGLMatrix blockLocator = null;
     private VuforiaLocalizer vuforia = null;
     private boolean targetVisible = false;
-    public boolean notBlock = false;
     private searchMode search = searchMode.block;
     private float phoneXRotate    = 0;
     private float phoneYRotate    = 0;
     private float phoneZRotate    = 0;
+    private boolean teamRed;
     int cameraMonitorViewId;
     VuforiaTrackables targetsSkyStone;
     List<VuforiaTrackable> allTrackables;
@@ -221,11 +221,13 @@ public class Hardware
         //return imu.getAngularOrientation(AxesReference.INTRINSIC, AxesOrder.ZYX, AngleUnit.RADIANS).firstAngle;
     //}
     /* Initialize standard Hardware interfaces */
-    public void init( HardwareMap ahwMap, Telemetry atel, double initX, double initY, double initHeading ) {
+    public void init( HardwareMap ahwMap, Telemetry atel, double initX, double initY, boolean onRed ) {
         // Save reference to Hardware map
         hwMap = ahwMap;
         tel = atel;
+        double initHeading = ( onRed ) ? 0 : Math.PI;
         prevXYH = new double[]{ initX, initY, initHeading };
+        teamRed = onRed;
 
         leftFront = hwMap.get( DcMotor.class, "leftFront" );
         rightFront = hwMap.get( DcMotor.class, "rightFront" );
@@ -236,17 +238,17 @@ public class Hardware
         rightFront.setDirection( DcMotor.Direction.FORWARD );
         rightBack.setDirection( DcMotor.Direction.FORWARD );
         for( DcMotor d : drivetrain ){
-            d.setMode(DcMotor.RunMode.RUN_USING_ENCODER);
-            d.setZeroPowerBehavior(DcMotor.ZeroPowerBehavior.BRAKE);
+            d.setMode( DcMotor.RunMode.RUN_USING_ENCODER );
+            d.setZeroPowerBehavior( DcMotor.ZeroPowerBehavior.BRAKE );
         }
-        drivetrain = new DcMotor[]{leftFront,leftBack,rightFront,rightBack};
+        drivetrain = new DcMotor[]{ leftFront,leftBack,rightFront,rightBack };
 
         claw = hwMap.get( DcMotor.class,"claw" );
         slide = hwMap.get( DcMotor.class, "slide" );
         arm = hwMap.get( DcMotor.class, "arm" );
-        claw.setZeroPowerBehavior(DcMotor.ZeroPowerBehavior.BRAKE);
-        slide.setZeroPowerBehavior(DcMotor.ZeroPowerBehavior.BRAKE);
-        arm.setZeroPowerBehavior(DcMotor.ZeroPowerBehavior.BRAKE);
+        claw.setZeroPowerBehavior( DcMotor.ZeroPowerBehavior.BRAKE );
+        slide.setZeroPowerBehavior( DcMotor.ZeroPowerBehavior.BRAKE );
+        arm.setZeroPowerBehavior( DcMotor.ZeroPowerBehavior.BRAKE );
 
         found = hwMap.get( CRServo.class, "foundation" );
 
@@ -267,7 +269,7 @@ public class Hardware
         params.loopControl = 0;
         params.waitForNonLoopingSoundsToFinish = true;
 
-        cameraMonitorViewId = hwMap.appContext.getResources().getIdentifier("cameraMonitorViewId", "id", hwMap.appContext.getPackageName());
+        cameraMonitorViewId = hwMap.appContext.getResources().getIdentifier("cameraMonitorViewId", "id", hwMap.appContext.getPackageName() );
         visionInit();
 
 
@@ -276,8 +278,8 @@ public class Hardware
     }
     public void mecanumDrive( double x, double y, double rot ){
         double nX,nY;
-        nX = (Math.abs(x-prevXPower) > 0.1) ? prevXPower + 0.1 : x;
-        nY = (Math.abs(y-prevYPower) > 0.1) ? prevYPower + 0.1 : y;
+        nX = ( Math.abs( x - prevXPower ) > 0.1 ) ? prevXPower + 0.1 : x;
+        nY = ( Math.abs( y - prevYPower ) > 0.1 ) ? prevYPower + 0.1 : y;
         double r = Math.hypot( -nX, nY );
         double robotAngle = Math.atan2( nY, -nX ) - Math.PI / 4;
         double rightX = rot;
@@ -288,30 +290,31 @@ public class Hardware
         double[] vals = new double[]{v1,v2,v3,v4};
         double max = 0;
         for( double v : vals ){
-            if( Math.abs(v) > max ){
-                max = Math.abs(v);
+            if( Math.abs( v ) > max ){
+                max = Math.abs( v );
             }
         }
 
         for( int i = 0; i < 4; i++ ) {
-            if (max > 1){
-                vals[i] /= max;
+            if ( max > 1 ){
+                vals[ i ] /= max;
             }
-            drivetrain[i].setPower(vals[i]);
+            drivetrain[ i ].setPower( vals[ i ] );
         }
 
-        tel.addData("lf lb rf rb",vals[0] + " " + vals[1] + " " + vals[2] + " " + vals[3]);
+        tel.addData("lf lb rf rb",vals[ 0 ] + " " + vals[ 1 ] + " " + vals[ 2 ] + " " + vals[ 3 ] );
     }
     public void mecanumDriveFieldOrient( double x, double y, double rot ){
-        double newX = Math.cos( -prevXYH[2] )*x - Math.sin( -prevXYH[2] )*y;
-        double newY = Math.sin( -prevXYH[2] )*x + Math.cos( -prevXYH[2] )*y;
+        double adjustAngle = ( teamRed ) ? -prevXYH[ 2 ] : -( prevXYH[ 2 ] + Math.PI );
+        double newX = Math.cos( adjustAngle ) * x - Math.sin( adjustAngle ) * y;
+        double newY = Math.sin( adjustAngle ) * x + Math.cos( adjustAngle ) * y;
         mecanumDrive( newX, newY, rot );
     }
     public void foundationControls( boolean forward, boolean backward ){
         if( forward ){
             found.setDirection( DcMotor.Direction.FORWARD );
             found.setPower( 1 );
-            playSound("ss_wookie");
+            playSound( "ss_wookie" );
         }else if( backward ){
             found.setDirection( DcMotor.Direction.REVERSE );
             found.setPower( 1 );
@@ -323,19 +326,15 @@ public class Hardware
     public void armMechanismControls( boolean clawOpen, boolean clawClose, boolean armUp, boolean armDown, double slideControl ){
         if( clawOpen ){
             claw.setPower( 0.8 );
-            //playSound("ss_bb8_up");
         }else if( clawClose ){
             claw.setPower( -0.8 );
-            //playSound("ss_bb8_down");
         }else{
             claw.setPower( 0 );
         }
         if( armUp ){
             arm.setPower( -0.25 );
-            //playSound("ss_r2d2_up");
         }else if( armDown ){
             arm.setPower( 0.25 );
-            //playSound("ss_r2d2_down");
         }else{
             arm.setPower( 0 );
         }
@@ -353,7 +352,7 @@ public class Hardware
         targetsSkyStone.deactivate();
     }
     public void visionInit(){
-        VuforiaLocalizer.Parameters parameters = new VuforiaLocalizer.Parameters(cameraMonitorViewId);
+        VuforiaLocalizer.Parameters parameters = new VuforiaLocalizer.Parameters( cameraMonitorViewId );
 
         // VuforiaLocalizer.Parameters parameters = new VuforiaLocalizer.Parameters();
 
@@ -361,47 +360,47 @@ public class Hardware
         parameters.cameraDirection   = CAMERA_CHOICE;
 
         //  Instantiate the Vuforia engine
-        vuforia = ClassFactory.getInstance().createVuforia(parameters);
+        vuforia = ClassFactory.getInstance().createVuforia( parameters );
 
         // Load the data sets for the trackable objects. These particular data
         // sets are stored in the 'assets' part of our application.
-        targetsSkyStone = this.vuforia.loadTrackablesFromAsset("Skystone");
+        targetsSkyStone = this.vuforia.loadTrackablesFromAsset("Skystone" );
 
-        VuforiaTrackable stoneTarget = targetsSkyStone.get(0);
+        VuforiaTrackable stoneTarget = targetsSkyStone.get( 0 );
         stoneTarget.setName("Stone Target");
-        VuforiaTrackable blueRearBridge = targetsSkyStone.get(1);
+        VuforiaTrackable blueRearBridge = targetsSkyStone.get( 1 );
         blueRearBridge.setName("Blue Rear Bridge");
-        VuforiaTrackable redRearBridge = targetsSkyStone.get(2);
+        VuforiaTrackable redRearBridge = targetsSkyStone.get( 2 );
         redRearBridge.setName("Red Rear Bridge");
-        VuforiaTrackable redFrontBridge = targetsSkyStone.get(3);
+        VuforiaTrackable redFrontBridge = targetsSkyStone.get( 3 );
         redFrontBridge.setName("Red Front Bridge");
-        VuforiaTrackable blueFrontBridge = targetsSkyStone.get(4);
+        VuforiaTrackable blueFrontBridge = targetsSkyStone.get( 4 );
         blueFrontBridge.setName("Blue Front Bridge");
-        VuforiaTrackable red1 = targetsSkyStone.get(5);
+        VuforiaTrackable red1 = targetsSkyStone.get( 5 );
         red1.setName("Red Perimeter 1");
-        VuforiaTrackable red2 = targetsSkyStone.get(6);
+        VuforiaTrackable red2 = targetsSkyStone.get( 6 );
         red2.setName("Red Perimeter 2");
-        VuforiaTrackable front1 = targetsSkyStone.get(7);
+        VuforiaTrackable front1 = targetsSkyStone.get( 7 );
         front1.setName("Front Perimeter 1");
-        VuforiaTrackable front2 = targetsSkyStone.get(8);
+        VuforiaTrackable front2 = targetsSkyStone.get( 8 );
         front2.setName("Front Perimeter 2");
-        VuforiaTrackable blue1 = targetsSkyStone.get(9);
+        VuforiaTrackable blue1 = targetsSkyStone.get( 9 );
         blue1.setName("Blue Perimeter 1");
-        VuforiaTrackable blue2 = targetsSkyStone.get(10);
+        VuforiaTrackable blue2 = targetsSkyStone.get( 10 );
         blue2.setName("Blue Perimeter 2");
-        VuforiaTrackable rear1 = targetsSkyStone.get(11);
+        VuforiaTrackable rear1 = targetsSkyStone.get( 11 );
         rear1.setName("Rear Perimeter 1");
-        VuforiaTrackable rear2 = targetsSkyStone.get(12);
+        VuforiaTrackable rear2 = targetsSkyStone.get( 12 );
         rear2.setName("Rear Perimeter 2");
 
         // For convenience, gather together all the trackable objects in one easily-iterable collection */
         allTrackables = new ArrayList<VuforiaTrackable>();
-        allTrackables.addAll(targetsSkyStone);
+        allTrackables.addAll( targetsSkyStone );
         locators = new ArrayList<VuforiaTrackable>();
-        locators.addAll(targetsSkyStone);
-        locators.remove(targetsSkyStone.get(0));
+        locators.addAll( targetsSkyStone );
+        locators.remove( targetsSkyStone.get( 0 ) );
         blocks = new ArrayList<VuforiaTrackable>();
-        blocks.add(targetsSkyStone.get(0));
+        blocks.add( targetsSkyStone.get( 0 ) );
 
         /**
          * In order for localization to work, we need to tell the system where each target is on the field, and
@@ -493,14 +492,14 @@ public class Hardware
         // The two examples below assume that the camera is facing forward out the front of the robot.
 
         // We need to rotate the camera around it's long axis to bring the correct camera forward.
-        if (CAMERA_CHOICE == BACK) {
+        if ( CAMERA_CHOICE == BACK ) {
             phoneYRotate = -90;
         } else {
             phoneYRotate = 90;
         }
 
         // Rotate the phone vertical about the X axis if it's in portrait mode
-        if (PHONE_IS_PORTRAIT) {
+        if ( PHONE_IS_PORTRAIT ) {
             phoneXRotate = 90 ;
         }
 
@@ -515,8 +514,8 @@ public class Hardware
                 .multiplied(Orientation.getRotationMatrix(EXTRINSIC, YZX, DEGREES, phoneYRotate, phoneZRotate, phoneXRotate));
 
         /**  Let all the trackable listeners know where the phone is.  */
-        for (VuforiaTrackable trackable : allTrackables) {
-            ((VuforiaTrackableDefaultListener) trackable.getListener()).setPhoneInformation(robotFromCamera, parameters.cameraDirection);
+        for ( VuforiaTrackable trackable : allTrackables ) {
+            ( ( VuforiaTrackableDefaultListener ) trackable.getListener() ).setPhoneInformation( robotFromCamera, parameters.cameraDirection );
         }
 
         // WARNING:
@@ -537,18 +536,18 @@ public class Hardware
     public void visionTeleop(){
         // check all the trackable targets to see which one (if any) is visible.
         targetVisible = false;
-        switch(search) {
+        switch( search ) {
             case location:
-            for (VuforiaTrackable trackable : locators) {
-                if (((VuforiaTrackableDefaultListener) trackable.getListener()).isVisible()) {
-                    tel.addData("Visible Target", trackable.getName());
+            for ( VuforiaTrackable trackable : locators ) {
+                if ( ( ( VuforiaTrackableDefaultListener ) trackable.getListener()).isVisible()) {
+                    tel.addData("Visible Target", trackable.getName() );
                     targetVisible = true;
 
 
                     // getUpdatedRobotLocation() will return null if no new information is available since
                     // the last time that call was made, or if the trackable is not currently visible.
-                    OpenGLMatrix robotLocationTransform = ((VuforiaTrackableDefaultListener) trackable.getListener()).getUpdatedRobotLocation();
-                    if (robotLocationTransform != null) {
+                    OpenGLMatrix robotLocationTransform = ( ( VuforiaTrackableDefaultListener ) trackable.getListener() ).getUpdatedRobotLocation();
+                    if ( robotLocationTransform != null ) {
                         lastLocation = robotLocationTransform;
                     }
                     break;
@@ -558,11 +557,11 @@ public class Hardware
                 // express position (translation) of robot in inches.
                 VectorF translation = lastLocation.getTranslation();
                 tel.addData("Pos (in)", "{X, Y, Z} = %.1f, %.1f, %.1f",
-                        translation.get(0) / mmPerInch, translation.get(1) / mmPerInch, translation.get(2) / mmPerInch);
+                        translation.get(0) / mmPerInch, translation.get(1) / mmPerInch, translation.get(2) / mmPerInch );
 
                 // express the rotation of the robot in degrees.
-                Orientation rotation = Orientation.getOrientation(lastLocation, EXTRINSIC, XYZ, DEGREES);
-                tel.addData("Rot (deg)", "{Roll, Pitch, Heading} = %.0f, %.0f, %.0f", rotation.firstAngle, rotation.secondAngle, rotation.thirdAngle);
+                Orientation rotation = Orientation.getOrientation( lastLocation, EXTRINSIC, XYZ, DEGREES );
+                tel.addData("Rot (deg)", "{Roll, Pitch, Heading} = %.0f, %.0f, %.0f", rotation.firstAngle, rotation.secondAngle, rotation.thirdAngle );
 
             }
             else {
@@ -570,33 +569,33 @@ public class Hardware
             }
                 break;
             case block:
-                for (VuforiaTrackable trackable : blocks) {
-                    if (((VuforiaTrackableDefaultListener) trackable.getListener()).isVisible()) {
-                        tel.addData("Visible Block", trackable.getName());
+                for ( VuforiaTrackable trackable : blocks ) {
+                    if ( ( ( VuforiaTrackableDefaultListener ) trackable.getListener() ).isVisible() ) {
+                        tel.addData("Visible Block", trackable.getName() );
                         targetVisible = true;
 
 
                         // getUpdatedRobotLocation() will return null if no new information is available since
                         // the last time that call was made, or if the trackable is not currently visible.
-                        OpenGLMatrix robotLocationTransform = ((VuforiaTrackableDefaultListener) trackable.getListener()).getUpdatedRobotLocation();
-                        if (robotLocationTransform != null) {
+                        OpenGLMatrix robotLocationTransform = ( ( VuforiaTrackableDefaultListener ) trackable.getListener() ).getUpdatedRobotLocation();
+                        if ( robotLocationTransform != null ) {
                             blockLocator = robotLocationTransform;
                         }
                         break;
                     }
                 }
-                if (targetVisible) {
+                if ( targetVisible ) {
                     // express position (translation) of robot in inches.
                     VectorF translation = blockLocator.getTranslation();
                     tel.addData("Pos (in)", "{X, Y, Z} = %.1f, %.1f, %.1f",
-                            translation.get(0) / mmPerInch, translation.get(1) / mmPerInch, translation.get(2) / mmPerInch);
+                            translation.get(0) / mmPerInch, translation.get(1) / mmPerInch, translation.get(2) / mmPerInch );
 
                     // express the rotation of the robot in degrees.
-                    Orientation rotation = Orientation.getOrientation(blockLocator, EXTRINSIC, XYZ, DEGREES);
-                    tel.addData("Rot (deg)", "{Roll, Pitch, Heading} = %.0f, %.0f, %.0f", rotation.firstAngle, rotation.secondAngle, rotation.thirdAngle);
+                    Orientation rotation = Orientation.getOrientation( blockLocator, EXTRINSIC, XYZ, DEGREES );
+                    tel.addData("Rot (deg)", "{Roll, Pitch, Heading} = %.0f, %.0f, %.0f", rotation.firstAngle, rotation.secondAngle, rotation.thirdAngle );
                 }
                 else {
-                    tel.addData("Block Target", "none");
+                    tel.addData("Block Target", "none" );
                 }
                 break;
         }
@@ -607,26 +606,26 @@ public class Hardware
         tel.update();
     }
     public double[] botxyh(){
-        if(search == searchMode.location){
+        if( search == searchMode.location && targetVisible ){
             return new double[]{ lastLocation.getTranslation().get(0) / mmPerInch, lastLocation.getTranslation().get(1) / mmPerInch, Orientation.getOrientation(lastLocation, EXTRINSIC, XYZ, RADIANS).thirdAngle };
         }else{
-            double lf = leftFront.getCurrentPosition()/280*(4*Math.PI);
-            double rf = rightFront.getCurrentPosition()/280*(4*Math.PI);
-            double lb = leftBack.getCurrentPosition()/280*(4*Math.PI);
-            double rb = rightBack.getCurrentPosition()/280*(4*Math.PI);
-            double predx = ((lf + rb) - (rf + lb))/4;
-            double predy = (lf + rf + lb +  rb)/4;
-            double da = prevXYH[2] + (imu.getAngularOrientation(AxesReference.INTRINSIC, AxesOrder.ZYX, AngleUnit.RADIANS).firstAngle - prevGyro);
-            predx = Math.cos(-da)*predx - Math.sin(-da)*predy;
-            predy = Math.sin(-da)*predx + Math.cos(-da)*predy;
+            double lf = leftFront.getCurrentPosition()  / 280 * ( 4 * Math.PI );
+            double rf = rightFront.getCurrentPosition() / 280 * ( 4 * Math.PI );
+            double lb = leftBack.getCurrentPosition()   / 280 * ( 4 * Math.PI );
+            double rb = rightBack.getCurrentPosition()  / 280 * ( 4 * Math.PI );
+            double predx = ( ( lf + rb ) - ( rf + lb ) ) / 4;
+            double predy = ( lf + rf + lb +  rb ) / 4;
+            double da = prevXYH[ 2 ] + ( imu.getAngularOrientation( AxesReference.INTRINSIC, AxesOrder.ZYX, AngleUnit.RADIANS ).firstAngle - prevGyro );
+            predx = Math.cos( -da ) * predx - Math.sin( -da ) * predy;
+            predy = Math.sin( -da ) * predx + Math.cos( -da ) * predy;
             return new double[]{ predx, predy, da };
         }
     }
     public double[] blockxyh(){
-        if(notBlock) {
+        if( search == searchMode.location ) {
             return null;
         }else{
-            return new double[]{ blockLocator.getTranslation().get(0) / mmPerInch, blockLocator.getTranslation().get(1) / mmPerInch, Orientation.getOrientation(blockLocator, EXTRINSIC, XYZ, RADIANS).thirdAngle };
+            return new double[]{ blockLocator.getTranslation().get( 0 ) / mmPerInch, blockLocator.getTranslation().get( 1 ) / mmPerInch, Orientation.getOrientation( blockLocator, EXTRINSIC, XYZ, RADIANS ).thirdAngle };
         }
     }
  }
