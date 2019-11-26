@@ -27,11 +27,22 @@
  * OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
 
-package org.firstinspires.ftc.teamcode;
+package org.firstinspires.ftc.teamcode.TeleOp;
 
-import com.qualcomm.robotcore.eventloop.opmode.Autonomous;
+import android.content.Context;
+import android.view.MotionEvent;
+
+import com.qualcomm.ftccommon.SoundPlayer;
+import com.qualcomm.hardware.motors.NeveRest40Gearmotor;
 import com.qualcomm.robotcore.eventloop.opmode.OpMode;
+import com.qualcomm.robotcore.eventloop.opmode.TeleOp;
+import com.qualcomm.robotcore.hardware.CRServo;
+import com.qualcomm.robotcore.hardware.DcMotor;
+import com.qualcomm.robotcore.hardware.GyroSensor;
+import com.qualcomm.robotcore.hardware.Servo;
 import com.qualcomm.robotcore.util.ElapsedTime;
+
+import org.firstinspires.ftc.teamcode.Hardware;
 
 /**
  * This file contains an example of an iterative (Non-Linear) "OpMode".
@@ -47,10 +58,11 @@ import com.qualcomm.robotcore.util.ElapsedTime;
  * Remove or comment out the @Disabled line to add this opmode to the Driver Station OpMode list
  */
 
-@Autonomous(name="AlignSkystone", group="Auto Blue")
+@TeleOp(name="TeleOp", group="Mecanum")
 
-public class AutoAlignSkystone extends OpMode
-{// Declare OpMode members.
+public class MeccRed extends OpMode
+{
+    // Declare OpMode members.
     private ElapsedTime runtime = new ElapsedTime();
     private Hardware robot = new Hardware();
     //private DcMotor leftFront, leftBack, rightFront, rightBack, slide, claw, arm;
@@ -63,7 +75,8 @@ public class AutoAlignSkystone extends OpMode
     //private GyroSensor gyro;
     //DcMotor[] drivetrain;
     //private CRServo found;
-
+    double num = 0;
+    boolean clawLock = false;
 
 
 
@@ -74,9 +87,8 @@ public class AutoAlignSkystone extends OpMode
      */
     @Override
     public void init() {
-        robot.init( hardwareMap, telemetry,0,0,true );
-        robot.setSearchMode( Hardware.searchMode.block );
-        telemetry.addData("Status", "Initialized" );
+        robot.init( hardwareMap, telemetry,0,0, true );
+        telemetry.addData("Status", "Initialized");
 
 
         // create a sound parameter that holds the desired player parameters.
@@ -91,6 +103,7 @@ public class AutoAlignSkystone extends OpMode
         //drive = Drivetrain.init( 0, 0, 0, Drivetrain.driveType.fourWheel );
 
         // Tell the driver that initialization is complete.
+        telemetry.addData("Status", "Initialized" );
 
         //gyro = hardwareMap.get( GyroSensor.class, "gyro" );
         //gyro.calibrate();
@@ -118,21 +131,18 @@ public class AutoAlignSkystone extends OpMode
      */
     @Override
     public void loop() {
-        // First, rotate the  robot to be parallel to the face of the block
-        if( robot.blockxyh() != null ) {
-            double[] block = robot.blockxyh();
-            double degree = Math.toDegrees( block[ 2 ] );
-            if( Math.abs( degree % 360 ) > 5 ){
-                if( Math.cos( block[ 2 ] ) > 0 ){
-                    robot.mecanumDrive(0,0,-0.5 );
-                }else{
-                    robot.mecanumDrive(0,0,0.5 );
-                }
-            }else {
-                // End up 12 inches in front of the block
-                robot.mecanumDrive(-0.06 * robot.blockxyh()[ 0 ], -0.06 * ( robot.blockxyh()[ 1 ] + 12 ), 0 );
-            }
+        robot.mecanumDrive( gamepad1.left_stick_x, gamepad1.left_stick_y, gamepad1.right_stick_x );
+        robot.foundationControls( gamepad1.dpad_down, gamepad1.dpad_up );
+        robot.armMechanismControls( gamepad2.right_bumper, gamepad2.right_trigger >= 0.5, gamepad2.left_bumper, gamepad2.left_trigger >= 0.5, -0.5*gamepad2.left_stick_y );
+        robot.visionTeleop();
+        if( gamepad1.a ){
+            robot.setSearchMode( Hardware.searchMode.block );
+        }else if(gamepad1.b){
+            robot.setSearchMode( Hardware.searchMode.location );
         }
+        telemetry.addData("Status", "Run Time: " + runtime.toString() );
+
+
     }
 
     /*
@@ -141,6 +151,7 @@ public class AutoAlignSkystone extends OpMode
     @Override
     public void stop() {
         robot.stop();
+        //playSound("ss_alarm");
         //  drive.stop();
     }
 

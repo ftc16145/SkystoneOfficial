@@ -27,7 +27,7 @@
  * OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
 
-package org.firstinspires.ftc.teamcode;
+package org.firstinspires.ftc.teamcode.Auton;
 
 import android.content.Context;
 import android.view.MotionEvent;
@@ -44,6 +44,8 @@ import com.qualcomm.robotcore.hardware.GyroSensor;
 import com.qualcomm.robotcore.hardware.Servo;
 import com.qualcomm.robotcore.util.ElapsedTime;
 
+import org.firstinspires.ftc.teamcode.Hardware;
+
 /**
  * This file contains an example of an iterative (Non-Linear) "OpMode".
  * An OpMode is a 'program' that runs in either the autonomous or the teleop period of an FTC match.
@@ -58,9 +60,9 @@ import com.qualcomm.robotcore.util.ElapsedTime;
  * Remove or comment out the @Disabled line to add this opmode to the Driver Station OpMode list
  */
 
-@Autonomous(name="Auto1Blue", group="Auto Blue")
+@Autonomous(name="Auto1Red", group="Auto Red")
 
-public class Auto1Blue extends OpMode
+public class Auto1Red extends OpMode
 {// Declare OpMode members.
     private ElapsedTime runtime = new ElapsedTime();
     private Hardware robot = new Hardware();
@@ -77,7 +79,6 @@ public class Auto1Blue extends OpMode
 
 
 
-
     //public Drivetrain drive;
 
     /*
@@ -85,8 +86,8 @@ public class Auto1Blue extends OpMode
      */
     @Override
     public void init() {
-        robot.init( hardwareMap, telemetry,0,0,false );
-        telemetry.addData("Status", "Initialized");
+        robot.init( hardwareMap, telemetry,0,0,true );
+        telemetry.addData("Status", "Initialized" );
 
 
         // create a sound parameter that holds the desired player parameters.
@@ -101,7 +102,7 @@ public class Auto1Blue extends OpMode
         //drive = Drivetrain.init( 0, 0, 0, Drivetrain.driveType.fourWheel );
 
         // Tell the driver that initialization is complete.
-        telemetry.addData("Status", "Initialized");
+
 
         //gyro = hardwareMap.get( GyroSensor.class, "gyro" );
         //gyro.calibrate();
@@ -128,15 +129,14 @@ public class Auto1Blue extends OpMode
      */
     @Override
     public void loop() {
-        if( robot.color.blue() > 200 ){
-            robot.mecanumDrive(0,0,0 );
-        }else{
-            robot.mecanumDrive(0,0.5,0 );
+        if (robot.color.red() > 200) {
+            robot.mecanumDrive(0, 0, 0 );
+        } else {
+            robot.mecanumDrive(0, 0.5, 0 );
         }
 
-        telemetry.addData("RGB",robot.color.red() + " " + robot.color.green() + " " + robot.color.blue() );
+        telemetry.addData("RGB", robot.color.red() + " " + robot.color.green() + " " + robot.color.blue() );
     }
-
     /*
      * Code to run ONCE after the driver hits STOP
      */
