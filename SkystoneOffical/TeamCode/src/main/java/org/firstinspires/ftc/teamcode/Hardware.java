@@ -285,18 +285,18 @@ public class Hardware {
 
     public void mecanumDrive( double x, double y, double rot ) {
         double nX, nY;
-        nX = (Math.abs(x - prevXPower) > 0.1) ? prevXPower + Math.signum( x - prevXPower ) * 0.1 : x;
-        nY = (Math.abs(y - prevYPower) > 0.1) ? prevYPower + Math.signum( y - prevYPower ) * 0.1 : y;
+        nX = ( Math.abs( x - prevXPower ) > 0.1 ) ? prevXPower + Math.signum( x - prevXPower ) * 0.1 : x;
+        nY = ( Math.abs( y - prevYPower ) > 0.1 ) ? prevYPower + Math.signum( y - prevYPower ) * 0.1 : y;
         double r = Math.hypot( -nX, nY );
         double robotAngle = Math.atan2( nY, -nX ) - Math.PI / 4;
         double rightX = rot;
-        final double v1 = r * Math.cos(robotAngle) - rightX;
-        final double v2 = r * Math.sin(robotAngle) - rightX;
-        final double v3 = r * Math.sin(robotAngle) + rightX;
-        final double v4 = r * Math.cos(robotAngle) + rightX;
-        double[] vals = new double[]{v1, v2, v3, v4};
+        final double v1 = r * Math.cos( robotAngle ) - rightX;
+        final double v2 = r * Math.sin( robotAngle ) - rightX;
+        final double v3 = r * Math.sin( robotAngle ) + rightX;
+        final double v4 = r * Math.cos( robotAngle ) + rightX;
+        double[] vals = new double[]{ v1, v2, v3, v4 };
         double max = 0;
-        for (int i = 0; i < 4; i++) {
+        for ( int i = 0; i < 4; i++ ) {
             drivetrain[ i ].setPower( vals[ i ] );
         }
 
