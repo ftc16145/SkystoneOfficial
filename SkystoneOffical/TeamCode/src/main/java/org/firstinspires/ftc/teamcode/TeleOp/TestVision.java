@@ -29,6 +29,7 @@
 
 package org.firstinspires.ftc.teamcode.TeleOp;
 
+import com.qualcomm.robotcore.eventloop.opmode.Disabled;
 import com.qualcomm.robotcore.eventloop.opmode.OpMode;
 import com.qualcomm.robotcore.eventloop.opmode.TeleOp;
 import com.qualcomm.robotcore.util.ElapsedTime;
@@ -50,7 +51,7 @@ import org.firstinspires.ftc.teamcode.TESTHardware;
  */
 
 @TeleOp(name="TestVision", group="Mecanum")
-
+@Disabled
 public class TestVision extends OpMode
 {
     // Declare OpMode members.

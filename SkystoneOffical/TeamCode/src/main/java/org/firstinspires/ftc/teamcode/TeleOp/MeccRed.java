@@ -87,7 +87,7 @@ public class MeccRed extends OpMode
      */
     @Override
     public void init() {
-        robot.init( hardwareMap, telemetry,0,0, true );
+        robot.init( hardwareMap, telemetry,0,0, true,false );
         telemetry.addData("Status", "Initialized");
 
 
@@ -132,7 +132,7 @@ public class MeccRed extends OpMode
      */
     @Override
     public void loop() {
-        robot.mecanumDrive( -gamepad1.left_stick_x, -gamepad1.left_stick_y, gamepad1.right_stick_x );
+        robot.mecanumDrive( gamepad1.left_stick_x, gamepad1.left_stick_y, gamepad1.right_stick_x );
         robot.foundationControls( gamepad1.dpad_down, gamepad1.dpad_up );
         double slider = 0;
         if(gamepad1.y){
