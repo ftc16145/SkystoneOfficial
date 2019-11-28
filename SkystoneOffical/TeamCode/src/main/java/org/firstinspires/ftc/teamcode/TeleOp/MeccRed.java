@@ -135,9 +135,9 @@ public class MeccRed extends OpMode
         robot.mecanumDrive( gamepad1.left_stick_x, gamepad1.left_stick_y, gamepad1.right_stick_x );
         robot.foundationControls( gamepad1.dpad_down, gamepad1.dpad_up );
         double slider = 0;
-        if(gamepad1.y){
+        if( gamepad1.y ){
             slider=0.5;
-        }else if(gamepad1.a){
+        }else if( gamepad1.a ){
             slider=-0.5;
         }else{
             slider=0;
@@ -146,7 +146,7 @@ public class MeccRed extends OpMode
         //robot.visionTeleop();
         if( gamepad1.a ){
             robot.setSearchMode( Hardware.searchMode.block );
-        }else if(gamepad1.b){
+        }else if( gamepad1.b ){
             robot.setSearchMode( Hardware.searchMode.location );
         }
         telemetry.addData("Status", "Run Time: " + runtime.toString() );

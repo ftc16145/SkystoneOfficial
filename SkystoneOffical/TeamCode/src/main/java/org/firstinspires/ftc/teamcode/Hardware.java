@@ -119,9 +119,9 @@ public class Hardware {
     private ElapsedTime period = new ElapsedTime();
 
 
-    String sounds[] = {"ss_alarm", "ss_bb8_down", "ss_bb8_up", "ss_darth_vader", "ss_fly_by",
+    String sounds[] = { "ss_alarm", "ss_bb8_down", "ss_bb8_up", "ss_darth_vader", "ss_fly_by",
             "ss_mf_fail", "ss_laser", "ss_laser_burst", "ss_light_saber", "ss_light_saber_long", "ss_light_saber_short",
-            "ss_light_speed", "ss_mine", "ss_power_up", "ss_r2d2_up", "ss_roger_roger", "ss_siren", "ss_wookie"};
+            "ss_light_speed", "ss_mine", "ss_power_up", "ss_r2d2_up", "ss_roger_roger", "ss_siren", "ss_wookie" };
     boolean soundPlaying = false;
     int soundIndex, soundID;
     SoundPlayer.PlaySoundParams params;
@@ -155,7 +155,7 @@ public class Hardware {
     // Since ImageTarget trackables use mm to specifiy their dimensions, we must use mm for all the physical dimension.
     // We will define some constants and conversions here
     private static final float mmPerInch = 25.4f;
-    private static final float mmTargetHeight = (6) * mmPerInch;          // the height of the center of the target image above the floor
+    private static final float mmTargetHeight = ( 6 ) * mmPerInch;          // the height of the center of the target image above the floor
 
     // Constant for Stone Target
     private static final float stoneZ = 2.00f * mmPerInch;
@@ -197,24 +197,24 @@ public class Hardware {
 
     }
 
-    public void setSearchMode(searchMode s) {
+    public void setSearchMode( searchMode s ) {
         search = s;
     }
 
-    public void playSound(String sound) {
+    public void playSound( String sound ) {
         if (!soundPlaying) {
-            if ((soundID = myApp.getResources().getIdentifier(sound, "raw", myApp.getPackageName())) != 0) {
+            if ( ( soundID = myApp.getResources().getIdentifier( sound, "raw", myApp.getPackageName() ) ) != 0 ) {
 
                 // Signal that the sound is now playing.
                 soundPlaying = true;
 
                 // Start playing, and also Create a callback that will clear the playing flag when the sound is complete.
-                SoundPlayer.getInstance().startPlaying(myApp, soundID, params, null,
+                SoundPlayer.getInstance().startPlaying( myApp, soundID, params, null,
                         new Runnable() {
                             public void run() {
                                 soundPlaying = false;
                             }
-                        });
+                        } );
             }
         }
     }
@@ -224,41 +224,42 @@ public class Hardware {
     //return imu.getAngularOrientation(AxesReference.INTRINSIC, AxesOrder.ZYX, AngleUnit.RADIANS).firstAngle;
     //}
     /* Initialize standard Hardware interfaces */
-    public void init(HardwareMap ahwMap, Telemetry atel, double initX, double initY, boolean onRed, boolean useVision) {
+    public void init( HardwareMap ahwMap, Telemetry atel, double initX, double initY, boolean onRed, boolean useVision ) {
         // Save reference to Hardware map
         hwMap = ahwMap;
         tel = atel;
-        double initHeading = (onRed) ? 0 : Math.PI;
-        prevXYH = new double[]{initX, initY, initHeading};
+        double initHeading = ( onRed ) ? 0 : Math.PI;
+        prevXYH = new double[]{ initX, initY, initHeading };
+        prevGyro = initHeading;
         teamRed = onRed;
         vision = useVision;
-        leftFront = hwMap.get(DcMotor.class, "leftFront");
-        rightFront = hwMap.get(DcMotor.class, "rightFront");
-        leftBack = hwMap.get(DcMotor.class, "leftBack");
-        rightBack = hwMap.get(DcMotor.class, "rightBack");
-        leftFront.setDirection(DcMotor.Direction.FORWARD);
-        leftBack.setDirection(DcMotor.Direction.FORWARD);
-        rightFront.setDirection(DcMotor.Direction.REVERSE);
-        rightBack.setDirection(DcMotor.Direction.REVERSE);
-        drivetrain = new DcMotor[]{leftFront, leftBack, rightFront, rightBack};
-        for (DcMotor d : drivetrain) {
-            d.setMode(DcMotor.RunMode.RUN_USING_ENCODER);
-            d.setZeroPowerBehavior(DcMotor.ZeroPowerBehavior.BRAKE);
+        leftFront = hwMap.get( DcMotor.class, "leftFront" );
+        rightFront = hwMap.get( DcMotor.class, "rightFront" );
+        leftBack = hwMap.get( DcMotor.class, "leftBack" );
+        rightBack = hwMap.get( DcMotor.class, "rightBack" );
+        leftFront.setDirection( DcMotor.Direction.FORWARD );
+        leftBack.setDirection( DcMotor.Direction.FORWARD );
+        rightFront.setDirection( DcMotor.Direction.REVERSE );
+        rightBack.setDirection( DcMotor.Direction.REVERSE );
+        drivetrain = new DcMotor[]{ leftFront, leftBack, rightFront, rightBack };
+        for ( DcMotor d : drivetrain ) {
+            d.setMode( DcMotor.RunMode.RUN_USING_ENCODER );
+            d.setZeroPowerBehavior( DcMotor.ZeroPowerBehavior.BRAKE );
         }
 
 
-        claw = hwMap.get(DcMotor.class, "claw");
-        slide = hwMap.get(DcMotor.class, "slide");
-        arm = hwMap.get(DcMotor.class, "arm");
-        claw.setZeroPowerBehavior(DcMotor.ZeroPowerBehavior.BRAKE);
-        slide.setZeroPowerBehavior(DcMotor.ZeroPowerBehavior.BRAKE);
-        arm.setZeroPowerBehavior(DcMotor.ZeroPowerBehavior.BRAKE);
+        claw = hwMap.get( DcMotor.class, "claw" );
+        slide = hwMap.get( DcMotor.class, "slide" );
+        arm = hwMap.get( DcMotor.class, "arm" );
+        claw.setZeroPowerBehavior( DcMotor.ZeroPowerBehavior.BRAKE );
+        slide.setZeroPowerBehavior( DcMotor.ZeroPowerBehavior.BRAKE );
+        arm.setZeroPowerBehavior( DcMotor.ZeroPowerBehavior.BRAKE );
 
-        found = hwMap.get(CRServo.class, "foundation");
+        found = hwMap.get( CRServo.class, "foundation" );
 
-        color = hwMap.get(ColorSensor.class, "color");
+        color = hwMap.get( ColorSensor.class, "color" );
 
-        imu = hwMap.get(BNO055IMU.class, "imu");
+        imu = hwMap.get( BNO055IMU.class, "imu" );
         parameters = new BNO055IMU.Parameters();
         parameters.angleUnit = BNO055IMU.AngleUnit.RADIANS;
         parameters.calibrationDataFile = "BNO055IMUCalibration.json";
@@ -273,21 +274,21 @@ public class Hardware {
         params.loopControl = 0;
         params.waitForNonLoopingSoundsToFinish = true;
 
-        cameraMonitorViewId = hwMap.appContext.getResources().getIdentifier("cameraMonitorViewId", "id", hwMap.appContext.getPackageName());
-        if (vision) {
+        cameraMonitorViewId = hwMap.appContext.getResources().getIdentifier("cameraMonitorViewId", "id", hwMap.appContext.getPackageName() );
+        if ( vision ) {
             visionInit();
         }
 
 
-        playSound("ss_light_saber");
+        playSound( "ss_light_saber" );
     }
 
-    public void mecanumDrive(double x, double y, double rot) {
+    public void mecanumDrive( double x, double y, double rot ) {
         double nX, nY;
-        nX = (Math.abs(x - prevXPower) > 0.1) ? prevXPower + Math.signum(x - prevXPower) * 0.1 : x;
-        nY = (Math.abs(y - prevYPower) > 0.1) ? prevYPower + Math.signum(y - prevYPower) * 0.1 : y;
-        double r = Math.hypot(-nX, nY);
-        double robotAngle = Math.atan2(nY, -nX) - Math.PI / 4;
+        nX = (Math.abs(x - prevXPower) > 0.1) ? prevXPower + Math.signum( x - prevXPower ) * 0.1 : x;
+        nY = (Math.abs(y - prevYPower) > 0.1) ? prevYPower + Math.signum( y - prevYPower ) * 0.1 : y;
+        double r = Math.hypot( -nX, nY );
+        double robotAngle = Math.atan2( nY, -nX ) - Math.PI / 4;
         double rightX = rot;
         final double v1 = r * Math.cos(robotAngle) - rightX;
         final double v2 = r * Math.sin(robotAngle) - rightX;
@@ -295,66 +296,57 @@ public class Hardware {
         final double v4 = r * Math.cos(robotAngle) + rightX;
         double[] vals = new double[]{v1, v2, v3, v4};
         double max = 0;
-        for (double v : vals) {
-            if (Math.abs(v) > max) {
-                max = Math.abs(v);
-            }
-        }
-
         for (int i = 0; i < 4; i++) {
-            if (max > 1) {
-                vals[i] /= max;
-            }
-            drivetrain[i].setPower(vals[i]);
+            drivetrain[ i ].setPower( vals[ i ] );
         }
 
-        tel.addData("lf lb rf rb", vals[0] + " " + vals[1] + " " + vals[2] + " " + vals[3]);
+        tel.addData("lf lb rf rb", vals[ 0 ] + " " + vals[ 1 ] + " " + vals[ 2 ] + " " + vals[ 3 ]);
         prevXPower = nX;
         prevYPower = nY;
     }
 
-    public void mecanumDriveFieldOrient(double x, double y, double rot) {
+    public void mecanumDriveFieldOrient( double x, double y, double rot ) {
         double adjustAngle;
-        if (vision) {
-            adjustAngle = (teamRed) ? -prevXYH[2] : -(prevXYH[2] + Math.PI);
+        if ( vision ) {
+            adjustAngle = ( teamRed ) ? -prevXYH[ 2 ] : -( prevXYH[ 2 ] + Math.PI );
         } else {
-            adjustAngle = -imu.getAngularOrientation(AxesReference.INTRINSIC, AxesOrder.ZYX, AngleUnit.RADIANS).firstAngle;
+            adjustAngle = -imu.getAngularOrientation( AxesReference.INTRINSIC, AxesOrder.ZYX, AngleUnit.RADIANS ).firstAngle;
         }
-        double newX = Math.cos(adjustAngle) * x - Math.sin(adjustAngle) * y;
-        double newY = Math.sin(adjustAngle) * x + Math.cos(adjustAngle) * y;
-        mecanumDrive(newX, newY, rot);
+        double newX = Math.cos( adjustAngle ) * x - Math.sin( adjustAngle ) * y;
+        double newY = Math.sin( adjustAngle ) * x + Math.cos( adjustAngle ) * y;
+        mecanumDrive( newX, newY, rot );
     }
 
-    public void foundationControls(boolean forward, boolean backward) {
+    public void foundationControls( boolean forward, boolean backward ) {
         if (forward) {
-            found.setDirection(DcMotor.Direction.FORWARD);
-            found.setPower(1);
-            playSound("ss_wookie");
+            found.setDirection( DcMotor.Direction.FORWARD );
+            found.setPower( 1 );
+            playSound( "ss_wookie" );
         } else if (backward) {
-            found.setDirection(DcMotor.Direction.REVERSE);
-            found.setPower(1);
-            playSound("ss_roger_roger");
+            found.setDirection( DcMotor.Direction.REVERSE );
+            found.setPower( 1 );
+            playSound( "ss_roger_roger" );
         } else {
-            found.setPower(0);
+            found.setPower( 0 );
         }
     }
 
-    public void armMechanismControls(boolean clawOpen, boolean clawClose, boolean armUp, boolean armDown, double slideControl) {
-        if (clawOpen) {
-            claw.setPower(0.8);
-        } else if (clawClose) {
-            claw.setPower(-0.8);
+    public void armMechanismControls( boolean clawOpen, boolean clawClose, boolean armUp, boolean armDown, double slideControl ) {
+        if ( clawOpen ) {
+            claw.setPower( 0.8 );
+        } else if ( clawClose ) {
+            claw.setPower( -0.8 );
         } else {
-            claw.setPower(0);
+            claw.setPower( 0 );
         }
-        if (armUp) {
-            arm.setPower(-0.25);
-        } else if (armDown) {
-            arm.setPower(0.25);
+        if ( armUp ) {
+            arm.setPower( -0.25 );
+        } else if ( armDown ) {
+            arm.setPower( 0.25 );
         } else {
-            arm.setPower(0);
+            arm.setPower( 0 );
         }
-        slide.setPower(slideControl);
+        slide.setPower( slideControl );
     }
 
     public void stop() {
@@ -366,14 +358,14 @@ public class Hardware {
         claw.setPower(0);
         arm.setPower(0);
         slide.setPower(0);
-        if(vision){
+        if( vision ){
             targetsSkyStone.deactivate();
         }
     }
 
     public void visionInit() {
         if(vision) {
-            VuforiaLocalizer.Parameters parameters = new VuforiaLocalizer.Parameters(cameraMonitorViewId);
+            VuforiaLocalizer.Parameters parameters = new VuforiaLocalizer.Parameters( cameraMonitorViewId );
 
             // VuforiaLocalizer.Parameters parameters = new VuforiaLocalizer.Parameters();
 
@@ -381,11 +373,11 @@ public class Hardware {
             parameters.cameraDirection = CAMERA_CHOICE;
 
             //  Instantiate the Vuforia engine
-            vuforia = ClassFactory.getInstance().createVuforia(parameters);
+            vuforia = ClassFactory.getInstance().createVuforia( parameters );
 
             // Load the data sets for the trackable objects. These particular data
             // sets are stored in the 'assets' part of our application.
-            targetsSkyStone = this.vuforia.loadTrackablesFromAsset("Skystone");
+            targetsSkyStone = this.vuforia.loadTrackablesFromAsset("Skystone" );
 
             VuforiaTrackable stoneTarget = targetsSkyStone.get(0);
             stoneTarget.setName("Stone Target");
@@ -416,12 +408,12 @@ public class Hardware {
 
             // For convenience, gather together all the trackable objects in one easily-iterable collection */
             allTrackables = new ArrayList<VuforiaTrackable>();
-            allTrackables.addAll(targetsSkyStone);
+            allTrackables.addAll( targetsSkyStone );
             locators = new ArrayList<VuforiaTrackable>();
-            locators.addAll(targetsSkyStone);
-            locators.remove(targetsSkyStone.get(0));
+            locators.addAll( targetsSkyStone );
+            locators.remove( targetsSkyStone.get( 0 ) );
             blocks = new ArrayList<VuforiaTrackable>();
-            blocks.add(targetsSkyStone.get(0));
+            blocks.add( targetsSkyStone.get( 0 ) );
 
             /**
              * In order for localization to work, we need to tell the system where each target is on the field, and
@@ -513,14 +505,14 @@ public class Hardware {
             // The two examples below assume that the camera is facing forward out the front of the robot.
 
             // We need to rotate the camera around it's long axis to bring the correct camera forward.
-            if (CAMERA_CHOICE == BACK) {
+            if ( CAMERA_CHOICE == BACK ) {
                 phoneYRotate = -90;
             } else {
                 phoneYRotate = 90;
             }
 
             // Rotate the phone vertical about the X axis if it's in portrait mode
-            if (PHONE_IS_PORTRAIT) {
+            if ( PHONE_IS_PORTRAIT ) {
                 phoneXRotate = 90;
             }
 
@@ -531,12 +523,12 @@ public class Hardware {
             final float CAMERA_LEFT_DISPLACEMENT = 0;     // eg: Camera is ON the robot's center line
 
             OpenGLMatrix robotFromCamera = OpenGLMatrix
-                    .translation(CAMERA_FORWARD_DISPLACEMENT, CAMERA_LEFT_DISPLACEMENT, CAMERA_VERTICAL_DISPLACEMENT)
-                    .multiplied(Orientation.getRotationMatrix(EXTRINSIC, YZX, DEGREES, phoneYRotate, phoneZRotate, phoneXRotate));
+                    .translation( CAMERA_FORWARD_DISPLACEMENT, CAMERA_LEFT_DISPLACEMENT, CAMERA_VERTICAL_DISPLACEMENT )
+                    .multiplied( Orientation.getRotationMatrix( EXTRINSIC, YZX, DEGREES, phoneYRotate, phoneZRotate, phoneXRotate ) );
 
             /**  Let all the trackable listeners know where the phone is.  */
             for (VuforiaTrackable trackable : allTrackables) {
-                ((VuforiaTrackableDefaultListener) trackable.getListener()).setPhoneInformation(robotFromCamera, parameters.cameraDirection);
+                ( ( VuforiaTrackableDefaultListener ) trackable.getListener() ).setPhoneInformation( robotFromCamera, parameters.cameraDirection );
             }
 
             // WARNING:
@@ -556,67 +548,67 @@ public class Hardware {
     }
 
     public void visionTeleop() {
-        if (vision) {
+        if ( vision ) {
             // check all the trackable targets to see which one (if any) is visible.
             targetVisible = false;
-            switch (search) {
+            switch ( search ) {
                 case location:
-                    for (VuforiaTrackable trackable : locators) {
-                        if (((VuforiaTrackableDefaultListener) trackable.getListener()).isVisible()) {
-                            tel.addData("Visible Target", trackable.getName());
+                    for ( VuforiaTrackable trackable : locators ) {
+                        if ( ( ( VuforiaTrackableDefaultListener ) trackable.getListener() ).isVisible() ) {
+                            tel.addData("Visible Target", trackable.getName() );
                             targetVisible = true;
 
 
                             // getUpdatedRobotLocation() will return null if no new information is available since
                             // the last time that call was made, or if the trackable is not currently visible.
-                            OpenGLMatrix robotLocationTransform = ((VuforiaTrackableDefaultListener) trackable.getListener()).getUpdatedRobotLocation();
-                            if (robotLocationTransform != null) {
+                            OpenGLMatrix robotLocationTransform = ( ( VuforiaTrackableDefaultListener ) trackable.getListener() ).getUpdatedRobotLocation();
+                            if ( robotLocationTransform != null ) {
                                 lastLocation = robotLocationTransform;
                             }
                             break;
                         }
                     }
-                    if (targetVisible) {
+                    if ( targetVisible ) {
                         // express position (translation) of robot in inches.
                         VectorF translation = lastLocation.getTranslation();
                         tel.addData("Pos (in)", "{X, Y, Z} = %.1f, %.1f, %.1f",
-                                translation.get(0) / mmPerInch, translation.get(1) / mmPerInch, translation.get(2) / mmPerInch);
+                                translation.get(0) / mmPerInch, translation.get( 1 ) / mmPerInch, translation.get( 2 ) / mmPerInch );
 
                         // express the rotation of the robot in degrees.
-                        Orientation rotation = Orientation.getOrientation(lastLocation, EXTRINSIC, XYZ, DEGREES);
-                        tel.addData("Rot (deg)", "{Roll, Pitch, Heading} = %.0f, %.0f, %.0f", rotation.firstAngle, rotation.secondAngle, rotation.thirdAngle);
+                        Orientation rotation = Orientation.getOrientation( lastLocation, EXTRINSIC, XYZ, DEGREES );
+                        tel.addData("Rot (deg)", "{Roll, Pitch, Heading} = %.0f, %.0f, %.0f", rotation.firstAngle, rotation.secondAngle, rotation.thirdAngle );
 
                     } else {
-                        tel.addData("Locator Target", "none");
+                        tel.addData("Locator Target", "none" );
                     }
                     break;
                 case block:
-                    for (VuforiaTrackable trackable : blocks) {
-                        if (((VuforiaTrackableDefaultListener) trackable.getListener()).isVisible()) {
-                            tel.addData("Visible Block", trackable.getName());
+                    for ( VuforiaTrackable trackable : blocks ) {
+                        if ( ( ( VuforiaTrackableDefaultListener ) trackable.getListener() ).isVisible() ) {
+                            tel.addData("Visible Block", trackable.getName() );
                             targetVisible = true;
 
 
                             // getUpdatedRobotLocation() will return null if no new information is available since
                             // the last time that call was made, or if the trackable is not currently visible.
-                            OpenGLMatrix robotLocationTransform = ((VuforiaTrackableDefaultListener) trackable.getListener()).getUpdatedRobotLocation();
-                            if (robotLocationTransform != null) {
+                            OpenGLMatrix robotLocationTransform = ( ( VuforiaTrackableDefaultListener ) trackable.getListener() ).getUpdatedRobotLocation();
+                            if ( robotLocationTransform != null ) {
                                 blockLocator = robotLocationTransform;
                             }
                             break;
                         }
                     }
-                    if (targetVisible) {
+                    if ( targetVisible ) {
                         // express position (translation) of robot in inches.
                         VectorF translation = blockLocator.getTranslation();
                         tel.addData("Pos (in)", "{X, Y, Z} = %.1f, %.1f, %.1f",
-                                translation.get(0) / mmPerInch, translation.get(1) / mmPerInch, translation.get(2) / mmPerInch);
+                                translation.get( 0 ) / mmPerInch, translation.get( 1 ) / mmPerInch, translation.get( 2 ) / mmPerInch);
 
                         // express the rotation of the robot in degrees.
-                        Orientation rotation = Orientation.getOrientation(blockLocator, EXTRINSIC, XYZ, DEGREES);
-                        tel.addData("Rot (deg)", "{Roll, Pitch, Heading} = %.0f, %.0f, %.0f", rotation.firstAngle, rotation.secondAngle, rotation.thirdAngle);
+                        Orientation rotation = Orientation.getOrientation( blockLocator, EXTRINSIC, XYZ, DEGREES );
+                        tel.addData("Rot (deg)", "{Roll, Pitch, Heading} = %.0f, %.0f, %.0f", rotation.firstAngle, rotation.secondAngle, rotation.thirdAngle );
                     } else {
-                        tel.addData("Block Target", "none");
+                        tel.addData("Block Target", "none" );
                     }
                     break;
             }
@@ -625,23 +617,23 @@ public class Hardware {
 
         }
         prevXYH = botxyh();
-        prevGyro = imu.getAngularOrientation(AxesReference.INTRINSIC, AxesOrder.ZYX, AngleUnit.RADIANS).firstAngle;
+        prevGyro = imu.getAngularOrientation( AxesReference.INTRINSIC, AxesOrder.ZYX, AngleUnit.RADIANS ).firstAngle;
         tel.update();
     }
     public double[] botxyh () {
         if ( search == searchMode.location && targetVisible && vision ) {
-            return new double[]{lastLocation.getTranslation().get(0) / mmPerInch, lastLocation.getTranslation().get(1) / mmPerInch, Orientation.getOrientation(lastLocation, EXTRINSIC, XYZ, RADIANS).thirdAngle};
+            return new double[]{ lastLocation.getTranslation().get( 0 ) / mmPerInch, lastLocation.getTranslation().get( 1 ) / mmPerInch, Orientation.getOrientation( lastLocation, EXTRINSIC, XYZ, RADIANS ).thirdAngle };
         } else {
-            double lf = leftFront.getCurrentPosition() / 280 * (4 * Math.PI);
-            double rf = rightFront.getCurrentPosition() / 280 * (4 * Math.PI);
-            double lb = leftBack.getCurrentPosition() / 280 * (4 * Math.PI);
-            double rb = rightBack.getCurrentPosition() / 280 * (4 * Math.PI);
-            double predx = ((lf + rb) - (rf + lb)) / 4;
-            double predy = (lf + rf + lb + rb) / 4;
+            double lf = leftFront.getCurrentPosition()  / 280 * ( 4 * Math.PI );
+            double rf = rightFront.getCurrentPosition() / 280 * ( 4 * Math.PI );
+            double lb = leftBack.getCurrentPosition()   / 280 * ( 4 * Math.PI );
+            double rb = rightBack.getCurrentPosition()  / 280 * ( 4 * Math.PI );
+            double predx = ( ( lf + rb ) - ( rf + lb ) ) / 4;
+            double predy = ( lf + rf + lb + rb ) / 4;
             double da = prevXYH[2] + (imu.getAngularOrientation(AxesReference.INTRINSIC, AxesOrder.ZYX, AngleUnit.RADIANS).firstAngle - prevGyro);
-            predx = Math.cos(-da) * predx - Math.sin(-da) * predy;
-            predy = Math.sin(-da) * predx + Math.cos(-da) * predy;
-            return new double[]{predx, predy, da};
+            predx = Math.cos( -da ) * predx - Math.sin( -da ) * predy;
+            predy = Math.sin( -da ) * predx + Math.cos( -da ) * predy;
+            return new double[]{ predx, predy, da };
         }
     }
     public double[] blockxyh () {
