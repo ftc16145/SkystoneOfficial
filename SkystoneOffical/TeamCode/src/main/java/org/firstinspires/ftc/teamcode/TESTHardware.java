@@ -30,7 +30,6 @@
 package org.firstinspires.ftc.teamcode;
 
 import android.content.Context;
-import android.graphics.Color;
 
 import com.qualcomm.ftccommon.SoundPlayer;
 import com.qualcomm.hardware.bosch.BNO055IMU;
@@ -38,7 +37,6 @@ import com.qualcomm.robotcore.hardware.CRServo;
 import com.qualcomm.robotcore.hardware.ColorSensor;
 import com.qualcomm.robotcore.hardware.DcMotor;
 import com.qualcomm.robotcore.hardware.HardwareMap;
-import com.qualcomm.robotcore.hardware.Servo;
 import com.qualcomm.robotcore.util.ElapsedTime;
 
 import org.firstinspires.ftc.robotcore.external.ClassFactory;
@@ -80,12 +78,12 @@ import static org.firstinspires.ftc.robotcore.external.navigation.VuforiaLocaliz
  * Servo channel:  Servo to open left claw:  "left_hand"
  * Servo channel:  Servo to open right claw: "right_hand"
  */
-public class Hardware
+public class TESTHardware
 {
     public static enum searchMode{
         block,location
     }
-    /* Public OpMode members. */
+    /* Public OpMode members.
     public DcMotor leftFront = null;
     public DcMotor leftBack = null;
     public DcMotor rightFront = null;
@@ -101,6 +99,8 @@ public class Hardware
 
     public ColorSensor color;
 
+
+     */
     public BNO055IMU imu;
     BNO055IMU.Parameters parameters;
 
@@ -150,10 +150,8 @@ public class Hardware
      * Once you've obtained a license key, copy the string from the Vuforia web site
      * and paste it in to your code on the next line, between the double quotes.
      */
-    private static final String VUFORIA_KEY =
-            "AU4HXeP/////AAABmVJly8bxo0HGllLzw8tuRc6CrpFD2db1ztBgf+59e8csd4hdmwwlhFHRBy2eue1fUGU2+Vab/tlGrbZyW6L1lUa8lrhvHT4btcGio9P0MZwprrTRCWdeHYjTzuM+gQZMrpbJO5YlaRHNb0EZmDUqw/8Wjx6B7nv90yo/jmcU2c+Z0KI0D0zqIkI7f0AxrrlrMz6kanChap54VsRMZcwhcS1oMuNN0r46XDgzEmNtxuAowf+Q/Bpsn+a1j5VVKK3ydv2L/bUBXoS7eKpXr2N3FpXEnV0CJ6gKthaoPuTSQxFyJlduBTdRi8lhU7lSSERUcf3bctSq+jhe3E3F7yySSVrvFtyLucdi7asvXys17O2v";
-
-    // Since ImageTarget trackables use mm to specifiy their dimensions, we must use mm for all the physical dimension.
+    private static final String VUFORIA_KEY ="";
+            //b            b                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                   bnnbbbbnbnbnbnbnbnbnbnnntrackables use mm to specifiy their dimensions, we must use mm for all the physical dimension.
     // We will define some constants and conversions here
     private static final float mmPerInch        = 25.4f;
     private static final float mmTargetHeight   = ( 6 ) * mmPerInch;          // the height of the center of the target image above the floor
@@ -193,7 +191,7 @@ public class Hardware
     double prevGyro;
     double[] prevXYH;
     /* Constructor */
-    public Hardware(){
+    public TESTHardware(){
 
     }
     public void setSearchMode( searchMode s ){
@@ -229,7 +227,7 @@ public class Hardware
         prevXYH = new double[]{ initX, initY, initHeading };
         teamRed = onRed;
 
-        leftFront = hwMap.get( DcMotor.class, "leftFront" );
+        /*leftFront = hwMap.get( DcMotor.class, "leftFront" );
         rightFront = hwMap.get( DcMotor.class, "rightFront" );
         leftBack = hwMap.get( DcMotor.class, "leftBack" );
         rightBack = hwMap.get( DcMotor.class, "rightBack" );
@@ -237,12 +235,12 @@ public class Hardware
         leftBack.setDirection( DcMotor.Direction.REVERSE );
         rightFront.setDirection( DcMotor.Direction.FORWARD );
         rightBack.setDirection( DcMotor.Direction.FORWARD );
-        drivetrain = new DcMotor[]{ leftFront,leftBack,rightFront,rightBack };
+
         for( DcMotor d : drivetrain ){
             d.setMode( DcMotor.RunMode.RUN_USING_ENCODER );
             d.setZeroPowerBehavior( DcMotor.ZeroPowerBehavior.BRAKE );
         }
-
+        drivetrain = new DcMotor[]{ leftFront,leftBack,rightFront,rightBack };
 
         claw = hwMap.get( DcMotor.class,"claw" );
         slide = hwMap.get( DcMotor.class, "slide" );
@@ -252,9 +250,9 @@ public class Hardware
         arm.setZeroPowerBehavior( DcMotor.ZeroPowerBehavior.BRAKE );
 
         found = hwMap.get( CRServo.class, "foundation" );
-
+  
         color = hwMap.get( ColorSensor.class, "color" );
-
+        */
         imu = hwMap.get( BNO055IMU.class, "imu");
         parameters = new BNO055IMU.Parameters();
         parameters.angleUnit = BNO055IMU.AngleUnit.RADIANS;
@@ -271,16 +269,16 @@ public class Hardware
         params.waitForNonLoopingSoundsToFinish = true;
 
         cameraMonitorViewId = hwMap.appContext.getResources().getIdentifier("cameraMonitorViewId", "id", hwMap.appContext.getPackageName() );
-        //visionInit();
+        visionInit();
 
 
 
         playSound( "ss_light_saber" );
     }
-    public void mecanumDrive( double x, double y, double rot ){
+    /*public void mecanumDrive( double x, double y, double rot ){
         double nX,nY;
-        nX = ( Math.abs( x - prevXPower ) > 0.1 ) ? prevXPower + Math.signum(x - prevXPower)*0.1 : x;
-        nY = ( Math.abs( y - prevYPower ) > 0.1 ) ? prevYPower + Math.signum(y - prevYPower)*0.1 : y;
+        nX = ( Math.abs( x - prevXPower ) > 0.1 ) ? prevXPower + 0.1 : x;
+        nY = ( Math.abs( y - prevYPower ) > 0.1 ) ? prevYPower + 0.1 : y;
         double r = Math.hypot( -nX, nY );
         double robotAngle = Math.atan2( nY, -nX ) - Math.PI / 4;
         double rightX = rot;
@@ -304,8 +302,6 @@ public class Hardware
         }
 
         tel.addData("lf lb rf rb",vals[ 0 ] + " " + vals[ 1 ] + " " + vals[ 2 ] + " " + vals[ 3 ] );
-        prevXPower = nX;
-        prevYPower = nY;
     }
     public void mecanumDriveFieldOrient( double x, double y, double rot ){
         double adjustAngle = ( teamRed ) ? -prevXYH[ 2 ] : -( prevXYH[ 2 ] + Math.PI );
@@ -313,6 +309,8 @@ public class Hardware
         double newY = Math.sin( adjustAngle ) * x + Math.cos( adjustAngle ) * y;
         mecanumDrive( newX, newY, rot );
     }
+    */
+     /*
     public void foundationControls( boolean forward, boolean backward ){
         if( forward ){
             found.setDirection( DcMotor.Direction.FORWARD );
@@ -343,7 +341,10 @@ public class Hardware
         }
         slide.setPower( slideControl );
     }
+
+      */
     public void stop(){
+        /*
         leftFront.setPower( 0 );
         rightFront.setPower( 0 );
         leftBack.setPower( 0 );
@@ -352,7 +353,8 @@ public class Hardware
         claw.setPower( 0 );
         arm.setPower( 0 );
         slide.setPower( 0 );
-        // targetsSkyStone.deactivate();
+        */
+        targetsSkyStone.deactivate();
     }
     public void visionInit(){
         VuforiaLocalizer.Parameters parameters = new VuforiaLocalizer.Parameters( cameraMonitorViewId );
@@ -508,8 +510,8 @@ public class Hardware
 
         // Next, translate the camera lens to where it is on the robot.
         // In this example, it is centered (left to right), but forward of the middle of the robot, and above ground level.
-        final float CAMERA_FORWARD_DISPLACEMENT  = 4.0f * mmPerInch;   // eg: Camera is 4 Inches in front of robot center
-        final float CAMERA_VERTICAL_DISPLACEMENT = 8.0f * mmPerInch;   // eg: Camera is 8 Inches above ground
+        final float CAMERA_FORWARD_DISPLACEMENT  = 0f * mmPerInch;   // eg: Camera is 4 Inches in front of robot center
+        final float CAMERA_VERTICAL_DISPLACEMENT = 6f * mmPerInch;   // eg: Camera is 8 Inches above ground
         final float CAMERA_LEFT_DISPLACEMENT     = 0;     // eg: Camera is ON the robot's center line
 
         OpenGLMatrix robotFromCamera = OpenGLMatrix
@@ -604,10 +606,11 @@ public class Hardware
         }
         // Provide feedback as to where the robot is located (if we know).
 
-        prevXYH = botxyh();
+        //prevXYH = botxyh();
         prevGyro = imu.getAngularOrientation(AxesReference.INTRINSIC, AxesOrder.ZYX, AngleUnit.RADIANS).firstAngle;
         tel.update();
     }
+    /*
     public double[] botxyh(){
         if( search == searchMode.location && targetVisible ){
             return new double[]{ lastLocation.getTranslation().get(0) / mmPerInch, lastLocation.getTranslation().get(1) / mmPerInch, Orientation.getOrientation(lastLocation, EXTRINSIC, XYZ, RADIANS).thirdAngle };
@@ -631,6 +634,8 @@ public class Hardware
             return new double[]{ blockLocator.getTranslation().get( 0 ) / mmPerInch, blockLocator.getTranslation().get( 1 ) / mmPerInch, Orientation.getOrientation( blockLocator, EXTRINSIC, XYZ, RADIANS ).thirdAngle };
         }
     }
+
+     */
  }
 
 

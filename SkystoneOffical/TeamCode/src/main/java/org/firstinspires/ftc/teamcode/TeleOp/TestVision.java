@@ -29,20 +29,11 @@
 
 package org.firstinspires.ftc.teamcode.TeleOp;
 
-import android.content.Context;
-import android.view.MotionEvent;
-
-import com.qualcomm.ftccommon.SoundPlayer;
-import com.qualcomm.hardware.motors.NeveRest40Gearmotor;
 import com.qualcomm.robotcore.eventloop.opmode.OpMode;
 import com.qualcomm.robotcore.eventloop.opmode.TeleOp;
-import com.qualcomm.robotcore.hardware.CRServo;
-import com.qualcomm.robotcore.hardware.DcMotor;
-import com.qualcomm.robotcore.hardware.GyroSensor;
-import com.qualcomm.robotcore.hardware.Servo;
 import com.qualcomm.robotcore.util.ElapsedTime;
 
-import org.firstinspires.ftc.teamcode.Hardware;
+import org.firstinspires.ftc.teamcode.TESTHardware;
 
 /**
  * This file contains an example of an iterative (Non-Linear) "OpMode".
@@ -58,13 +49,13 @@ import org.firstinspires.ftc.teamcode.Hardware;
  * Remove or comment out the @Disabled line to add this opmode to the Driver Station OpMode list
  */
 
-@TeleOp(name="TeleOp Red", group="Mecanum")
+@TeleOp(name="TestVision", group="Mecanum")
 
-public class MeccRed extends OpMode
+public class TestVision extends OpMode
 {
     // Declare OpMode members.
     private ElapsedTime runtime = new ElapsedTime();
-    private Hardware robot = new Hardware();
+    private TESTHardware robot = new TESTHardware();
     //private DcMotor leftFront, leftBack, rightFront, rightBack, slide, claw, arm;
     //SLIDE MOTOR
     // 1120 Ticks/rev
@@ -116,8 +107,7 @@ public class MeccRed extends OpMode
      */
     @Override
     public void init_loop() {
-
-        //robot.visionTeleop();
+        robot.visionTeleop();
     }
 
     /*
@@ -132,22 +122,14 @@ public class MeccRed extends OpMode
      */
     @Override
     public void loop() {
-        robot.mecanumDrive( -gamepad1.left_stick_x, -gamepad1.left_stick_y, gamepad1.right_stick_x );
-        robot.foundationControls( gamepad1.dpad_down, gamepad1.dpad_up );
-        double slider = 0;
-        if(gamepad1.y){
-            slider=0.5;
-        }else if(gamepad1.a){
-            slider=-0.5;
-        }else{
-            slider=0;
-        }
-        robot.armMechanismControls( gamepad1.right_bumper, gamepad1.right_trigger >= 0.5, gamepad1.left_bumper, gamepad1.left_trigger >= 0.5, slider );
-        //robot.visionTeleop();
+        //robot.mecanumDrive( gamepad1.left_stick_x, gamepad1.left_stick_y, gamepad1.right_stick_x );
+        //robot.foundationControls( gamepad1.dpad_down, gamepad1.dpad_up );
+        //robot.armMechanismControls( gamepad2.right_bumper, gamepad2.right_trigger >= 0.5, gamepad2.left_bumper, gamepad2.left_trigger >= 0.5, -0.5*gamepad2.left_stick_y );
+        robot.visionTeleop();
         if( gamepad1.a ){
-            robot.setSearchMode( Hardware.searchMode.block );
+            robot.setSearchMode( TESTHardware.searchMode.block );
         }else if(gamepad1.b){
-            robot.setSearchMode( Hardware.searchMode.location );
+            robot.setSearchMode( TESTHardware.searchMode.location );
         }
         telemetry.addData("Status", "Run Time: " + runtime.toString() );
 
