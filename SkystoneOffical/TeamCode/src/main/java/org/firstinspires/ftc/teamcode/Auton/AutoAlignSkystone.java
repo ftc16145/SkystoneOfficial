@@ -76,7 +76,7 @@ public class AutoAlignSkystone extends OpMode
      */
     @Override
     public void init() {
-        robot.init( hardwareMap, telemetry,0,0,true );
+        robot.init( hardwareMap, telemetry,0,0,true,false );
         robot.setSearchMode( Hardware.searchMode.block );
         telemetry.addData("Status", "Initialized" );
 
@@ -124,16 +124,16 @@ public class AutoAlignSkystone extends OpMode
         if( robot.blockxyh() != null ) {
             double[] block = robot.blockxyh();
             double degree = Math.toDegrees( block[ 2 ] );
-            if( Math.abs( degree % 360 ) > 5 ){
-                if( Math.cos( block[ 2 ] ) > 0 ){
-                    robot.mecanumDrive(0,0,-0.5 );
-                }else{
-                    robot.mecanumDrive(0,0,0.5 );
-                }
-            }else {
-                // End up 12 inches in front of the block
-                robot.mecanumDrive(-0.06 * robot.blockxyh()[ 0 ], -0.06 * ( robot.blockxyh()[ 1 ] + 12 ), 0 );
-            }
+            //if( Math.abs( 5 ) > 0.996 ){
+            //    if( Math.cos( block[ 2 ] ) > 0 ){
+            //        robot.mecanumDrive(0,0,-0.5 );
+            //    }else{
+            //        robot.mecanumDrive(0,0,0.5 );
+            //    }
+            //}else {
+            //    // End up 12 inches in front of the block
+            //    robot.mecanumDrive(-0.06 * (robot.blockxyh()[ 0 ] + 12), -0.06 * robot.blockxyh()[ 1 ], 0 );
+            //}
         }
     }
 

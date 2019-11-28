@@ -33,6 +33,7 @@ import android.content.Context;
 
 import com.qualcomm.ftccommon.SoundPlayer;
 import com.qualcomm.robotcore.eventloop.opmode.Autonomous;
+import com.qualcomm.robotcore.eventloop.opmode.Disabled;
 import com.qualcomm.robotcore.eventloop.opmode.OpMode;
 import com.qualcomm.robotcore.hardware.CRServo;
 import com.qualcomm.robotcore.hardware.ColorSensor;
@@ -54,7 +55,7 @@ import com.qualcomm.robotcore.util.ElapsedTime;
  */
 
 @Autonomous(name="Arm Stop", group="Auto Red")
-
+@Disabled
 public class ArmStop extends OpMode
 {
     // Declare OpMode members.
@@ -66,7 +67,7 @@ public class ArmStop extends OpMode
     @Override
     public void init() {
         telemetry.addData("Status", "Initialized");
-        robot.init( hardwareMap, telemetry, 0,0,true );
+        robot.init( hardwareMap, telemetry, 0,0,true,false );
         robot.arm.setMode( DcMotor.RunMode.RUN_TO_POSITION );
         // Initialize the hardware variables. Note that the strings used here as parameters
         // to 'get' must correspond to the names assigned during the robot configuration

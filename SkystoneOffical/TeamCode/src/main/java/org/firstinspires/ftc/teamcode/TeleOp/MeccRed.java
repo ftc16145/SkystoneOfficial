@@ -58,7 +58,7 @@ import org.firstinspires.ftc.teamcode.Hardware;
  * Remove or comment out the @Disabled line to add this opmode to the Driver Station OpMode list
  */
 
-@TeleOp(name="TeleOp", group="Mecanum")
+@TeleOp(name="TeleOp Red", group="Mecanum")
 
 public class MeccRed extends OpMode
 {
@@ -87,7 +87,7 @@ public class MeccRed extends OpMode
      */
     @Override
     public void init() {
-        robot.init( hardwareMap, telemetry,0,0, true );
+        robot.init( hardwareMap, telemetry,0,0, true,false );
         telemetry.addData("Status", "Initialized");
 
 
@@ -116,7 +116,8 @@ public class MeccRed extends OpMode
      */
     @Override
     public void init_loop() {
-        robot.visionTeleop();
+
+        //robot.visionTeleop();
     }
 
     /*
@@ -133,11 +134,19 @@ public class MeccRed extends OpMode
     public void loop() {
         robot.mecanumDrive( gamepad1.left_stick_x, gamepad1.left_stick_y, gamepad1.right_stick_x );
         robot.foundationControls( gamepad1.dpad_down, gamepad1.dpad_up );
-        robot.armMechanismControls( gamepad2.right_bumper, gamepad2.right_trigger >= 0.5, gamepad2.left_bumper, gamepad2.left_trigger >= 0.5, -0.5*gamepad2.left_stick_y );
-        robot.visionTeleop();
+        double slider = 0;
+        if( gamepad1.y ){
+            slider=0.5;
+        }else if( gamepad1.a ){
+            slider=-0.5;
+        }else{
+            slider=0;
+        }
+        robot.armMechanismControls( gamepad1.right_bumper, gamepad1.right_trigger >= 0.5, gamepad1.left_bumper, gamepad1.left_trigger >= 0.5, slider );
+        //robot.visionTeleop();
         if( gamepad1.a ){
             robot.setSearchMode( Hardware.searchMode.block );
-        }else if(gamepad1.b){
+        }else if( gamepad1.b ){
             robot.setSearchMode( Hardware.searchMode.location );
         }
         telemetry.addData("Status", "Run Time: " + runtime.toString() );
