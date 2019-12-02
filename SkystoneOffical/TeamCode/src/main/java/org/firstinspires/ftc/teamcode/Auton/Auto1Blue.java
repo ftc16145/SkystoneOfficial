@@ -87,7 +87,7 @@ public class Auto1Blue extends OpMode
      */
     @Override
     public void init() {
-        robot.init( hardwareMap, telemetry,0,0,false );
+        robot.init( hardwareMap, telemetry,0,0,false, false );
         telemetry.addData("Status", "Initialized");
 
 
