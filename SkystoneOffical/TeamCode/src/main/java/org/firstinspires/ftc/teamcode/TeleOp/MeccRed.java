@@ -133,25 +133,26 @@ public class MeccRed extends OpMode
     @Override
     public void loop() {
         robot.mecanumDrive( gamepad1.left_stick_x, gamepad1.left_stick_y, gamepad1.right_stick_x );
-        robot.foundationControls( gamepad1.dpad_down, gamepad1.dpad_up );
+        robot.foundationControls( gamepad2.dpad_down, gamepad2.dpad_up );
         double slider = 0;
-        if( gamepad1.y ){
+        if( gamepad2.y ){
             slider=0.5;
-        }else if( gamepad1.a ){
+        }else if( gamepad2.a ){
             slider=-0.5;
         }else{
             slider=0;
         }
-        robot.armMechanismControls( gamepad1.right_bumper, gamepad1.right_trigger >= 0.5, gamepad1.left_bumper, gamepad1.left_trigger >= 0.5, slider );
+        robot.armMechanismControls( gamepad2.right_bumper, gamepad2.right_trigger >= 0.5, gamepad2.left_bumper, gamepad2.left_trigger >= 0.5, slider );
         //robot.visionTeleop();
         if( gamepad1.a ){
             robot.setSearchMode( Hardware.searchMode.block );
         }else if( gamepad1.b ){
             robot.setSearchMode( Hardware.searchMode.location );
         }
+        telemetry.addData("RGB",robot.color.red() + " " + robot.color.green() + " " + robot.color.blue());
         telemetry.addData("Status", "Run Time: " + runtime.toString() );
 
-
+        telemetry.update();
     }
 
     /*

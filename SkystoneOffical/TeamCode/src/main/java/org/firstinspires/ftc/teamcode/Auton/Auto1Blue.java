@@ -130,10 +130,10 @@ public class Auto1Blue extends OpMode
      */
     @Override
     public void loop() {
-        if( robot.color.blue() > 200 ){
+        if( robot.color.blue() > 75 ){
             robot.mecanumDrive(0,0,0 );
         }else{
-            robot.mecanumDrive(0,0.5,0 );
+            robot.mecanumDrive(0,- 0.5,0 );
         }
 
         telemetry.addData("RGB",robot.color.red() + " " + robot.color.green() + " " + robot.color.blue() );

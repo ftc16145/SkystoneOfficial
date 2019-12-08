@@ -618,7 +618,7 @@ public class Hardware {
         }
         prevXYH = botxyh();
         prevGyro = imu.getAngularOrientation( AxesReference.INTRINSIC, AxesOrder.ZYX, AngleUnit.RADIANS ).firstAngle;
-        tel.update();
+        //tel.update();
     }
     public double[] botxyh () {
         if ( search == searchMode.location && targetVisible && vision ) {
