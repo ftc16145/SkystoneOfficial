@@ -181,6 +181,7 @@ public class Hardware {
     private float phoneYRotate = 0;
     private float phoneZRotate = 0;
     private boolean teamRed, vision;
+    public boolean haveBlock = false;
     int cameraMonitorViewId;
     VuforiaTrackables targetsSkyStone;
     List<VuforiaTrackable> allTrackables;
@@ -560,6 +561,7 @@ public class Hardware {
                     if (robotLocationTransform != null) {
                         lastLocation = robotLocationTransform;
                     }
+                    haveBlock = allTrackables.indexOf(trackable) == 0;
                     break;
                 }
             }

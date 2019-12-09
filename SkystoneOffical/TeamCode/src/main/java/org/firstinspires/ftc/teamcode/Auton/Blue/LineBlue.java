@@ -27,7 +27,7 @@
  * OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
 
-package org.firstinspires.ftc.teamcode.Auton;
+package org.firstinspires.ftc.teamcode.Auton.Blue;
 
 import android.content.Context;
 import android.view.MotionEvent;
@@ -62,7 +62,7 @@ import org.firstinspires.ftc.teamcode.Hardware;
 
 @Autonomous(name="Blue Line", group="Auto Blue")
 
-public class Auto1Blue extends OpMode
+public class LineBlue extends OpMode
 {// Declare OpMode members.
     private ElapsedTime runtime = new ElapsedTime();
     private Hardware robot = new Hardware();

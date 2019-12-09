@@ -27,15 +27,24 @@
  * OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
 
-package org.firstinspires.ftc.teamcode.Auton;
+package org.firstinspires.ftc.teamcode.Auton.Red;
 
+import android.content.Context;
+import android.view.MotionEvent;
+
+import com.qualcomm.ftccommon.SoundPlayer;
+import com.qualcomm.hardware.motors.NeveRest40Gearmotor;
 import com.qualcomm.robotcore.eventloop.opmode.Autonomous;
 import com.qualcomm.robotcore.eventloop.opmode.OpMode;
+import com.qualcomm.robotcore.eventloop.opmode.TeleOp;
+import com.qualcomm.robotcore.hardware.CRServo;
+import com.qualcomm.robotcore.hardware.ColorSensor;
+import com.qualcomm.robotcore.hardware.DcMotor;
+import com.qualcomm.robotcore.hardware.GyroSensor;
+import com.qualcomm.robotcore.hardware.Servo;
 import com.qualcomm.robotcore.util.ElapsedTime;
 
 import org.firstinspires.ftc.teamcode.Hardware;
-
-import java.util.concurrent.TimeUnit;
 
 /**
  * This file contains an example of an iterative (Non-Linear) "OpMode".
@@ -51,15 +60,13 @@ import java.util.concurrent.TimeUnit;
  * Remove or comment out the @Disabled line to add this opmode to the Driver Station OpMode list
  */
 
-@Autonomous(name="Found Blue", group="Auto Blue")
+@Autonomous(name="Red Line", group="Auto Red")
 
-public class FoundBlue extends OpMode
+public class LineRed extends OpMode
 {// Declare OpMode members.
     private ElapsedTime runtime = new ElapsedTime();
     private Hardware robot = new Hardware();
-    boolean stage1 = false;
-    boolean stage2= false;
-    boolean hitColor = false;
+    boolean reached = false;
     //private DcMotor leftFront, leftBack, rightFront, rightBack, slide, claw, arm;
     //SLIDE MOTOR
     // 1120 Ticks/rev
@@ -73,7 +80,6 @@ public class FoundBlue extends OpMode
 
 
 
-
     //public Drivetrain drive;
 
     /*
@@ -81,8 +87,7 @@ public class FoundBlue extends OpMode
      */
     @Override
     public void init() {
-        robot.init( hardwareMap, telemetry,0,0,true,false );
-        robot.setSearchMode( Hardware.searchMode.block );
+        robot.init( hardwareMap, telemetry,0,0,true, false );
         telemetry.addData("Status", "Initialized" );
 
 
@@ -99,6 +104,7 @@ public class FoundBlue extends OpMode
 
         // Tell the driver that initialization is complete.
 
+
         //gyro = hardwareMap.get( GyroSensor.class, "gyro" );
         //gyro.calibrate();
 
@@ -110,7 +116,6 @@ public class FoundBlue extends OpMode
      */
     @Override
     public void init_loop() {
-        robot.visionTeleop();
     }
 
     /*
@@ -119,57 +124,22 @@ public class FoundBlue extends OpMode
     @Override
     public void start() {
         runtime.reset();
-
     }
     /*
      * Code to run REPEATEDLY after the driver hits PLAY but before they hit STOP
      */
     @Override
     public void loop() {
-        // First, rotate the  robot to be parallel to the face of the block
-
-        double t = runtime.time(TimeUnit.SECONDS);
-        if( t < 1 ){
-            robot.slide.setPower(0.3);
-        }else if( t < 2 ){
-            robot.slide.setPower(0);
+        if( robot.color.red() > 70 ){
+            reached = true;
         }
-        if( t > 2.5 && t <5){
-            robot.claw.setPower(0.5);
-        }else if( t < 5.5 ){
-            robot.claw.setPower(0);
+        if(reached){
+            robot.mecanumDrive(0,0,0 );
+        }else{
+            robot.mecanumDrive(0,-0.3,0 );
         }
-            if( t < 2.5 ){
-                robot.mecanumDrive(-0.15,-0.5,0);
-            }else if( t < 4.5 ){
-                robot.stop();
-                robot.foundationControls(false,true);
-            }else if( t < 7.5 ){
-                robot.foundationControls(false,false);
-                robot.mecanumDrive(-0.2,0.75,0);
-            }else if( t < 8 ){
-
-                robot.mecanumDrive(0,-0.3,0);
-            }else if( t < 10 ) {
-                robot.foundationControls(true,false);
-
-            }else{
-                if( !hitColor ) {
-                    robot.foundationControls(false, false);
-                    robot.mecanumDrive(0.5, 0, 0);
-                    if( robot.color.blue() > 75 ){
-                        hitColor=true;
-                    }
-                }else{
-                    robot.foundationControls(false, false);
-                    robot.mecanumDrive(0, 0, 0);
-                    robot.stop();
-                }
-            }
-
+        telemetry.addData("RGB",robot.color.red() + " " + robot.color.green() + " " + robot.color.blue() );
     }
-
-
     /*
      * Code to run ONCE after the driver hits STOP
      */

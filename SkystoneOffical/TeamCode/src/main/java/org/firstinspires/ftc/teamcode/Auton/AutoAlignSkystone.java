@@ -123,31 +123,56 @@ public class AutoAlignSkystone extends OpMode
     @Override
     public void loop() {
         // First, rotate the  robot to be parallel to the face of the block
-        if( robot.blockxyh() != null ) {
+        if (robot.blockxyh() != null) {
             if (stage1) {
                 double[] block = robot.blockxyh();
                 double degree = Math.toDegrees(block[2]);
-                if (Math.abs(5) > 0.996) {
+                if (Math.abs(degree) > 5) {
+                    if ( degree > 0 ) {
+                        robot.mecanumDrive(0, 0, -0.3);
+                    } else {
+                        robot.mecanumDrive(0, 0, 0.3);
+                    }
 
-                }
-                if (Math.cos(block[2]) > 0) {
-                    robot.mecanumDrive(0, 0, -0.3);
                 } else {
-                    robot.mecanumDrive(0, 0, 0.3);
+                    // End up 12 inches in front of the block
+                    robot.mecanumDrive(-0.06 * (robot.blockxyh()[0] + 12), -0.06 * robot.blockxyh()[1], 0);
+                    if ( Math.abs( robot.blockxyh()[0] + 12 ) <= 1 && Math.abs(robot.blockxyh()[1] ) <= 0.75 ) {
+                        stage1 = false;
+                        stage2 = true;
+                    }
                 }
-            } else {
-                // End up 12 inches in front of the block
-                robot.mecanumDrive(-0.06 * (robot.blockxyh()[0] + 12), -0.06 * robot.blockxyh()[1], 0);
-                if(Math.abs(robot.blockxyh()[0] + 12)<=1 &&   Math.abs(robot.blockxyh()[1])<=0.75){
-                    stage1=false;
-                    stage2=true;
-                }
-            }
-        }else if(stage2){
-            robot.mecanumDrive(0,0,0) ;
-        }
-        }
+            } else if ( stage2 ) {
+                robot.mecanumDrive(0, 0, 0);
+                // RUN CLAW TO POSITION OPEN
+                // RUN SLIDE TO POSITION OUT
+                // RUN ARM TO POSITION DOWN
 
+            }
+            // STAGE 3
+            // MOVE FORWARD A FEW INCHES
+            // CLOSE CLAW
+
+            // PLAN A
+            // STAGE 4
+            // LEVEL ARM
+            // MOVE BACK, TOWARDS FOUNDATION LONG SIDE
+
+            // STAGE 5
+            // DROP SKYSTONE
+            // PERFORM FOUNDATION MOVING PROCEDURES FROM FOUNDRED/BLUE
+
+            // PLAN B
+            // STAGE 4
+            // LEVEL ARM
+            // MOVE BACK, TOWARDS FOUNDATION SHORT SIDE
+
+            // STAGE 5
+            // DROP SKYSTONE
+            // REPEAT ON NEXT SKYSTONE
+
+        }
+    }
 
     /*
      * Code to run ONCE after the driver hits STOP
