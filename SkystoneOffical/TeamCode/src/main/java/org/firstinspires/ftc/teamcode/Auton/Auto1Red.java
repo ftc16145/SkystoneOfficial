@@ -60,12 +60,13 @@ import org.firstinspires.ftc.teamcode.Hardware;
  * Remove or comment out the @Disabled line to add this opmode to the Driver Station OpMode list
  */
 
-@Autonomous(name="Auto1Red", group="Auto Red")
+@Autonomous(name="Red Line", group="Auto Red")
 
 public class Auto1Red extends OpMode
 {// Declare OpMode members.
     private ElapsedTime runtime = new ElapsedTime();
     private Hardware robot = new Hardware();
+    boolean reached = false;
     //private DcMotor leftFront, leftBack, rightFront, rightBack, slide, claw, arm;
     //SLIDE MOTOR
     // 1120 Ticks/rev
@@ -129,13 +130,15 @@ public class Auto1Red extends OpMode
      */
     @Override
     public void loop() {
-        if (robot.color.red() > 200) {
-            robot.mecanumDrive(0, 0, 0 );
-        } else {
-            robot.mecanumDrive(0, 0.5, 0 );
+        if( robot.color.red() > 70 ){
+            reached = true;
         }
-
-        telemetry.addData("RGB", robot.color.red() + " " + robot.color.green() + " " + robot.color.blue() );
+        if(reached){
+            robot.mecanumDrive(0,0,0 );
+        }else{
+            robot.mecanumDrive(0,-0.3,0 );
+        }
+        telemetry.addData("RGB",robot.color.red() + " " + robot.color.green() + " " + robot.color.blue() );
     }
     /*
      * Code to run ONCE after the driver hits STOP

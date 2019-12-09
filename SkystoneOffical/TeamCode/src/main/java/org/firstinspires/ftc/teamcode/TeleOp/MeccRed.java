@@ -42,6 +42,9 @@ import com.qualcomm.robotcore.hardware.GyroSensor;
 import com.qualcomm.robotcore.hardware.Servo;
 import com.qualcomm.robotcore.util.ElapsedTime;
 
+import org.firstinspires.ftc.robotcore.external.navigation.AngleUnit;
+import org.firstinspires.ftc.robotcore.external.navigation.AxesOrder;
+import org.firstinspires.ftc.robotcore.external.navigation.AxesReference;
 import org.firstinspires.ftc.teamcode.Hardware;
 
 /**
@@ -58,7 +61,7 @@ import org.firstinspires.ftc.teamcode.Hardware;
  * Remove or comment out the @Disabled line to add this opmode to the Driver Station OpMode list
  */
 
-@TeleOp(name="TeleOp Red", group="Mecanum")
+@TeleOp(name="TeleOp Red DEFAULT", group="Mecanum")
 
 public class MeccRed extends OpMode
 {
@@ -144,12 +147,14 @@ public class MeccRed extends OpMode
         }
         robot.armMechanismControls( gamepad2.right_bumper, gamepad2.right_trigger >= 0.5, gamepad2.left_bumper, gamepad2.left_trigger >= 0.5, slider );
         //robot.visionTeleop();
-        if( gamepad1.a ){
-            robot.setSearchMode( Hardware.searchMode.block );
-        }else if( gamepad1.b ){
-            robot.setSearchMode( Hardware.searchMode.location );
-        }
+        //if( gamepad1.a ){
+        //    robot.setSearchMode( Hardware.searchMode.block );
+        //}else if( gamepad1.b ){
+        //    robot.setSearchMode( Hardware.searchMode.location );
+        //}
         telemetry.addData("RGB",robot.color.red() + " " + robot.color.green() + " " + robot.color.blue());
+        telemetry.addData("Gyro",robot.imu.getAngularOrientation(AxesReference.INTRINSIC, AxesOrder.ZYX, AngleUnit.RADIANS).firstAngle);
+        telemetry.addData("Slide Enc",robot.slide.getCurrentPosition());
         telemetry.addData("Status", "Run Time: " + runtime.toString() );
 
         telemetry.update();

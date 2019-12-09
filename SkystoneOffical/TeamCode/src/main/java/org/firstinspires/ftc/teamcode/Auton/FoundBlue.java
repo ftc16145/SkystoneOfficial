@@ -35,6 +35,8 @@ import com.qualcomm.robotcore.util.ElapsedTime;
 
 import org.firstinspires.ftc.teamcode.Hardware;
 
+import java.util.concurrent.TimeUnit;
+
 /**
  * This file contains an example of an iterative (Non-Linear) "OpMode".
  * An OpMode is a 'program' that runs in either the autonomous or the teleop period of an FTC match.
@@ -49,14 +51,15 @@ import org.firstinspires.ftc.teamcode.Hardware;
  * Remove or comment out the @Disabled line to add this opmode to the Driver Station OpMode list
  */
 
-@Autonomous(name="Skystone Red", group="Auto Blue")
+@Autonomous(name="Found Blue", group="Auto Blue")
 
-public class AutoAlignSkystone extends OpMode
+public class FoundBlue extends OpMode
 {// Declare OpMode members.
     private ElapsedTime runtime = new ElapsedTime();
     private Hardware robot = new Hardware();
     boolean stage1 = false;
     boolean stage2= false;
+    boolean hitColor = false;
     //private DcMotor leftFront, leftBack, rightFront, rightBack, slide, claw, arm;
     //SLIDE MOTOR
     // 1120 Ticks/rev
@@ -78,7 +81,7 @@ public class AutoAlignSkystone extends OpMode
      */
     @Override
     public void init() {
-        robot.init( hardwareMap, telemetry,0,0,true,true );
+        robot.init( hardwareMap, telemetry,0,0,true,false );
         robot.setSearchMode( Hardware.searchMode.block );
         telemetry.addData("Status", "Initialized" );
 
@@ -116,6 +119,7 @@ public class AutoAlignSkystone extends OpMode
     @Override
     public void start() {
         runtime.reset();
+
     }
     /*
      * Code to run REPEATEDLY after the driver hits PLAY but before they hit STOP
@@ -123,30 +127,47 @@ public class AutoAlignSkystone extends OpMode
     @Override
     public void loop() {
         // First, rotate the  robot to be parallel to the face of the block
-        if( robot.blockxyh() != null ) {
-            if (stage1) {
-                double[] block = robot.blockxyh();
-                double degree = Math.toDegrees(block[2]);
-                if (Math.abs(5) > 0.996) {
 
-                }
-                if (Math.cos(block[2]) > 0) {
-                    robot.mecanumDrive(0, 0, -0.3);
-                } else {
-                    robot.mecanumDrive(0, 0, 0.3);
-                }
-            } else {
-                // End up 12 inches in front of the block
-                robot.mecanumDrive(-0.06 * (robot.blockxyh()[0] + 12), -0.06 * robot.blockxyh()[1], 0);
-                if(Math.abs(robot.blockxyh()[0] + 12)<=1 &&   Math.abs(robot.blockxyh()[1])<=0.75){
-                    stage1=false;
-                    stage2=true;
+        double t = runtime.time(TimeUnit.SECONDS);
+        if( t < 1 ){
+            robot.slide.setPower(0.3);
+        }else if( t < 2 ){
+            robot.slide.setPower(0);
+        }
+        if( t > 2.5 && t <5){
+            robot.claw.setPower(0.5);
+        }else if( t < 5.5 ){
+            robot.claw.setPower(0);
+        }
+            if( t < 2.5 ){
+                robot.mecanumDrive(-0.15,-0.5,0);
+            }else if( t < 4.5 ){
+                robot.stop();
+                robot.foundationControls(false,true);
+            }else if( t < 7.5 ){
+                robot.foundationControls(false,false);
+                robot.mecanumDrive(-0.2,0.75,0);
+            }else if( t < 8 ){
+
+                robot.mecanumDrive(0,-0.3,0);
+            }else if( t < 10 ) {
+                robot.foundationControls(true,false);
+
+            }else{
+                if( !hitColor ) {
+                    robot.foundationControls(false, false);
+                    robot.mecanumDrive(0.5, 0, 0);
+                    if( robot.color.blue() > 75 ){
+                        hitColor=true;
+                    }
+                }else{
+                    robot.foundationControls(false, false);
+                    robot.mecanumDrive(0, 0, 0);
+                    robot.stop();
                 }
             }
-        }else if(stage2){
-            robot.mecanumDrive(0,0,0) ;
-        }
-        }
+
+    }
 
 
     /*

@@ -60,12 +60,13 @@ import org.firstinspires.ftc.teamcode.Hardware;
  * Remove or comment out the @Disabled line to add this opmode to the Driver Station OpMode list
  */
 
-@Autonomous(name="Auto1Blue", group="Auto Blue")
+@Autonomous(name="Blue Line", group="Auto Blue")
 
 public class Auto1Blue extends OpMode
 {// Declare OpMode members.
     private ElapsedTime runtime = new ElapsedTime();
     private Hardware robot = new Hardware();
+    boolean reached = false;
     //private DcMotor leftFront, leftBack, rightFront, rightBack, slide, claw, arm;
     //SLIDE MOTOR
     // 1120 Ticks/rev
@@ -130,12 +131,14 @@ public class Auto1Blue extends OpMode
      */
     @Override
     public void loop() {
-        if( robot.color.blue() > 75 ){
+        if( robot.color.blue() > 70 ){
+          reached = true;
+        }
+        if(reached){
             robot.mecanumDrive(0,0,0 );
         }else{
-            robot.mecanumDrive(0,- 0.5,0 );
+            robot.mecanumDrive(0,-0.3,0 );
         }
-
         telemetry.addData("RGB",robot.color.red() + " " + robot.color.green() + " " + robot.color.blue() );
     }
 
