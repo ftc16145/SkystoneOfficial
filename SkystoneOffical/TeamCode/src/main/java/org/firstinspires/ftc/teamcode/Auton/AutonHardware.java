@@ -32,6 +32,8 @@ import java.lang.reflect.Array;
 import java.util.ArrayList;
 import java.util.List;
 
+import kotlin.Unit;
+
 import static org.firstinspires.ftc.robotcore.external.navigation.AngleUnit.DEGREES;
 import static org.firstinspires.ftc.robotcore.external.navigation.AxesOrder.XYZ;
 import static org.firstinspires.ftc.robotcore.external.navigation.AxesOrder.YZX;
@@ -39,12 +41,7 @@ import static org.firstinspires.ftc.robotcore.external.navigation.AxesReference.
 import static org.firstinspires.ftc.robotcore.external.navigation.VuforiaLocalizer.CameraDirection.BACK;
 
 public class AutonHardware {
-    public DcMotor leftFront = null;
-    public DcMotor leftBack = null;
-    public DcMotor rightFront = null;
-    public DcMotor rightBack = null;
-    public DcMotor[] drivetrain;
-
+    private ElapsedTime runtime = new ElapsedTime();
     public DcMotor slide = null;
     public DcMotor claw = null;
     public DcMotor arm = null;
@@ -119,7 +116,7 @@ public class AutonHardware {
     int cameraMonitorViewId;
     VuforiaTrackables targetsSkyStone;
     List<VuforiaTrackable> allTrackables;
-    SampleMecanumDriveREVOptimized drive;
+    public SampleMecanumDriveREVOptimized drive;
     public void playSound(String sound) {
         if (!soundPlaying) {
             if ((soundID = myApp.getResources().getIdentifier(sound, "raw", myApp.getPackageName())) != 0) {
@@ -137,7 +134,7 @@ public class AutonHardware {
             }
         }
     }
-    public void init( HardwareMap hardware, Telemetry atel, double initX, double initY, boolean onRed, boolean useVision ){
+    public void init( HardwareMap hardware, Telemetry atel, double initX, double initY, boolean onRed ){
         hwMap = hardware;
         tel = atel;
         this.onRed = onRed;
@@ -175,31 +172,82 @@ public class AutonHardware {
             positionModifier = 0;
         }
     }
-    public ArrayList<Trajectory> skystoneFoundAuton(){
+    public Trajectory skystoneFoundAuton(){
+        runtime.reset();
         ArrayList<Trajectory> trajectories = new ArrayList<Trajectory>();
-        Trajectory stageA, stageB, stageC, stageD, stageE, stageF, stageG;
+        Trajectory traj;
         int side = onRed ? -1 : 1;
         /*
-        * stageA - Go to block
-        * Grab block
-        * stageB - Go to foundation
-        * Drop, Grab, turn 45 towards
-        * stageC - Forward 12 into corner
-        * Release foundation
-        * stageD - Orgin stone grab
-        * stageE - get 2nd skystone
-        * Grab skystone
-        * stageF - return to drop zone
-        * Rotate to -45
-        * stageC - forward 12
-        * Drop block
-        * stageG - return to line
+        * 1) stageA - Go to block
+        * 2) Grab block
+        * 3) stageB - Go to foundation
+        * 4) Drop, Grab, turn 45 towards
+        * 5) stageC - Forward 12 into corner
+        * 6) Release foundation
+        * 7) stageD - Orgin stone grab
+        * 8) stageE - get 2nd skystone
+        * 9) Grab skystone
+        * 10) stageF - return to drop zone
+        * 11) Rotate to -45
+        * 12) stageC - forward 12
+        * 13) Drop block
+        * 14) stageG - return to line
         * */
 
         // Very iffy, but works in the test file (SkystoneOffical\Concepts\skystoneFoundAuton.yaml
-        stageA = drive.trajectoryBuilder()
+        traj = drive.trajectoryBuilder()
+                //1
                 .splineTo((new Pose2d(positionModifier,30,90)).plus(drive.getPoseEstimate()))
+                //2
+                .addMarker(() -> {
+                    // Grab Block
+                    return Unit.INSTANCE;
+                })
+                //3
+                .splineTo(new Pose2d(12,side*48,0))
+                .splineTo(new Pose2d(30,side*12,0))
+                //4
+                .addMarker(() -> {
+                    // Drop, Grab, turn 45 towards
+                    return Unit.INSTANCE;
+                })
+                //5
+                .forward(12)
+                //6
+                .addMarker(() -> {
+                    // Release foundation
+                    return Unit.INSTANCE;
+                })
+                //7
+                .splineTo(new Pose2d(0,side*48,45))
+                .splineTo(new Pose2d(-36,side*33,90))
+                //8
+                .strafeLeft(24-positionModifier)
+                //9
+                .addMarker(() -> {
+                    // Grab skystone
+                    return Unit.INSTANCE;
+                })
+                //10
+                .splineTo(new Pose2d(0,side*48,45))
+                .splineTo(new Pose2d(30,side*12,90))
+                //11
+                .addMarker(() -> {
+                    // Rotate to -45
+                    return Unit.INSTANCE;
+                })
+                //12
+                .forward(12)
+                //13
+                .addMarker(() -> {
+                    // Drop block
+                    return Unit.INSTANCE;
+                })
+                //14
+                .splineTo(new Pose2d(0,side*48,0))
+                //DONE
                 .build();
+/*
         stageB = drive.trajectoryBuilder()
                 .splineTo(new Pose2d(12,side*48,0))
                 .splineTo(new Pose2d(30,side*12,0))
@@ -218,27 +266,122 @@ public class AutonHardware {
         stageG = drive.trajectoryBuilder()
                 .splineTo(new Pose2d(0,side*48,0))
                 .build();
+                */
         if(onRed){
-            stageE = drive.trajectoryBuilder()
+            traj = drive.trajectoryBuilder()
+                    //1
+                    .splineTo((new Pose2d(positionModifier,30,90)).plus(drive.getPoseEstimate()))
+                    //2
+                    .addMarker(() -> {
+                        // Grab Block
+                        return Unit.INSTANCE;
+                    })
+                    //3
+                    .splineTo(new Pose2d(12,side*48,0))
+                    .splineTo(new Pose2d(30,side*12,0))
+                    //4
+                    .addMarker(() -> {
+                        // Drop, Grab, turn 45 towards
+                        return Unit.INSTANCE;
+                    })
+                    //5
+                    .forward(12)
+                    //6
+                    .addMarker(() -> {
+                        // Release foundation
+                        return Unit.INSTANCE;
+                    })
+                    //7
+                    .splineTo(new Pose2d(0,side*48,45))
+                    .splineTo(new Pose2d(-36,side*33,90))
+                    //8
                     .strafeLeft(24-positionModifier)
+                    //9
+                    .addMarker(() -> {
+                        // Grab skystone
+                        return Unit.INSTANCE;
+                    })
+                    //10
+                    .splineTo(new Pose2d(0,side*48,45))
+                    .splineTo(new Pose2d(30,side*12,90))
+                    //11
+                    .addMarker(() -> {
+                        // Rotate to -45
+                        return Unit.INSTANCE;
+                    })
+                    //12
+                    .forward(12)
+                    //13
+                    .addMarker(() -> {
+                        // Drop block
+                        return Unit.INSTANCE;
+                    })
+                    //14
+                    .splineTo(new Pose2d(0,side*48,0))
+                    //DONE
                     .build();
         }else{
-            stageE = drive.trajectoryBuilder()
+            traj = drive.trajectoryBuilder()
+                    //1
+                    .splineTo((new Pose2d(positionModifier,30,90)).plus(drive.getPoseEstimate()))
+                    //2
+                    .addMarker(() -> {
+                        // Grab Block
+                        return Unit.INSTANCE;
+                    })
+                    //3
+                    .splineTo(new Pose2d(12,side*48,0))
+                    .splineTo(new Pose2d(30,side*12,0))
+                    //4
+                    .addMarker(() -> {
+                        // Drop, Grab, turn 45 towards
+                        return Unit.INSTANCE;
+                    })
+                    //5
+                    .forward(12)
+                    //6
+                    .addMarker(() -> {
+                        // Release foundation
+                        return Unit.INSTANCE;
+                    })
+                    //7
+                    .splineTo(new Pose2d(0,side*48,45))
+                    .splineTo(new Pose2d(-36,side*33,90))
+                    //8
                     .strafeRight(24-positionModifier)
+                    //9
+                    .addMarker(() -> {
+                        // Grab skystone
+                        return Unit.INSTANCE;
+                    })
+                    //10
+                    .splineTo(new Pose2d(0,side*48,45))
+                    .splineTo(new Pose2d(30,side*12,90))
+                    //11
+                    .addMarker(() -> {
+                        // Rotate to -45
+                        return Unit.INSTANCE;
+                    })
+                    //12
+                    .forward(12)
+                    //13
+                    .addMarker(() -> {
+                        // Drop block
+                        return Unit.INSTANCE;
+                    })
+                    //14
+                    .splineTo(new Pose2d(0,side*48,0))
+                    //DONE
                     .build();
         }
-
-
-
-
-        trajectories.add(stageA);
-        trajectories.add(stageB);
-        trajectories.add(stageC);
-        trajectories.add(stageD);
-        trajectories.add(stageE);
-        trajectories.add(stageF);
-        trajectories.add(stageG);
-        return trajectories;
+        //trajectories.add(stageA);
+        //trajectories.add(stageB);
+        //trajectories.add(stageC);
+        //trajectories.add(stageD);
+        //trajectories.add(stageE);
+        //trajectories.add(stageF);
+        //trajectories.add(stageG);
+        return traj;
     }
     public void visionInit() {
 
@@ -446,7 +589,16 @@ public class AutonHardware {
                 VectorF translation = lastLocation.getTranslation();
                 tel.addData("Pos (in)", "{X, Y, Z} = %.1f, %.1f, %.1f",
                         translation.get(0) / mmPerInch, translation.get(1) / mmPerInch, translation.get(2) / mmPerInch);
-
+                double strafe = translation.get(1) / mmPerInch;
+                if(Math.abs(strafe)<=2){
+                    option = 'B';
+                } else if(strafe > 5) {
+                    option = 'A';
+                }else if(strafe < 5) {
+                    option = 'C';
+                }else{
+                    option = 'B';
+                }
                 // express the rotation of the robot in degrees.
                 Orientation rotation = Orientation.getOrientation(lastLocation, EXTRINSIC, XYZ, DEGREES);
                 tel.addData("Rot (deg)", "{Roll, Pitch, Heading} = %.0f, %.0f, %.0f", rotation.firstAngle, rotation.secondAngle, rotation.thirdAngle);
