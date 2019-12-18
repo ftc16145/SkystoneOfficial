@@ -33,7 +33,7 @@ import com.qualcomm.robotcore.eventloop.opmode.Autonomous;
 import com.qualcomm.robotcore.eventloop.opmode.OpMode;
 import com.qualcomm.robotcore.util.ElapsedTime;
 
-import org.firstinspires.ftc.teamcode.Hardware;
+import org.firstinspires.ftc.teamcode.TeleOp.TeleOpHardware;
 
 import java.util.concurrent.TimeUnit;
 
@@ -56,7 +56,7 @@ import java.util.concurrent.TimeUnit;
 public class FoundRed extends OpMode
 {// Declare OpMode members.
     private ElapsedTime runtime = new ElapsedTime();
-    private Hardware robot = new Hardware();
+    private TeleOpHardware robot = new TeleOpHardware();
     boolean stage1 = false;
     boolean stage2= false;
     boolean hitColor = false;
@@ -82,7 +82,7 @@ public class FoundRed extends OpMode
     @Override
     public void init() {
         robot.init( hardwareMap, telemetry,0,0,true,false );
-        robot.setSearchMode( Hardware.searchMode.block );
+        robot.setSearchMode( TeleOpHardware.searchMode.block );
         telemetry.addData("Status", "Initialized" );
 
 

@@ -29,23 +29,13 @@
 
 package org.firstinspires.ftc.teamcode.TeleOp;
 
-import android.content.Context;
-import android.view.MotionEvent;
-
-import com.qualcomm.ftccommon.SoundPlayer;
-import com.qualcomm.hardware.motors.NeveRest40Gearmotor;
 import com.qualcomm.robotcore.eventloop.opmode.OpMode;
 import com.qualcomm.robotcore.eventloop.opmode.TeleOp;
-import com.qualcomm.robotcore.hardware.CRServo;
-import com.qualcomm.robotcore.hardware.DcMotor;
-import com.qualcomm.robotcore.hardware.GyroSensor;
-import com.qualcomm.robotcore.hardware.Servo;
 import com.qualcomm.robotcore.util.ElapsedTime;
 
 import org.firstinspires.ftc.robotcore.external.navigation.AngleUnit;
 import org.firstinspires.ftc.robotcore.external.navigation.AxesOrder;
 import org.firstinspires.ftc.robotcore.external.navigation.AxesReference;
-import org.firstinspires.ftc.teamcode.Hardware;
 
 /**
  * This file contains an example of an iterative (Non-Linear) "OpMode".
@@ -67,7 +57,7 @@ public class MeccRed extends OpMode
 {
     // Declare OpMode members.
     private ElapsedTime runtime = new ElapsedTime();
-    private Hardware robot = new Hardware();
+    private TeleOpHardware robot = new TeleOpHardware();
     //private DcMotor leftFront, leftBack, rightFront, rightBack, slide, claw, arm;
     //SLIDE MOTOR
     // 1120 Ticks/rev
@@ -148,9 +138,9 @@ public class MeccRed extends OpMode
         robot.armMechanismControls( gamepad2.right_bumper, gamepad2.right_trigger >= 0.5, gamepad2.left_bumper, gamepad2.left_trigger >= 0.5, slider );
         //robot.visionTeleop();
         //if( gamepad1.a ){
-        //    robot.setSearchMode( Hardware.searchMode.block );
+        //    robot.setSearchMode( TeleOpHardware.searchMode.block );
         //}else if( gamepad1.b ){
-        //    robot.setSearchMode( Hardware.searchMode.location );
+        //    robot.setSearchMode( TeleOpHardware.searchMode.location );
         //}
         telemetry.addData("RGB",robot.color.red() + " " + robot.color.green() + " " + robot.color.blue());
         telemetry.addData("Gyro",robot.imu.getAngularOrientation(AxesReference.INTRINSIC, AxesOrder.ZYX, AngleUnit.RADIANS).firstAngle);

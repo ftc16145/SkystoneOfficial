@@ -29,22 +29,11 @@
 
 package org.firstinspires.ftc.teamcode.Auton.Red;
 
-import android.content.Context;
-import android.view.MotionEvent;
-
-import com.qualcomm.ftccommon.SoundPlayer;
-import com.qualcomm.hardware.motors.NeveRest40Gearmotor;
 import com.qualcomm.robotcore.eventloop.opmode.Autonomous;
 import com.qualcomm.robotcore.eventloop.opmode.OpMode;
-import com.qualcomm.robotcore.eventloop.opmode.TeleOp;
-import com.qualcomm.robotcore.hardware.CRServo;
-import com.qualcomm.robotcore.hardware.ColorSensor;
-import com.qualcomm.robotcore.hardware.DcMotor;
-import com.qualcomm.robotcore.hardware.GyroSensor;
-import com.qualcomm.robotcore.hardware.Servo;
 import com.qualcomm.robotcore.util.ElapsedTime;
 
-import org.firstinspires.ftc.teamcode.Hardware;
+import org.firstinspires.ftc.teamcode.TeleOp.TeleOpHardware;
 
 /**
  * This file contains an example of an iterative (Non-Linear) "OpMode".
@@ -65,7 +54,7 @@ import org.firstinspires.ftc.teamcode.Hardware;
 public class LineRed extends OpMode
 {// Declare OpMode members.
     private ElapsedTime runtime = new ElapsedTime();
-    private Hardware robot = new Hardware();
+    private TeleOpHardware robot = new TeleOpHardware();
     boolean reached = false;
     //private DcMotor leftFront, leftBack, rightFront, rightBack, slide, claw, arm;
     //SLIDE MOTOR

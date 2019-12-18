@@ -1,0 +1,46 @@
+---
+poses:
+- x: -36.0
+  y: -63.0
+  heading: 1.5707963267948966
+- x: -36.0
+  y: -33.0
+  heading: 1.5707963267948966
+- x: 12.0
+  y: -48.0
+  heading: 0.0
+- x: 30.0
+  y: -12.0
+  heading: 0.0
+- x: 38.5
+  y: -20.5
+  heading: -0.7853981633974483
+- x: 0.0
+  y: -48.0
+  heading: 0.7853981633974483
+- x: -36.0
+  y: -33.0
+  heading: 1.5707963267948966
+- x: -60.0
+  y: -33.0
+  heading: 1.5707963267948966
+- x: 12.0
+  y: -48.0
+  heading: 0.0
+- x: 30.0
+  y: -12.0
+  heading: 0.0
+- x: 38.5
+  y: -20.5
+  heading: -0.7853981633974483
+- x: 0.0
+  y: -48.0
+  heading: 0.0
+constraints:
+  maxVel: 30.0
+  maxAccel: 30.0
+  maxJerk: 0.0
+  maxAngVel: 3.141592653589793
+  maxAngAccel: 6.283185307179586
+  maxAngJerk: 0.0
+resolution: 0.25

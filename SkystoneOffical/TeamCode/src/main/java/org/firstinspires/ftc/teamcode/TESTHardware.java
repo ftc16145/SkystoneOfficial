@@ -218,9 +218,9 @@ public class TESTHardware
      //   return
         //return imu.getAngularOrientation(AxesReference.INTRINSIC, AxesOrder.ZYX, AngleUnit.RADIANS).firstAngle;
     //}
-    /* Initialize standard Hardware interfaces */
+    /* Initialize standard TeleOpHardware interfaces */
     public void init( HardwareMap ahwMap, Telemetry atel, double initX, double initY, boolean onRed ) {
-        // Save reference to Hardware map
+        // Save reference to TeleOpHardware map
         hwMap = ahwMap;
         tel = atel;
         double initHeading = ( onRed ) ? 0 : Math.PI;

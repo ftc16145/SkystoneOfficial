@@ -29,16 +29,13 @@
 
 package org.firstinspires.ftc.teamcode;
 
-import android.content.Context;
-
-import com.qualcomm.ftccommon.SoundPlayer;
 import com.qualcomm.robotcore.eventloop.opmode.Autonomous;
 import com.qualcomm.robotcore.eventloop.opmode.Disabled;
 import com.qualcomm.robotcore.eventloop.opmode.OpMode;
-import com.qualcomm.robotcore.hardware.CRServo;
-import com.qualcomm.robotcore.hardware.ColorSensor;
 import com.qualcomm.robotcore.hardware.DcMotor;
 import com.qualcomm.robotcore.util.ElapsedTime;
+
+import org.firstinspires.ftc.teamcode.TeleOp.TeleOpHardware;
 
 /**
  * This file contains an example of an iterative (Non-Linear) "OpMode".
@@ -59,7 +56,7 @@ import com.qualcomm.robotcore.util.ElapsedTime;
 public class SlideStop extends OpMode
 {// Declare OpMode members.
     private ElapsedTime runtime = new ElapsedTime();
-    Hardware robot = new Hardware();
+    TeleOpHardware robot = new TeleOpHardware();
     double slideLimit = ( 28.5 / ( 3  * Math.PI ) ) * 288;
     //SLIDE MOTOR
     // 1120 Ticks/rev

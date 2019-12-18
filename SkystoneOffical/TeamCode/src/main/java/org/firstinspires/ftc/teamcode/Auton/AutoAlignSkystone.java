@@ -33,7 +33,7 @@ import com.qualcomm.robotcore.eventloop.opmode.Autonomous;
 import com.qualcomm.robotcore.eventloop.opmode.OpMode;
 import com.qualcomm.robotcore.util.ElapsedTime;
 
-import org.firstinspires.ftc.teamcode.Hardware;
+import org.firstinspires.ftc.teamcode.TeleOp.TeleOpHardware;
 
 /**
  * This file contains an example of an iterative (Non-Linear) "OpMode".
@@ -54,7 +54,7 @@ import org.firstinspires.ftc.teamcode.Hardware;
 public class AutoAlignSkystone extends OpMode
 {// Declare OpMode members.
     private ElapsedTime runtime = new ElapsedTime();
-    private Hardware robot = new Hardware();
+    private TeleOpHardware robot = new TeleOpHardware();
     boolean stage1 = false;
     boolean stage2= false;
     //private DcMotor leftFront, leftBack, rightFront, rightBack, slide, claw, arm;
@@ -79,7 +79,7 @@ public class AutoAlignSkystone extends OpMode
     @Override
     public void init() {
         robot.init( hardwareMap, telemetry,0,0,true,true );
-        robot.setSearchMode( Hardware.searchMode.block );
+        robot.setSearchMode( TeleOpHardware.searchMode.block );
         telemetry.addData("Status", "Initialized" );
 
 

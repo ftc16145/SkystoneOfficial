@@ -27,7 +27,7 @@
  * OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
 
-package org.firstinspires.ftc.teamcode;
+package org.firstinspires.ftc.teamcode.TeleOp;
 
 import android.content.Context;
 import android.graphics.Color;
@@ -65,7 +65,7 @@ import static org.firstinspires.ftc.robotcore.external.navigation.AxesReference.
 import static org.firstinspires.ftc.robotcore.external.navigation.VuforiaLocalizer.CameraDirection.BACK;
 
 
-public class Hardware {
+public class TeleOpHardware {
     public static enum searchMode {
         block, location
     }
@@ -179,7 +179,7 @@ public class Hardware {
     double[] prevXYH;
 
     /* Constructor */
-    public Hardware() {
+    public TeleOpHardware() {
 
     }
 
@@ -209,9 +209,9 @@ public class Hardware {
     //   return
     //return imu.getAngularOrientation(AxesReference.INTRINSIC, AxesOrder.ZYX, AngleUnit.RADIANS).firstAngle;
     //}
-    /* Initialize standard Hardware interfaces */
+    /* Initialize standard TeleOpHardware interfaces */
     public void init(HardwareMap ahwMap, Telemetry atel, double initX, double initY, boolean onRed, boolean useVision) {
-        // Save reference to Hardware map
+        // Save reference to TeleOpHardware map
         hwMap = ahwMap;
         tel = atel;
         double initHeading = (onRed) ? 0 : Math.PI;
@@ -252,7 +252,6 @@ public class Hardware {
         parameters.loggingEnabled = true;
         parameters.loggingTag = "IMU";
         imu.initialize(parameters);
-
         soundIndex = 0;
         soundID = -1;
         myApp = hwMap.appContext;
