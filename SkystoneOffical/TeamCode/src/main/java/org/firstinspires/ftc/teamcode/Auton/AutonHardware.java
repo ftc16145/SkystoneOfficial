@@ -10,6 +10,7 @@ import com.qualcomm.ftccommon.SoundPlayer;
 import com.qualcomm.robotcore.hardware.CRServo;
 import com.qualcomm.robotcore.hardware.ColorSensor;
 import com.qualcomm.robotcore.hardware.DcMotor;
+import com.qualcomm.robotcore.hardware.DcMotorEx;
 import com.qualcomm.robotcore.hardware.HardwareMap;
 import com.qualcomm.robotcore.util.ElapsedTime;
 
@@ -42,9 +43,11 @@ import static org.firstinspires.ftc.robotcore.external.navigation.VuforiaLocaliz
 
 public class AutonHardware {
     private ElapsedTime runtime = new ElapsedTime();
-    public DcMotor slide = null;
-    public DcMotor claw = null;
-    public DcMotor arm = null;
+    public DcMotorEx slide = null;
+    public DcMotorEx claw = null;
+    public DcMotorEx arm = null;
+    double hP = 0;
+    double dP = 0;
 
     public CRServo found = null;
 
@@ -101,6 +104,7 @@ public class AutonHardware {
     private float phoneZRotate = 0;
     private char option;
     double positionModifier;
+    Pose2d estCurrent;
     private Trajectory optionA,optionB,optionC, selectedOption;
 
     private ElapsedTime period = new ElapsedTime();
@@ -140,12 +144,18 @@ public class AutonHardware {
         this.onRed = onRed;
         drive = new SampleMecanumDriveREVOptimized(hwMap);
         drive.setPoseEstimate( new Pose2d(initX, initY, onRed ? Math.toRadians(90) : Math.toRadians(-90) ) );
-        claw = hwMap.get(DcMotor.class, "claw");
-        slide = hwMap.get(DcMotor.class, "slide");
-        arm = hwMap.get(DcMotor.class, "arm");
+        claw = hwMap.get(DcMotorEx.class, "claw");
+        slide = hwMap.get(DcMotorEx.class, "slide");
+        arm = hwMap.get(DcMotorEx.class, "arm");
         claw.setZeroPowerBehavior(DcMotor.ZeroPowerBehavior.BRAKE);
         slide.setZeroPowerBehavior(DcMotor.ZeroPowerBehavior.BRAKE);
         arm.setZeroPowerBehavior(DcMotor.ZeroPowerBehavior.BRAKE);
+        claw.setMode(DcMotor.RunMode.STOP_AND_RESET_ENCODER);
+        slide.setMode(DcMotor.RunMode.STOP_AND_RESET_ENCODER);
+        arm.setMode(DcMotor.RunMode.STOP_AND_RESET_ENCODER);
+        claw.setMode(DcMotor.RunMode.RUN_TO_POSITION);
+        slide.setMode(DcMotor.RunMode.RUN_TO_POSITION);
+        arm.setMode(DcMotor.RunMode.RUN_TO_POSITION);
 
         found = hwMap.get(CRServo.class, "foundation");
 
@@ -172,215 +182,76 @@ public class AutonHardware {
             positionModifier = 0;
         }
     }
+    public void logCurrent(Pose2d current){
+        estCurrent = current;
+    }
+    public void autoScore(){
+
+    }
+    public void setArmPosition( double x, double y ){
+        if( y == 0 && x == 0){
+            double angle = Math.atan( ( 5-hP ) / (13 - dP) );
+            double rExpand = (13-dP) / Math.cos( angle );
+        }else{
+            double angle = Math.atan( ( 5*y + 2.25 - hP ) / (14.8 + 4*x - dP) );
+            double rExpand = (14.8 + 4*x - dP) / Math.cos( angle );
+        }
+    }
+    public void levelArm(){
+
+    }
     public Trajectory skystoneFoundAuton(){
         runtime.reset();
         ArrayList<Trajectory> trajectories = new ArrayList<Trajectory>();
         Trajectory traj;
         int side = onRed ? -1 : 1;
-        /*
-        * 1) stageA - Go to block
-        * 2) Grab block
-        * 3) stageB - Go to foundation
-        * 4) Drop, Grab, turn 45 towards
-        * 5) stageC - Forward 12 into corner
-        * 6) Release foundation
-        * 7) stageD - Orgin stone grab
-        * 8) stageE - get 2nd skystone
-        * 9) Grab skystone
-        * 10) stageF - return to drop zone
-        * 11) Rotate to -45
-        * 12) stageC - forward 12
-        * 13) Drop block
-        * 14) stageG - return to line
-        * */
 
-        // Very iffy, but works in the test file (SkystoneOffical\Concepts\skystoneFoundAuton.yaml
         traj = drive.trajectoryBuilder()
-                //1
-                .splineTo((new Pose2d(positionModifier,30,90)).plus(drive.getPoseEstimate()))
-                //2
-                .addMarker(() -> {
-                    // Grab Block
+                .addMarker(() ->{
+                    // Drop Arm, Open Claw
                     return Unit.INSTANCE;
                 })
-                //3
-                .splineTo(new Pose2d(12,side*48,0))
+                .splineTo(new Pose2d(positionModifier,30,side*-90).plus(drive.getPoseEstimate()))
+                .addMarker(()->{
+                    // Close Claw, Level Arm
+                    return Unit.INSTANCE;
+                })
+                .splineTo(new Pose2d(-24,side*48,0))
+                .forward(24)
+                .splineTo(new Pose2d(24,side*24,side*-90))
                 .splineTo(new Pose2d(30,side*12,0))
-                //4
-                .addMarker(() -> {
-                    // Drop, Grab, turn 45 towards
+                .addMarker(() ->{
+                    // Grab foundation, Lower Arm to block 1
                     return Unit.INSTANCE;
                 })
-                //5
-                .forward(12)
-                //6
-                .addMarker(() -> {
-                    // Release foundation
+                .splineTo(new Pose2d(24,0,side*59))
+                .forward(30)
+                .addMarker(() ->{
+                    // Release foundation, drop block
+                    logCurrent(drive.getPoseEstimate());
                     return Unit.INSTANCE;
                 })
-                //7
-                .splineTo(new Pose2d(0,side*48,45))
-                .splineTo(new Pose2d(-36,side*33,90))
-                //8
-                .strafeLeft(24-positionModifier)
-                //9
-                .addMarker(() -> {
-                    // Grab skystone
-                    return Unit.INSTANCE;
-                })
-                //10
-                .splineTo(new Pose2d(0,side*48,45))
-                .splineTo(new Pose2d(30,side*12,90))
-                //11
-                .addMarker(() -> {
-                    // Rotate to -45
-                    return Unit.INSTANCE;
-                })
-                //12
-                .forward(12)
-                //13
-                .addMarker(() -> {
-                    // Drop block
-                    return Unit.INSTANCE;
-                })
-                //14
                 .splineTo(new Pose2d(0,side*48,0))
-                //DONE
-                .build();
-/*
-        stageB = drive.trajectoryBuilder()
-                .splineTo(new Pose2d(12,side*48,0))
-                .splineTo(new Pose2d(30,side*12,0))
-                .build();
-        stageC = drive.trajectoryBuilder()
-                .forward(12)
-                .build();
-        stageD = drive.trajectoryBuilder()
-                .splineTo(new Pose2d(0,side*48,45))
-                .splineTo(new Pose2d(-36,side*33,90))
-                .build();
-        stageF = drive.trajectoryBuilder()
-                .splineTo(new Pose2d(0,side*48,45))
-                .splineTo(new Pose2d(30,side*12,90))
-                .build();
-        stageG = drive.trajectoryBuilder()
+                .splineTo(new Pose2d(-36,side*48,side*-90))
+                .addMarker(()->{
+                    // Lower Arm
+                    return Unit.INSTANCE;
+                })
+                .splineTo(new Pose2d(-60+positionModifier,side*33,side*-90))
+                .addMarker(()->{
+                    // Close Claw, Level Arm
+                    return Unit.INSTANCE;
+                })
+                .splineTo(new Pose2d(-36,side*48,side*-90))
+                .splineTo(new Pose2d(0,side*48,0))
+                .splineTo(estCurrent)
+                .addMarker(()->{
+                    // Lower Arm to block 2, Release Block
+                    return Unit.INSTANCE;
+                })
                 .splineTo(new Pose2d(0,side*48,0))
                 .build();
-                */
-        if(onRed){
-            traj = drive.trajectoryBuilder()
-                    //1
-                    .splineTo((new Pose2d(positionModifier,30,90)).plus(drive.getPoseEstimate()))
-                    //2
-                    .addMarker(() -> {
-                        // Grab Block
-                        return Unit.INSTANCE;
-                    })
-                    //3
-                    .splineTo(new Pose2d(12,side*48,0))
-                    .splineTo(new Pose2d(30,side*12,0))
-                    //4
-                    .addMarker(() -> {
-                        // Drop, Grab, turn 45 towards
-                        return Unit.INSTANCE;
-                    })
-                    //5
-                    .forward(12)
-                    //6
-                    .addMarker(() -> {
-                        // Release foundation
-                        return Unit.INSTANCE;
-                    })
-                    //7
-                    .splineTo(new Pose2d(0,side*48,45))
-                    .splineTo(new Pose2d(-36,side*33,90))
-                    //8
-                    .strafeLeft(24-positionModifier)
-                    //9
-                    .addMarker(() -> {
-                        // Grab skystone
-                        return Unit.INSTANCE;
-                    })
-                    //10
-                    .splineTo(new Pose2d(0,side*48,45))
-                    .splineTo(new Pose2d(30,side*12,90))
-                    //11
-                    .addMarker(() -> {
-                        // Rotate to -45
-                        return Unit.INSTANCE;
-                    })
-                    //12
-                    .forward(12)
-                    //13
-                    .addMarker(() -> {
-                        // Drop block
-                        return Unit.INSTANCE;
-                    })
-                    //14
-                    .splineTo(new Pose2d(0,side*48,0))
-                    //DONE
-                    .build();
-        }else{
-            traj = drive.trajectoryBuilder()
-                    //1
-                    .splineTo((new Pose2d(positionModifier,30,90)).plus(drive.getPoseEstimate()))
-                    //2
-                    .addMarker(() -> {
-                        // Grab Block
-                        return Unit.INSTANCE;
-                    })
-                    //3
-                    .splineTo(new Pose2d(12,side*48,0))
-                    .splineTo(new Pose2d(30,side*12,0))
-                    //4
-                    .addMarker(() -> {
-                        // Drop, Grab, turn 45 towards
-                        return Unit.INSTANCE;
-                    })
-                    //5
-                    .forward(12)
-                    //6
-                    .addMarker(() -> {
-                        // Release foundation
-                        return Unit.INSTANCE;
-                    })
-                    //7
-                    .splineTo(new Pose2d(0,side*48,45))
-                    .splineTo(new Pose2d(-36,side*33,90))
-                    //8
-                    .strafeRight(24-positionModifier)
-                    //9
-                    .addMarker(() -> {
-                        // Grab skystone
-                        return Unit.INSTANCE;
-                    })
-                    //10
-                    .splineTo(new Pose2d(0,side*48,45))
-                    .splineTo(new Pose2d(30,side*12,90))
-                    //11
-                    .addMarker(() -> {
-                        // Rotate to -45
-                        return Unit.INSTANCE;
-                    })
-                    //12
-                    .forward(12)
-                    //13
-                    .addMarker(() -> {
-                        // Drop block
-                        return Unit.INSTANCE;
-                    })
-                    //14
-                    .splineTo(new Pose2d(0,side*48,0))
-                    //DONE
-                    .build();
-        }
-        //trajectories.add(stageA);
-        //trajectories.add(stageB);
-        //trajectories.add(stageC);
-        //trajectories.add(stageD);
-        //trajectories.add(stageE);
-        //trajectories.add(stageF);
-        //trajectories.add(stageG);
+
         return traj;
     }
     public void visionInit() {
@@ -580,7 +451,21 @@ public class AutonHardware {
                     if (robotLocationTransform != null) {
                         lastLocation = robotLocationTransform;
                     }
+                    if(trackable == targetsSkyStone.get(0)){
+                        double strafe = lastLocation.getTranslation().get(1) / mmPerInch;
 
+                        if(Math.abs(strafe)<=2){
+                           option = 'B';
+                        } else if(strafe > 5) {
+                            option = 'A';
+                        }else if(strafe < 5) {
+                            option = 'C';
+                        }else{
+                            option = 'X';
+                        }
+                    }else{
+                        option = 'X';
+                    }
                     break;
                 }
             }
@@ -589,16 +474,7 @@ public class AutonHardware {
                 VectorF translation = lastLocation.getTranslation();
                 tel.addData("Pos (in)", "{X, Y, Z} = %.1f, %.1f, %.1f",
                         translation.get(0) / mmPerInch, translation.get(1) / mmPerInch, translation.get(2) / mmPerInch);
-                double strafe = translation.get(1) / mmPerInch;
-                if(Math.abs(strafe)<=2){
-                    option = 'B';
-                } else if(strafe > 5) {
-                    option = 'A';
-                }else if(strafe < 5) {
-                    option = 'C';
-                }else{
-                    option = 'B';
-                }
+
                 // express the rotation of the robot in degrees.
                 Orientation rotation = Orientation.getOrientation(lastLocation, EXTRINSIC, XYZ, DEGREES);
                 tel.addData("Rot (deg)", "{Roll, Pitch, Heading} = %.0f, %.0f, %.0f", rotation.firstAngle, rotation.secondAngle, rotation.thirdAngle);
