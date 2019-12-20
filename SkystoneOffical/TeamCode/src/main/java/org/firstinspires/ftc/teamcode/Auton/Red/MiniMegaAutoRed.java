@@ -35,12 +35,8 @@ import com.qualcomm.robotcore.eventloop.opmode.OpMode;
 import com.qualcomm.robotcore.util.ElapsedTime;
 
 import org.firstinspires.ftc.teamcode.Auton.AutonHardware;
-import org.firstinspires.ftc.teamcode.TeleOp.TeleOpHardware;
 
-import java.util.ArrayList;
 import java.util.concurrent.TimeUnit;
-
-import static java.lang.Math.toRadians;
 
 /**
  * This file contains an example of an iterative (Non-Linear) "OpMode".
@@ -56,9 +52,9 @@ import static java.lang.Math.toRadians;
  * Remove or comment out the @Disabled line to add this opmode to the Driver Station OpMode list
  */
 
-@Autonomous(name="2SFRed", group="Auto Red")
+@Autonomous(name="1SFRed", group="Auto Red")
 
-public class MegaAutoRed extends OpMode
+public class MiniMegaAutoRed extends OpMode
 {// Declare OpMode members.
     private ElapsedTime runtime = new ElapsedTime();
     private AutonHardware robot = new AutonHardware();
@@ -124,7 +120,7 @@ public class MegaAutoRed extends OpMode
     @Override
     public void start() {
         runtime.reset();
-        currentTraj = robot.twoSkystoneFoundAuton();
+        currentTraj = robot.oneSkystoneFoundAuton();
     }
     /*
      * Code to run REPEATEDLY after the driver hits PLAY but before they hit STOP

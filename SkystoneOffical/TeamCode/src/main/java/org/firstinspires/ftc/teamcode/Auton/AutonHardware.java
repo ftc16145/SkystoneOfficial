@@ -11,6 +11,7 @@ import com.qualcomm.robotcore.hardware.CRServo;
 import com.qualcomm.robotcore.hardware.ColorSensor;
 import com.qualcomm.robotcore.hardware.DcMotor;
 import com.qualcomm.robotcore.hardware.DcMotorEx;
+import com.qualcomm.robotcore.hardware.DcMotorSimple;
 import com.qualcomm.robotcore.hardware.HardwareMap;
 import com.qualcomm.robotcore.util.ElapsedTime;
 
@@ -32,6 +33,7 @@ import org.firstinspires.ftc.teamcode.roadrunner.drive.mecanum.SampleMecanumDriv
 import java.lang.reflect.Array;
 import java.util.ArrayList;
 import java.util.List;
+import java.util.concurrent.TimeUnit;
 
 import kotlin.Unit;
 
@@ -42,85 +44,111 @@ import static org.firstinspires.ftc.robotcore.external.navigation.AxesReference.
 import static org.firstinspires.ftc.robotcore.external.navigation.VuforiaLocalizer.CameraDirection.BACK;
 
 public class AutonHardware {
-    private ElapsedTime runtime = new ElapsedTime();
-    public DcMotorEx slide = null;
-    public DcMotorEx claw = null;
-    public DcMotorEx arm = null;
-    double hP = 0;
-    double dP = 0;
+    // Constants
+        // Height of pivot above ground
+            double hP = 0;
+        // Min size of arm
+            double dP = 0;
+        // Radius of back part of arm
+            double rB = 0;
+        // Radius of spool wheel
+            double rS = 0;
+        // Radius of gear
+            double rG = 0;
 
-    public CRServo found = null;
 
-    public ColorSensor color = null;
+    // Timer
+        private ElapsedTime runtime = new ElapsedTime();
 
-    HardwareMap hwMap = null;
-    Telemetry tel = null;
-    boolean onRed;
+    // Scoring Mechanisms
+        public SampleMecanumDriveREVOptimized drive;
+        public DcMotorEx slide = null;
+        public DcMotorEx claw = null;
+        public DcMotorEx arm = null;
+        ArrayList<DcMotorEx> scoring = new ArrayList<DcMotorEx>();
 
-    private static final VuforiaLocalizer.CameraDirection CAMERA_CHOICE = BACK;
-    private static final boolean PHONE_IS_PORTRAIT = true;
+        public CRServo found = null;
+        boolean foundInMovement = false;
+        double startTimeFound = 0;
 
-    /*
-     * IMPORTANT: You need to obtain your own license key to use Vuforia. The string below with which
-     * 'parameters.vuforiaLicenseKey' is initialized is for illustration only, and will not function.
-     * A Vuforia 'Development' license key, can be obtained free of charge from the Vuforia developer
-     * web site at https://developer.vuforia.com/license-manager.
-     *
-     * Vuforia license keys are always 380 characters long, and look as if they contain mostly
-     * random data. As an example, here is a example of a fragment of a valid key:
-     *      ... yIgIzTqZ4mWjk9wd3cZO9T1axEqzuhxoGlfOOI2dRzKS4T0hQ8kT ...
-     * Once you've obtained a license key, copy the string from the Vuforia web site
-     * and paste it in to your code on the next line, between the double quotes.
-     */
-    private static final String VUFORIA_KEY =
+        public ColorSensor color = null;
+
+    // Info for the class
+        HardwareMap hwMap = null;
+        Telemetry tel = null;
+        boolean onRed;
+
+    // Vision
+        private static final VuforiaLocalizer.CameraDirection CAMERA_CHOICE = BACK;
+        private static final boolean PHONE_IS_PORTRAIT = true;
+
+        /*
+        * IMPORTANT: You need to obtain your own license key to use Vuforia. The string below with which
+        * 'parameters.vuforiaLicenseKey' is initialized is for illustration only, and will not function.
+        * A Vuforia 'Development' license key, can be obtained free of charge from the Vuforia developer
+        * web site at https://developer.vuforia.com/license-manager.
+        *
+        * Vuforia license keys are always 380 characters long, and look as if they contain mostly
+        * random data. As an example, here is a example of a fragment of a valid key:
+        *      ... yIgIzTqZ4mWjk9wd3cZO9T1axEqzuhxoGlfOOI2dRzKS4T0hQ8kT ...
+        * Once you've obtained a license key, copy the string from the Vuforia web site
+        * and paste it in to your code on the next line, between the double quotes.
+        */
+        private static final String VUFORIA_KEY =
             "AU4HXeP/////AAABmVJly8bxo0HGllLzw8tuRc6CrpFD2db1ztBgf+59e8csd4hdmwwlhFHRBy2eue1fUGU2+Vab/tlGrbZyW6L1lUa8lrhvHT4btcGio9P0MZwprrTRCWdeHYjTzuM+gQZMrpbJO5YlaRHNb0EZmDUqw/8Wjx6B7nv90yo/jmcU2c+Z0KI0D0zqIkI7f0AxrrlrMz6kanChap54VsRMZcwhcS1oMuNN0r46XDgzEmNtxuAowf+Q/Bpsn+a1j5VVKK3ydv2L/bUBXoS7eKpXr2N3FpXEnV0CJ6gKthaoPuTSQxFyJlduBTdRi8lhU7lSSERUcf3bctSq+jhe3E3F7yySSVrvFtyLucdi7asvXys17O2v";
 
-    // Since ImageTarget trackables use mm to specifiy their dimensions, we must use mm for all the physical dimension.
-    // We will define some constants and conversions here
-    private static final float mmPerInch = 25.4f;
-    private static final float mmTargetHeight = (6) * mmPerInch;          // the height of the center of the target image above the floor
+        // Since ImageTarget trackables use mm to specifiy their dimensions, we must use mm for all the physical dimension.
+        // We will define some constants and conversions here
+            private static final float mmPerInch = 25.4f;
+            private static final float mmTargetHeight = (6) * mmPerInch;          // the height of the center of the target image above the floor
 
-    // Constant for Stone Target
-    private static final float stoneZ = 2.00f * mmPerInch;
+        // Constant for Stone Target
+            private static final float stoneZ = 2.00f * mmPerInch;
+        // Constants for the center support targets
+            private static final float bridgeZ = 6.42f * mmPerInch;
+            private static final float bridgeY = 23 * mmPerInch;
+            private static final float bridgeX = 5.18f * mmPerInch;
+            private static final float bridgeRotY = 59;                                 // Units are degrees
+            private static final float bridgeRotZ = 180;
 
-    // Constants for the center support targets
-    private static final float bridgeZ = 6.42f * mmPerInch;
-    private static final float bridgeY = 23 * mmPerInch;
-    private static final float bridgeX = 5.18f * mmPerInch;
-    private static final float bridgeRotY = 59;                                 // Units are degrees
-    private static final float bridgeRotZ = 180;
-
-    // Constants for perimeter targets
-    private static final float halfField = 72 * mmPerInch;
-    private static final float quadField = 36 * mmPerInch;
-
-    // Class Members
-    private OpenGLMatrix lastLocation = null;
-    private OpenGLMatrix blockLocator = null;
-    private VuforiaLocalizer vuforia = null;
-    private boolean targetVisible = false;
-    private float phoneXRotate = 0;
-    private float phoneYRotate = 0;
-    private float phoneZRotate = 0;
-    private char option;
-    double positionModifier;
-    Pose2d estCurrent;
-    private Trajectory optionA,optionB,optionC, selectedOption;
-
-    private ElapsedTime period = new ElapsedTime();
+        // Constants for perimeter targets
+            private static final float halfField = 72 * mmPerInch;
+            private static final float quadField = 36 * mmPerInch;
 
 
-    String sounds[] = {"ss_alarm", "ss_bb8_down", "ss_bb8_up", "ss_darth_vader", "ss_fly_by",
+
+        // Class Members
+            private OpenGLMatrix lastLocation = null;
+            private OpenGLMatrix blockLocator = null;
+            private VuforiaLocalizer vuforia = null;
+            private boolean targetVisible = false;
+            private float phoneXRotate = 0;
+            private float phoneYRotate = 0;
+            private float phoneZRotate = 0;
+            int cameraMonitorViewId;
+            VuforiaTrackables targetsSkyStone;
+            List<VuforiaTrackable> allTrackables;
+            Context myApp;
+    // Trajectory Variables
+        private char option;
+        double positionModifier;
+        Pose2d estCurrent;
+        private Trajectory optionA,optionB,optionC, selectedOption;
+
+
+
+    // Sounds
+        String sounds[] = {"ss_alarm", "ss_bb8_down", "ss_bb8_up", "ss_darth_vader", "ss_fly_by",
             "ss_mf_fail", "ss_laser", "ss_laser_burst", "ss_light_saber", "ss_light_saber_long", "ss_light_saber_short",
             "ss_light_speed", "ss_mine", "ss_power_up", "ss_r2d2_up", "ss_roger_roger", "ss_siren", "ss_wookie"};
-    boolean soundPlaying = false;
-    int soundIndex, soundID;
-    SoundPlayer.PlaySoundParams params;
-    Context myApp;
-    int cameraMonitorViewId;
-    VuforiaTrackables targetsSkyStone;
-    List<VuforiaTrackable> allTrackables;
-    public SampleMecanumDriveREVOptimized drive;
+            boolean soundPlaying = false;
+            int soundIndex, soundID;
+            SoundPlayer.PlaySoundParams params;
+
+
+
+
+
     public void playSound(String sound) {
         if (!soundPlaying) {
             if ((soundID = myApp.getResources().getIdentifier(sound, "raw", myApp.getPackageName())) != 0) {
@@ -138,36 +166,42 @@ public class AutonHardware {
             }
         }
     }
+
     public void init( HardwareMap hardware, Telemetry atel, double initX, double initY, boolean onRed ){
         hwMap = hardware;
         tel = atel;
         this.onRed = onRed;
+
         drive = new SampleMecanumDriveREVOptimized(hwMap);
         drive.setPoseEstimate( new Pose2d(initX, initY, onRed ? Math.toRadians(90) : Math.toRadians(-90) ) );
         claw = hwMap.get(DcMotorEx.class, "claw");
         slide = hwMap.get(DcMotorEx.class, "slide");
         arm = hwMap.get(DcMotorEx.class, "arm");
-        claw.setZeroPowerBehavior(DcMotor.ZeroPowerBehavior.BRAKE);
-        slide.setZeroPowerBehavior(DcMotor.ZeroPowerBehavior.BRAKE);
-        arm.setZeroPowerBehavior(DcMotor.ZeroPowerBehavior.BRAKE);
-        claw.setMode(DcMotor.RunMode.STOP_AND_RESET_ENCODER);
-        slide.setMode(DcMotor.RunMode.STOP_AND_RESET_ENCODER);
-        arm.setMode(DcMotor.RunMode.STOP_AND_RESET_ENCODER);
-        claw.setMode(DcMotor.RunMode.RUN_TO_POSITION);
-        slide.setMode(DcMotor.RunMode.RUN_TO_POSITION);
-        arm.setMode(DcMotor.RunMode.RUN_TO_POSITION);
+
+        scoring.add(claw);
+        scoring.add(slide);
+        scoring.add(arm);
+
+        for( DcMotorEx m : scoring ){
+            m.setZeroPowerBehavior(DcMotor.ZeroPowerBehavior.BRAKE);
+            m.setMode(DcMotor.RunMode.STOP_AND_RESET_ENCODER);
+            m.setMode(DcMotor.RunMode.RUN_TO_POSITION);
+            m.setPositionPIDFCoefficients(1/288);
+            m.setTargetPositionTolerance(5);
+        }
 
         found = hwMap.get(CRServo.class, "foundation");
 
         color = hwMap.get(ColorSensor.class, "color");
-        soundIndex = 0;
-        soundID = -1;
-        myApp = hwMap.appContext;
-        params = new SoundPlayer.PlaySoundParams();
-        params.loopControl = 0;
-        params.waitForNonLoopingSoundsToFinish = true;
-        cameraMonitorViewId = hwMap.appContext.getResources().getIdentifier("cameraMonitorViewId", "id", hwMap.appContext.getPackageName());
-        visionInit();
+        // Random Sound/Vision Things
+            soundIndex = 0;
+            soundID = -1;
+            myApp = hwMap.appContext;
+            params = new SoundPlayer.PlaySoundParams();
+            params.loopControl = 0;
+            params.waitForNonLoopingSoundsToFinish = true;
+            cameraMonitorViewId = hwMap.appContext.getResources().getIdentifier("cameraMonitorViewId", "id", hwMap.appContext.getPackageName());
+            visionInit();
         playSound("ss_light_saber");
     }
     public void initLoop(){
@@ -186,72 +220,252 @@ public class AutonHardware {
         estCurrent = current;
     }
     public void autoScore(){
-
-    }
-    public void setArmPosition( double x, double y ){
-        if( y == 0 && x == 0){
-            double angle = Math.atan( ( 5-hP ) / (13 - dP) );
-            double rExpand = (13-dP) / Math.cos( angle );
+        for( DcMotorEx m : scoring ){
+            if(!m.isBusy()){
+                m.setPower(0);
+            }
+        }
+        if(foundInMovement){
+            if( runtime.time(TimeUnit.SECONDS) > startTimeFound + 2 ){
+                foundInMovement = false;
+                found.setPower(0);
+            }
         }else{
-            double angle = Math.atan( ( 5*y + 2.25 - hP ) / (14.8 + 4*x - dP) );
-            double rExpand = (14.8 + 4*x - dP) / Math.cos( angle );
+            found.setPower(0);
         }
     }
-    public void levelArm(){
-
+    // NOT DONE
+    public void setArmPosition( double x, double y ){
+        double angle, rExpand;
+        if( y == 0 && x == 0){
+            angle = Math.atan( ( 5-hP ) / 13 );
+            rExpand = (13 / Math.cos( angle ))-dP;
+        }else{
+            angle = Math.atan( ( 5*y + 2.25 - hP ) / ( 14.8 + 4*x ) );
+            rExpand = ((14.8 + 4*x) / Math.cos( angle )) - dP;
+        }
+        double armWind = ((rB*Math.sin(-angle))/(2*Math.PI*rS))*288;
+        double armExt = rExpand / (2*rG*Math.PI) * 288;
+        //if( (armWind > max || armWind < min) && (armExt > max || armExt < min)){
+            // OUT OF BOUNDS
+        //}else {
+            slide.setTargetPosition((int) armExt);
+            slide.setPower(0.8);
+            arm.setTargetPosition((int) armWind);
+            arm.setPower(0.8);
+        //}
     }
-    public Trajectory skystoneFoundAuton(){
+    public void levelArm(){
+        arm.setTargetPosition(0);
+        arm.setPower(1);
+    }
+    // NOT DONE
+    public void operateClaw(boolean open){
+        //claw.setTargetPosition(open ? : );
+        //claw.setPower(0.8);
+    }
+    public void operateFoundation(boolean up){
+        found.setDirection( up ? CRServo.Direction.FORWARD : CRServo.Direction.REVERSE );
+        found.setPower(0.8);
+        foundInMovement = true;
+        startTimeFound = runtime.time(TimeUnit.SECONDS);
+    }
+    public Trajectory oneSkystoneFoundAuton(){
         runtime.reset();
-        ArrayList<Trajectory> trajectories = new ArrayList<Trajectory>();
         Trajectory traj;
         int side = onRed ? -1 : 1;
+            traj = drive.trajectoryBuilder()
+                    .addMarker(() -> {
+                        // Drop Arm, Open Claw
+                        setArmPosition(0,0 );
+                        operateClaw(true);
+                        return Unit.INSTANCE;
+                    })
+                    .splineTo(new Pose2d(positionModifier, 30, side * -90).plus(drive.getPoseEstimate()))
+                    .addMarker(() -> {
+                        // Close Claw, Level Arm
+                        operateClaw(false);
+                        while(claw.isBusy()){
+                            autoScore();
+                        }
+                        levelArm();
+                        return Unit.INSTANCE;
+                    })
+                    .splineTo(new Pose2d(-24, side * 48, 0))
+                    .forward(24)
+                    .splineTo(new Pose2d(24, side * 24, side * -90))
+                    .splineTo(new Pose2d(30, side * 12, 0))
+                    .addMarker(() -> {
+                        // Grab foundation, Lower Arm to block 1
+                        operateFoundation(false);
+                        setArmPosition(1,1);
+                        while(foundInMovement){
+                            autoScore();
+                        }
+                        return Unit.INSTANCE;
+                    })
+                    .splineTo(new Pose2d(24, 0, side * 59))
+                    .forward(30)
+                    .addMarker(() -> {
+                        logCurrent(drive.getPoseEstimate());
+                        double miniTime = runtime.time(TimeUnit.SECONDS);
+                        // Release foundation, drop block
+                        operateFoundation(true);
+                        operateClaw(true);
+                        while(miniTime +1 > runtime.time(TimeUnit.SECONDS)){
+                            autoScore();
+                        }
+                        setArmPosition(0,0 );
+                        levelArm();
 
-        traj = drive.trajectoryBuilder()
-                .addMarker(() ->{
-                    // Drop Arm, Open Claw
-                    return Unit.INSTANCE;
-                })
-                .splineTo(new Pose2d(positionModifier,30,side*-90).plus(drive.getPoseEstimate()))
-                .addMarker(()->{
-                    // Close Claw, Level Arm
-                    return Unit.INSTANCE;
-                })
-                .splineTo(new Pose2d(-24,side*48,0))
-                .forward(24)
-                .splineTo(new Pose2d(24,side*24,side*-90))
-                .splineTo(new Pose2d(30,side*12,0))
-                .addMarker(() ->{
-                    // Grab foundation, Lower Arm to block 1
-                    return Unit.INSTANCE;
-                })
-                .splineTo(new Pose2d(24,0,side*59))
-                .forward(30)
-                .addMarker(() ->{
-                    // Release foundation, drop block
-                    logCurrent(drive.getPoseEstimate());
-                    return Unit.INSTANCE;
-                })
-                .splineTo(new Pose2d(0,side*48,0))
-                .splineTo(new Pose2d(-36,side*48,side*-90))
-                .addMarker(()->{
-                    // Lower Arm
-                    return Unit.INSTANCE;
-                })
-                .splineTo(new Pose2d(-60+positionModifier,side*33,side*-90))
-                .addMarker(()->{
-                    // Close Claw, Level Arm
-                    return Unit.INSTANCE;
-                })
-                .splineTo(new Pose2d(-36,side*48,side*-90))
-                .splineTo(new Pose2d(0,side*48,0))
-                .splineTo(estCurrent)
-                .addMarker(()->{
-                    // Lower Arm to block 2, Release Block
-                    return Unit.INSTANCE;
-                })
-                .splineTo(new Pose2d(0,side*48,0))
-                .build();
+                        return Unit.INSTANCE;
+                    })
+                    .splineTo(new Pose2d(0, side * 48, 0))
+                    .build();
 
+        return traj;
+    }
+    public Trajectory twoSkystoneFoundAuton(){
+        runtime.reset();
+        Trajectory traj;
+        int side = onRed ? -1 : 1;
+        if(option != 'C') {
+            traj = drive.trajectoryBuilder()
+                    .addMarker(() -> {
+                        // Drop Arm, Open Claw
+                        setArmPosition(0,0 );
+                        operateClaw(true);
+                        return Unit.INSTANCE;
+                    })
+                    .splineTo(new Pose2d(positionModifier, 30, side * -90).plus(drive.getPoseEstimate()))
+                    .addMarker(() -> {
+                        // Close Claw, Level Arm
+                        levelArm();
+                        operateClaw(false);
+                        return Unit.INSTANCE;
+                    })
+                    .splineTo(new Pose2d(-24, side * 48, 0))
+                    .forward(24)
+                    .splineTo(new Pose2d(24, side * 24, side * -90))
+                    .splineTo(new Pose2d(30, side * 12, 0))
+                    .addMarker(() -> {
+                        // Grab foundation, Lower Arm to block 1
+                        operateClaw(false);
+                        setArmPosition(1,1);
+                        return Unit.INSTANCE;
+                    })
+                    .splineTo(new Pose2d(24, 0, side * 59))
+                    .forward(30)
+                    .addMarker(() -> {
+                        logCurrent(drive.getPoseEstimate());
+                        double miniTime = runtime.time(TimeUnit.SECONDS);
+                        // Release foundation, drop block
+                        operateFoundation(true);
+                        operateClaw(true);
+                        while(miniTime +1 > runtime.time(TimeUnit.SECONDS)){
+
+                        }
+                        setArmPosition(0,0 );
+                        levelArm();
+
+                        return Unit.INSTANCE;
+                    })
+                    .splineTo(new Pose2d(0, side * 48, 0))
+                    .splineTo(new Pose2d(-36, side * 48, side * -90))
+                    .addMarker(() -> {
+                        // Lower Arm\
+                        setArmPosition(0,0 );
+                        return Unit.INSTANCE;
+                    })
+                    .splineTo(new Pose2d(-60 + positionModifier, side * 33, side * -90))
+                    .addMarker(() -> {
+                        // Close Claw, Level Arm
+                        operateClaw(false);
+                        levelArm();
+                        return Unit.INSTANCE;
+                    })
+                    .splineTo(new Pose2d(-36, side * 48, side * -90))
+                    .splineTo(new Pose2d(0, side * 48, 0))
+                    .splineTo(estCurrent)
+                    .addMarker(() -> {
+                        // Lower Arm to block 2, Release Block
+                        setArmPosition(1,2);
+                        while(arm.isBusy()){
+
+                        }
+                        double miniTime = runtime.time(TimeUnit.SECONDS);
+                        operateClaw(true);
+                        while(miniTime +1 > runtime.time(TimeUnit.SECONDS)){
+
+                        }
+                        setArmPosition(0,0 );
+                        levelArm();
+                        return Unit.INSTANCE;
+                    })
+                    .splineTo(new Pose2d(0, side * 48, 0))
+                    .build();
+        }else{
+            traj = drive.trajectoryBuilder()
+                    .addMarker(() -> {
+                        // Drop Arm, Open Claw
+                        setArmPosition(0,0);
+                        operateClaw(true);
+                        return Unit.INSTANCE;
+                    })
+                    .splineTo(new Pose2d(positionModifier, 30, side * -90).plus(drive.getPoseEstimate()))
+                    .addMarker(() -> {
+                        // Close Claw, Level Arm
+                        operateClaw(false);
+                        levelArm();
+                        return Unit.INSTANCE;
+                    })
+                    .splineTo(new Pose2d(-24, side * 48, 0))
+                    .forward(24)
+                    .splineTo(new Pose2d(24, side * 24, side * -90))
+                    .splineTo(new Pose2d(30, side * 12, 0))
+                    .addMarker(() -> {
+                        // Grab foundation, Lower Arm to block 1
+                        operateFoundation(false);
+                        setArmPosition(1,1);
+                        return Unit.INSTANCE;
+                    })
+                    .splineTo(new Pose2d(24, 0, side * 59))
+                    .forward(30)
+                    .addMarker(() -> {
+                        // Release foundation, drop block
+                        logCurrent(drive.getPoseEstimate());
+                        operateFoundation(true);
+                        operateClaw(true);
+                        return Unit.INSTANCE;
+                    })
+                    .splineTo(new Pose2d(0, side * 48, 0))
+                    .splineTo(new Pose2d(-36, side * 48, side * -90))
+                    .addMarker(() -> {
+                        // Lower Arm
+                        setArmPosition(0,0);
+                        return Unit.INSTANCE;
+                    })
+                    .splineTo(new Pose2d(-57.6, side * 30.4, side * -135))
+                    .lineTo(new Vector2d(0,4))
+                    .addMarker(() -> {
+                        // Close Claw, Level Arm
+                        operateClaw(false);
+                        levelArm();
+                        return Unit.INSTANCE;
+                    })
+                    .splineTo(new Pose2d(-36, side * 48, side * -90))
+                    .splineTo(new Pose2d(0, side * 48, 0))
+                    .splineTo(estCurrent)
+                    .addMarker(() -> {
+                        // Lower Arm to block 2, Release Block
+                        setArmPosition(1,2);
+                        operateClaw(true);
+                        levelArm();
+                        return Unit.INSTANCE;
+                    })
+                    .splineTo(new Pose2d(0, side * 48, 0))
+                    .build();
+        }
         return traj;
     }
     public void visionInit() {
@@ -433,7 +647,6 @@ public class AutonHardware {
             targetsSkyStone.activate();
 
     }
-
     public void visionLoop() {
 
             // check all the trackable targets to see which one (if any) is visible.

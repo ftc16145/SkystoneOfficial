@@ -53,7 +53,7 @@ import java.util.concurrent.TimeUnit;
  * Remove or comment out the @Disabled line to add this opmode to the Driver Station OpMode list
  */
 
-@Autonomous(name="Found Red", group="Auto Blue")
+@Autonomous(name="2SFBlue", group="Auto Blue")
 
 public class MegaAutoBlue extends OpMode
 {// Declare OpMode members.
@@ -121,7 +121,7 @@ public class MegaAutoBlue extends OpMode
     @Override
     public void start() {
         runtime.reset();
-        currentTraj = robot.skystoneFoundAuton();
+        currentTraj = robot.twoSkystoneFoundAuton();
     }
     /*
      * Code to run REPEATEDLY after the driver hits PLAY but before they hit STOP
@@ -129,23 +129,9 @@ public class MegaAutoBlue extends OpMode
     @Override
     public void loop() {
         double t = runtime.time(TimeUnit.SECONDS);
-        /*
-         * 1) stageA - Go to block
-         * 2) Grab block
-         * 3) stageB - Go to foundation
-         * 4) Drop, Grab, turn 45 towards
-         * 5) stageC - Forward 12 into corner
-         * 6) Release foundation
-         * 7) stageD - Orgin stone grab
-         * 8) stageE - get 2nd skystone
-         * 9) Grab skystone
-         * 10) stageF - return to drop zone
-         * 11) Rotate to -45
-         * 12) stageC - forward 12
-         * 13) Drop block
-         * 14) stageG - return to line
-         * */
+
         robot.drive.followTrajectory(currentTraj);
+        robot.autoScore();
         robot.drive.update();
 
     }
