@@ -1,6 +1,7 @@
 package org.firstinspires.ftc.teamcode.Auton;
 
 import android.content.Context;
+import android.icu.util.UniversalTimeScale;
 
 import com.acmerobotics.roadrunner.geometry.Pose2d;
 import com.acmerobotics.roadrunner.geometry.Vector2d;
@@ -34,6 +35,7 @@ import java.lang.reflect.Array;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.concurrent.TimeUnit;
+
 
 import kotlin.Unit;
 
@@ -133,6 +135,7 @@ public class AutonHardware {
         private char option;
         double positionModifier;
         Pose2d estCurrent;
+        public int step = 0;
         private Trajectory optionA,optionB,optionC, selectedOption;
 
 

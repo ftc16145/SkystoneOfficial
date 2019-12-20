@@ -66,7 +66,7 @@ import static org.firstinspires.ftc.robotcore.external.navigation.VuforiaLocaliz
 
 
 public class TeleOpHardware {
-    public static enum searchMode {
+    public enum searchMode {
         block, location
     }
 
