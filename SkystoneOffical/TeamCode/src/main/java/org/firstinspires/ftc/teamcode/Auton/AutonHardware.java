@@ -135,8 +135,8 @@ public class AutonHardware {
         private char option;
         double positionModifier;
         Pose2d estCurrent;
-        public int step = 0;
         private Trajectory optionA,optionB,optionC, selectedOption;
+        public boolean actionRequest;
 
 
 
@@ -228,14 +228,6 @@ public class AutonHardware {
                 m.setPower(0);
             }
         }
-        if(foundInMovement){
-            if( runtime.time(TimeUnit.SECONDS) > startTimeFound + 2 ){
-                foundInMovement = false;
-                found.setPower(0);
-            }
-        }else{
-            found.setPower(0);
-        }
     }
     // NOT DONE
     public void setArmPosition( double x, double y ){
@@ -273,11 +265,14 @@ public class AutonHardware {
         foundInMovement = true;
         startTimeFound = runtime.time(TimeUnit.SECONDS);
     }
-    public Trajectory oneSkystoneFoundAuton(){
+    public void requestAction(){
+        actionRequest = true;
+    }
+    public Trajectory[] oneSkystoneFoundAuton(){
         runtime.reset();
-        Trajectory traj;
+        Trajectory traj1,traj2,traj3,traj4;
         int side = onRed ? -1 : 1;
-            traj = drive.trajectoryBuilder()
+            traj1 = drive.trajectoryBuilder()
                     .addMarker(() -> {
                         // Drop Arm, Open Claw
                         setArmPosition(0,0 );
@@ -288,91 +283,51 @@ public class AutonHardware {
                     .addMarker(() -> {
                         // Close Claw, Level Arm
                         operateClaw(false);
-                        while(claw.isBusy()){
-                            autoScore();
-                        }
-                        levelArm();
+                        requestAction();
                         return Unit.INSTANCE;
                     })
+                    .build();
+            traj2 = drive.trajectoryBuilder()
                     .splineTo(new Pose2d(-24, side * 48, 0))
                     .forward(24)
                     .splineTo(new Pose2d(24, side * 24, side * -90))
                     .splineTo(new Pose2d(30, side * 12, 0))
                     .addMarker(() -> {
                         // Grab foundation, Lower Arm to block 1
-                        operateFoundation(false);
+
                         setArmPosition(1,1);
-                        while(foundInMovement){
-                            autoScore();
-                        }
+                        requestAction();
                         return Unit.INSTANCE;
                     })
+                    .build();
+            traj3 = drive.trajectoryBuilder()
                     .splineTo(new Pose2d(24, 0, side * 59))
                     .forward(30)
                     .addMarker(() -> {
                         logCurrent(drive.getPoseEstimate());
-                        double miniTime = runtime.time(TimeUnit.SECONDS);
-                        // Release foundation, drop block
-                        operateFoundation(true);
                         operateClaw(true);
-                        while(miniTime +1 > runtime.time(TimeUnit.SECONDS)){
-                            autoScore();
-                        }
-                        setArmPosition(0,0 );
-                        levelArm();
+                        requestAction();
+
 
                         return Unit.INSTANCE;
                     })
+                    .build();
+            traj4 = drive.trajectoryBuilder()
                     .splineTo(new Pose2d(0, side * 48, 0))
+                    .addMarker(()->{
+                        requestAction();
+                        return Unit.INSTANCE;
+                    })
                     .build();
 
-        return traj;
+        return new Trajectory[]{traj1,traj2,traj3,traj4};
     }
-    public Trajectory twoSkystoneFoundAuton(){
+    public Trajectory[] twoSkystoneFoundAuton(){
         runtime.reset();
-        Trajectory traj;
+        Trajectory traj1,traj2,traj3,traj4,traj5,traj6;
         int side = onRed ? -1 : 1;
         if(option != 'C') {
-            traj = drive.trajectoryBuilder()
-                    .addMarker(() -> {
-                        // Drop Arm, Open Claw
-                        setArmPosition(0,0 );
-                        operateClaw(true);
-                        return Unit.INSTANCE;
-                    })
-                    .splineTo(new Pose2d(positionModifier, 30, side * -90).plus(drive.getPoseEstimate()))
-                    .addMarker(() -> {
-                        // Close Claw, Level Arm
-                        levelArm();
-                        operateClaw(false);
-                        return Unit.INSTANCE;
-                    })
-                    .splineTo(new Pose2d(-24, side * 48, 0))
-                    .forward(24)
-                    .splineTo(new Pose2d(24, side * 24, side * -90))
-                    .splineTo(new Pose2d(30, side * 12, 0))
-                    .addMarker(() -> {
-                        // Grab foundation, Lower Arm to block 1
-                        operateClaw(false);
-                        setArmPosition(1,1);
-                        return Unit.INSTANCE;
-                    })
-                    .splineTo(new Pose2d(24, 0, side * 59))
-                    .forward(30)
-                    .addMarker(() -> {
-                        logCurrent(drive.getPoseEstimate());
-                        double miniTime = runtime.time(TimeUnit.SECONDS);
-                        // Release foundation, drop block
-                        operateFoundation(true);
-                        operateClaw(true);
-                        while(miniTime +1 > runtime.time(TimeUnit.SECONDS)){
-
-                        }
-                        setArmPosition(0,0 );
-                        levelArm();
-
-                        return Unit.INSTANCE;
-                    })
+            traj4 = drive.trajectoryBuilder()
                     .splineTo(new Pose2d(0, side * 48, 0))
                     .splineTo(new Pose2d(-36, side * 48, side * -90))
                     .addMarker(() -> {
@@ -381,66 +336,9 @@ public class AutonHardware {
                         return Unit.INSTANCE;
                     })
                     .splineTo(new Pose2d(-60 + positionModifier, side * 33, side * -90))
-                    .addMarker(() -> {
-                        // Close Claw, Level Arm
-                        operateClaw(false);
-                        levelArm();
-                        return Unit.INSTANCE;
-                    })
-                    .splineTo(new Pose2d(-36, side * 48, side * -90))
-                    .splineTo(new Pose2d(0, side * 48, 0))
-                    .splineTo(estCurrent)
-                    .addMarker(() -> {
-                        // Lower Arm to block 2, Release Block
-                        setArmPosition(1,2);
-                        while(arm.isBusy()){
-
-                        }
-                        double miniTime = runtime.time(TimeUnit.SECONDS);
-                        operateClaw(true);
-                        while(miniTime +1 > runtime.time(TimeUnit.SECONDS)){
-
-                        }
-                        setArmPosition(0,0 );
-                        levelArm();
-                        return Unit.INSTANCE;
-                    })
-                    .splineTo(new Pose2d(0, side * 48, 0))
                     .build();
         }else{
-            traj = drive.trajectoryBuilder()
-                    .addMarker(() -> {
-                        // Drop Arm, Open Claw
-                        setArmPosition(0,0);
-                        operateClaw(true);
-                        return Unit.INSTANCE;
-                    })
-                    .splineTo(new Pose2d(positionModifier, 30, side * -90).plus(drive.getPoseEstimate()))
-                    .addMarker(() -> {
-                        // Close Claw, Level Arm
-                        operateClaw(false);
-                        levelArm();
-                        return Unit.INSTANCE;
-                    })
-                    .splineTo(new Pose2d(-24, side * 48, 0))
-                    .forward(24)
-                    .splineTo(new Pose2d(24, side * 24, side * -90))
-                    .splineTo(new Pose2d(30, side * 12, 0))
-                    .addMarker(() -> {
-                        // Grab foundation, Lower Arm to block 1
-                        operateFoundation(false);
-                        setArmPosition(1,1);
-                        return Unit.INSTANCE;
-                    })
-                    .splineTo(new Pose2d(24, 0, side * 59))
-                    .forward(30)
-                    .addMarker(() -> {
-                        // Release foundation, drop block
-                        logCurrent(drive.getPoseEstimate());
-                        operateFoundation(true);
-                        operateClaw(true);
-                        return Unit.INSTANCE;
-                    })
+            traj4 = drive.trajectoryBuilder()
                     .splineTo(new Pose2d(0, side * 48, 0))
                     .splineTo(new Pose2d(-36, side * 48, side * -90))
                     .addMarker(() -> {
@@ -449,27 +347,70 @@ public class AutonHardware {
                         return Unit.INSTANCE;
                     })
                     .splineTo(new Pose2d(-57.6, side * 30.4, side * -135))
-                    .lineTo(new Vector2d(0,4))
+                    .lineTo(new Vector2d(0,4).plus(new Vector2d(drive.getPoseEstimate().getX(),drive.getPoseEstimate().getY())))
                     .addMarker(() -> {
                         // Close Claw, Level Arm
                         operateClaw(false);
                         levelArm();
                         return Unit.INSTANCE;
                     })
-                    .splineTo(new Pose2d(-36, side * 48, side * -90))
-                    .splineTo(new Pose2d(0, side * 48, 0))
-                    .splineTo(estCurrent)
-                    .addMarker(() -> {
-                        // Lower Arm to block 2, Release Block
-                        setArmPosition(1,2);
-                        operateClaw(true);
-                        levelArm();
-                        return Unit.INSTANCE;
-                    })
-                    .splineTo(new Pose2d(0, side * 48, 0))
                     .build();
+
         }
-        return traj;
+        traj1 = drive.trajectoryBuilder()
+                .addMarker(() -> {
+                    // Drop Arm, Open Claw
+                    setArmPosition(0,0);
+                    operateClaw(true);
+                    return Unit.INSTANCE;
+                })
+                .splineTo(new Pose2d(positionModifier, 30, side * -90).plus(drive.getPoseEstimate()))
+                .addMarker(() -> {
+                    // Close Claw, Level Arm
+                    operateClaw(false);
+                    levelArm();
+                    return Unit.INSTANCE;
+                })
+                .build();
+        traj2 = drive.trajectoryBuilder()
+                .splineTo(new Pose2d(-24, side * 48, 0))
+                .forward(24)
+                .splineTo(new Pose2d(24, side * 24, side * -90))
+                .splineTo(new Pose2d(30, side * 12, 0))
+                .addMarker(() -> {
+                    // Grab foundation, Lower Arm to block 1
+                    operateFoundation(false);
+                    setArmPosition(1,1);
+                    return Unit.INSTANCE;
+                })
+                .build();
+        traj3 = drive.trajectoryBuilder()
+                .splineTo(new Pose2d(24, 0, side * 59))
+                .forward(30)
+                .addMarker(() -> {
+                    // Release foundation, drop block
+                    logCurrent(drive.getPoseEstimate());
+                    operateFoundation(true);
+                    operateClaw(true);
+                    return Unit.INSTANCE;
+                })
+                .build();
+        traj5 = drive.trajectoryBuilder()
+                .splineTo(new Pose2d(-36, side * 48, side * -90))
+                .splineTo(new Pose2d(0, side * 48, 0))
+                .splineTo(estCurrent)
+                .addMarker(() -> {
+                    // Lower Arm to block 2, Release Block
+                    setArmPosition(1,2);
+                    operateClaw(true);
+                    levelArm();
+                    return Unit.INSTANCE;
+                })
+                .build();
+        traj6 = drive.trajectoryBuilder()
+                .splineTo(new Pose2d(0, side * 48, 0))
+                .build();
+        return new Trajectory[]{traj1,traj2,traj3,traj4,traj5,traj6};
     }
     public void visionInit() {
 

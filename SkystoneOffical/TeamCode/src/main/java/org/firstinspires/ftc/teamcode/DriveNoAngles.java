@@ -32,6 +32,7 @@ package org.firstinspires.ftc.teamcode;
 import android.content.Context;
 
 import com.qualcomm.ftccommon.SoundPlayer;
+import com.qualcomm.robotcore.eventloop.opmode.Disabled;
 import com.qualcomm.robotcore.eventloop.opmode.OpMode;
 import com.qualcomm.robotcore.eventloop.opmode.TeleOp;
 import com.qualcomm.robotcore.hardware.CRServo;
@@ -56,7 +57,7 @@ import static java.lang.Math.abs;
  */
 
 @TeleOp(name="NoAngles", group="Mecanum")
-
+@Disabled
 public class DriveNoAngles extends OpMode
 {
     // Declare OpMode members.

@@ -32,6 +32,7 @@ package org.firstinspires.ftc.teamcode.Auton.Blue;
 import com.acmerobotics.roadrunner.trajectory.Trajectory;
 import com.qualcomm.robotcore.eventloop.opmode.Autonomous;
 import com.qualcomm.robotcore.eventloop.opmode.OpMode;
+import com.qualcomm.robotcore.hardware.CRServo;
 import com.qualcomm.robotcore.util.ElapsedTime;
 
 import org.firstinspires.ftc.teamcode.Auton.AutonHardware;
@@ -58,9 +59,10 @@ public class MiniMegaAutoBlue extends OpMode
 {// Declare OpMode members.
     private ElapsedTime runtime = new ElapsedTime();
     private AutonHardware robot = new AutonHardware();
-    //private ArrayList<Trajectory> trajectories;
-    private Trajectory currentTraj;
-    int step = 1;
+    int stage = 1;
+    Trajectory[] currentTraj;
+    char currentBlock;
+    double timeOfNewStage;
     //private DcMotor leftFront, leftBack, rightFront, rightBack, slide, claw, arm;
     //SLIDE MOTOR
     // 1120 Ticks/rev
@@ -80,6 +82,10 @@ public class MiniMegaAutoBlue extends OpMode
     /*
      * Code to run ONCE when the driver hits INIT
      */
+    private void nextStage(){
+        stage++;
+        timeOfNewStage = runtime.time(TimeUnit.SECONDS);
+    }
     @Override
     public void init() {
         robot.init( hardwareMap, telemetry,-36,63,false );
@@ -127,11 +133,65 @@ public class MiniMegaAutoBlue extends OpMode
      */
     @Override
     public void loop() {
-        double t = runtime.time(TimeUnit.SECONDS);
+        if(stage == 1){
+            if(robot.actionRequest){
+                if(!robot.claw.isBusy()){
+                    robot.levelArm();
+                    robot.actionRequest = false;
+                    nextStage();
+                }
+            }else{
+                robot.drive.followTrajectorySync(currentTraj[0]);
+            }
+        }else if(stage == 2){
+            robot.drive.followTrajectorySync(currentTraj[1]);
+            if(robot.actionRequest){
+                robot.actionRequest = false;
+                nextStage();
+            }
+        } else if (stage == 3) {
+            if(runtime.time(TimeUnit.SECONDS)>timeOfNewStage+2){
+                robot.found.setDirection(CRServo.Direction.REVERSE);
+                robot.found.setPower(1);
+            }else{
+                robot.found.setPower(0);
+                nextStage();
+            }
+        }else if(stage == 4){
+            if(robot.actionRequest) {
+                boolean foundDone = false, clawDone = false;
+                if(runtime.time(TimeUnit.SECONDS)>timeOfNewStage+2){
+                    robot.found.setDirection(CRServo.Direction.REVERSE);
+                    robot.found.setPower(1);
+                }else{
+                    robot.found.setPower(0);
+                    foundDone = true;
+                }
+                if(!robot.claw.isBusy()){
+                    clawDone = true;
+                }
+                if(foundDone && clawDone){
+                    robot.actionRequest = false;
+                    robot.setArmPosition(0,0);
+                    robot.levelArm();
+                    nextStage();
+                }
+            }else{
+                robot.drive.followTrajectorySync(currentTraj[2]);
+            }
+        }else if(stage == 5){
+            if(robot.actionRequest){
+                robot.drive.setMotorPowers(0,0,0,0);
+                nextStage();
+            }else {
+                robot.drive.followTrajectorySync(currentTraj[3]);
+            }
+        }else{
+            robot.drive.setMotorPowers(0,0,0,0);
+        }
 
-        robot.drive.followTrajectory(currentTraj);
+
         robot.autoScore();
-        robot.drive.update();
 
     }
 

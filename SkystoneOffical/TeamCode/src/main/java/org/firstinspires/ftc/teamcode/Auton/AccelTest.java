@@ -27,15 +27,15 @@
  * OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
 
-package org.firstinspires.ftc.teamcode.TeleOp;
+package org.firstinspires.ftc.teamcode.Auton;
 
+import com.qualcomm.robotcore.eventloop.opmode.Autonomous;
 import com.qualcomm.robotcore.eventloop.opmode.OpMode;
-import com.qualcomm.robotcore.eventloop.opmode.TeleOp;
 import com.qualcomm.robotcore.util.ElapsedTime;
 
-import org.firstinspires.ftc.robotcore.external.navigation.AngleUnit;
-import org.firstinspires.ftc.robotcore.external.navigation.AxesOrder;
-import org.firstinspires.ftc.robotcore.external.navigation.AxesReference;
+import org.firstinspires.ftc.teamcode.TeleOp.TeleOpHardware;
+
+import java.util.concurrent.TimeUnit;
 
 /**
  * This file contains an example of an iterative (Non-Linear) "OpMode".
@@ -51,13 +51,16 @@ import org.firstinspires.ftc.robotcore.external.navigation.AxesReference;
  * Remove or comment out the @Disabled line to add this opmode to the Driver Station OpMode list
  */
 
-@TeleOp(name="TeleOp Field Red", group="Mecanum")
+@Autonomous(name="Found Blue", group="Auto Blue")
 
-public class Field extends OpMode
-{
-    // Declare OpMode members.
+public class AccelTest extends OpMode
+{// Declare OpMode members.
     private ElapsedTime runtime = new ElapsedTime();
     private TeleOpHardware robot = new TeleOpHardware();
+    boolean stage1 = false;
+    boolean stage2= false;
+    boolean hitColor = false;
+    boolean hasReached;
     //private DcMotor leftFront, leftBack, rightFront, rightBack, slide, claw, arm;
     //SLIDE MOTOR
     // 1120 Ticks/rev
@@ -68,8 +71,7 @@ public class Field extends OpMode
     //private GyroSensor gyro;
     //DcMotor[] drivetrain;
     //private CRServo found;
-    double num = 0;
-    boolean clawLock = false;
+
 
 
 
@@ -80,9 +82,10 @@ public class Field extends OpMode
      */
     @Override
     public void init() {
-        robot.init( hardwareMap, telemetry,0,0, true,false );
-        telemetry.addData("Status", "Initialized");
-
+        robot.init( hardwareMap, telemetry,0,0,true,false );
+        robot.setSearchMode( TeleOpHardware.searchMode.block );
+        telemetry.addData("Status", "Initialized" );
+        hasReached = false;
 
         // create a sound parameter that holds the desired player parameters.
 
@@ -96,7 +99,6 @@ public class Field extends OpMode
         //drive = Drivetrain.init( 0, 0, 0, Drivetrain.driveType.fourWheel );
 
         // Tell the driver that initialization is complete.
-        telemetry.addData("Status", "Initialized" );
 
         //gyro = hardwareMap.get( GyroSensor.class, "gyro" );
         //gyro.calibrate();
@@ -109,8 +111,7 @@ public class Field extends OpMode
      */
     @Override
     public void init_loop() {
-
-        //robot.visionTeleop();
+        robot.visionTeleop();
     }
 
     /*
@@ -119,44 +120,29 @@ public class Field extends OpMode
     @Override
     public void start() {
         runtime.reset();
+
     }
     /*
      * Code to run REPEATEDLY after the driver hits PLAY but before they hit STOP
      */
     @Override
     public void loop() {
-        if(gamepad1.y){
-            robot.mecanumDrive(0,1,0);
-        }else if(gamepad1.a){
-            robot.hardBrake();
-        }else {
-            robot.mecanumDrive(gamepad1.left_stick_x, gamepad1.left_stick_y, gamepad1.right_stick_x);
-        }
-        robot.foundationControls( gamepad2.dpad_down, gamepad2.dpad_up );
-        double slider = 0;
-        if( gamepad2.y ){
-            slider=0.5;
-        }else if( gamepad2.a ){
-            slider=-0.5;
-        }else{
-            slider=0;
-        }
-        robot.armMechanismControls( gamepad2.right_bumper, gamepad2.right_trigger >= 0.5, gamepad2.left_bumper, gamepad2.left_trigger >= 0.5, slider );
-        //robot.visionTeleop();
-        //if( gamepad1.a ){
-        //    robot.setSearchMode( TeleOpHardware.searchMode.block );
-        //}else if( gamepad1.b ){
-        //    robot.setSearchMode( TeleOpHardware.searchMode.location );
-        //}
-        telemetry.addData("RGB",robot.color.red() + " " + robot.color.green() + " " + robot.color.blue());
-        telemetry.addData("Gyro",robot.imu.getAngularOrientation(AxesReference.INTRINSIC, AxesOrder.ZYX, AngleUnit.RADIANS).firstAngle);
-        telemetry.addData("Slide Enc",robot.slide.getCurrentPosition());
-        telemetry.addData("Claw Enc",robot.claw.getCurrentPosition());
-        telemetry.addData("Arm Enc",robot.arm.getCurrentPosition());
-        telemetry.addData("Status", "Run Time: " + runtime.toString() );
+        // First, rotate the  robot to be parallel to the face of the block
+        double reachedTime = 0;
 
-        telemetry.update();
+        if(!hasReached) {
+            robot.mecanumDrive(0, 1, 0);
+        }else{
+            telemetry.addData("Stopped time",reachedTime);
+            telemetry.addLine("Acceleration = distance travelled / Stopped Time ^2");
+        }
+        if(robot.leftFront.getPower()==1){
+            robot.hardBrake();
+            reachedTime = runtime.time(TimeUnit.SECONDS);
+            hasReached = true;
+        }
     }
+
 
     /*
      * Code to run ONCE after the driver hits STOP
@@ -164,7 +150,6 @@ public class Field extends OpMode
     @Override
     public void stop() {
         robot.stop();
-        //playSound("ss_alarm");
         //  drive.stop();
     }
 

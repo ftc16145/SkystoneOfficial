@@ -29,6 +29,8 @@
 
 package org.firstinspires.ftc.teamcode.Auton.Red;
 
+import com.acmerobotics.roadrunner.geometry.Pose2d;
+import com.acmerobotics.roadrunner.geometry.Vector2d;
 import com.acmerobotics.roadrunner.trajectory.Trajectory;
 import com.qualcomm.robotcore.eventloop.opmode.Autonomous;
 import com.qualcomm.robotcore.eventloop.opmode.OpMode;
@@ -38,6 +40,8 @@ import com.qualcomm.robotcore.util.ElapsedTime;
 import org.firstinspires.ftc.teamcode.Auton.AutonHardware;
 
 import java.util.concurrent.TimeUnit;
+
+import kotlin.Unit;
 
 /**
  * This file contains an example of an iterative (Non-Linear) "OpMode".
@@ -53,16 +57,17 @@ import java.util.concurrent.TimeUnit;
  * Remove or comment out the @Disabled line to add this opmode to the Driver Station OpMode list
  */
 
-@Autonomous(name="1SFBlue", group="Auto Blue")
+@Autonomous(name="F1S Runner", group="Auto Blue")
 
-public class MiniMegaAutoRed extends OpMode
+public class FoundRedOneBlockRun extends OpMode
 {// Declare OpMode members.
     private ElapsedTime runtime = new ElapsedTime();
     private AutonHardware robot = new AutonHardware();
     int stage = 1;
-    Trajectory[] currentTraj;
+    Trajectory grabFound, moveBack, strafeOut, toBlockA, checkNext, dropFinal, finish;
     char currentBlock;
     double timeOfNewStage;
+
     //private DcMotor leftFront, leftBack, rightFront, rightBack, slide, claw, arm;
     //SLIDE MOTOR
     // 1120 Ticks/rev
@@ -86,11 +91,55 @@ public class MiniMegaAutoRed extends OpMode
         stage++;
         timeOfNewStage = runtime.time(TimeUnit.SECONDS);
     }
+
     @Override
     public void init() {
-        robot.init( hardwareMap, telemetry,-36,63,true );
+        robot.init( hardwareMap, telemetry,39,63,true );
         telemetry.addData("Status", "Initialized" );
-
+        grabFound = robot.drive.trajectoryBuilder()
+                .splineTo(new Pose2d(50.75,24,90))
+                .addMarker(()->{
+                    nextStage();
+                    return Unit.INSTANCE;
+                })
+                .build();
+        moveBack = robot.drive.trajectoryBuilder()
+                .back(48)
+                .addMarker(()->{
+                    nextStage();
+                    return Unit.INSTANCE;
+                })
+                .build();
+        strafeOut = robot.drive.trajectoryBuilder()
+                .strafeTo(new Vector2d(0,-63))
+                .addMarker(()->{
+                    nextStage();
+                    return Unit.INSTANCE;
+                })
+                .build();
+        toBlockA = robot.drive.trajectoryBuilder()
+                .forward(42)
+                .splineTo(new Pose2d(-28,-33,90))
+                .addMarker(()->{
+                    nextStage();
+                    return Unit.INSTANCE;
+                })
+                .build();
+        checkNext = robot.drive.trajectoryBuilder()
+                .strafeLeft(8)
+                .build();
+        dropFinal = robot.drive.trajectoryBuilder()
+                .lineTo(new Vector2d(0,-48))
+                .splineTo(new Pose2d(33.5,-54,0))
+                .addMarker(()->{
+                    nextStage();
+                    return Unit.INSTANCE;
+                })
+                .build();
+        finish = robot.drive.trajectoryBuilder()
+                .lineTo(new Vector2d(0,-48))
+                .build();
+        currentBlock = 'A';
 
         // create a sound parameter that holds the desired player parameters.
 
@@ -117,7 +166,6 @@ public class MiniMegaAutoRed extends OpMode
     @Override
     public void init_loop() {
         robot.initLoop();
-
     }
 
     /*
@@ -126,30 +174,17 @@ public class MiniMegaAutoRed extends OpMode
     @Override
     public void start() {
         runtime.reset();
-        currentTraj = robot.oneSkystoneFoundAuton();
+
     }
     /*
      * Code to run REPEATEDLY after the driver hits PLAY but before they hit STOP
      */
     @Override
     public void loop() {
+        // First, rotate the  robot to be parallel to the face of the block
         if(stage == 1){
-            if(robot.actionRequest){
-                if(!robot.claw.isBusy()){
-                    robot.levelArm();
-                    robot.actionRequest = false;
-                    nextStage();
-                }
-            }else{
-                robot.drive.followTrajectorySync(currentTraj[0]);
-            }
+            robot.drive.followTrajectorySync(grabFound);
         }else if(stage == 2){
-            robot.drive.followTrajectorySync(currentTraj[1]);
-            if(robot.actionRequest){
-                robot.actionRequest = false;
-                nextStage();
-            }
-        } else if (stage == 3) {
             if(runtime.time(TimeUnit.SECONDS)>timeOfNewStage+2){
                 robot.found.setDirection(CRServo.Direction.REVERSE);
                 robot.found.setPower(1);
@@ -157,35 +192,57 @@ public class MiniMegaAutoRed extends OpMode
                 robot.found.setPower(0);
                 nextStage();
             }
+        }else if(stage == 3){
+            robot.drive.followTrajectorySync(moveBack);
         }else if(stage == 4){
-            if(robot.actionRequest) {
-                boolean foundDone = false, clawDone = false;
-                if(runtime.time(TimeUnit.SECONDS)>timeOfNewStage+2){
-                    robot.found.setDirection(CRServo.Direction.REVERSE);
-                    robot.found.setPower(1);
-                }else{
-                    robot.found.setPower(0);
-                    foundDone = true;
-                }
-                if(!robot.claw.isBusy()){
-                    clawDone = true;
-                }
-                if(foundDone && clawDone){
-                    robot.actionRequest = false;
-                    robot.setArmPosition(0,0);
-                    robot.levelArm();
-                    nextStage();
-                }
+            if(runtime.time(TimeUnit.SECONDS)>timeOfNewStage+0.5){
+                robot.drive.setMotorPowers(0.3,0.3,0.3,0.3);
             }else{
-                robot.drive.followTrajectorySync(currentTraj[2]);
-            }
-        }else if(stage == 5){
-            if(robot.actionRequest){
                 robot.drive.setMotorPowers(0,0,0,0);
                 nextStage();
-            }else {
-                robot.drive.followTrajectorySync(currentTraj[3]);
             }
+        } else if(stage == 5){
+            if(runtime.time(TimeUnit.SECONDS)>timeOfNewStage+2){
+                robot.found.setDirection(CRServo.Direction.FORWARD);
+                robot.found.setPower(1);
+                robot.levelArm();
+            }else{
+                robot.found.setPower(0);
+                nextStage();
+            }
+        }else if(stage == 6) {
+            robot.drive.followTrajectorySync(strafeOut);
+        }else if(stage == 7) {
+            robot.setArmPosition(0, 0);
+            robot.drive.followTrajectorySync(toBlockA);
+        }else if(stage == 8){
+            if(robot.color.red() < 20 && robot.color.green() < 20 && robot.color.blue() < 20){
+                nextStage();
+            }else{
+                if(currentBlock != 'C') {
+                    robot.drive.followTrajectorySync(checkNext);
+                }else{
+                    nextStage();
+                }
+            }
+        }else if(stage == 9){
+            robot.operateClaw(false);
+            if(!robot.claw.isBusy()){
+                robot.levelArm();
+                nextStage();
+            }
+        }else if(stage == 10) {
+            robot.drive.followTrajectorySync(dropFinal);
+        }else if(stage == 11){
+            robot.setArmPosition(1,1);
+            if( !robot.arm.isBusy() && !robot.slide.isBusy() ){
+                robot.operateClaw(true);
+                if(!robot.claw.isBusy()) {
+                    nextStage();
+                }
+            }
+        }else if(stage == 12){
+            robot.drive.followTrajectorySync(finish);
         }else{
             robot.drive.setMotorPowers(0,0,0,0);
         }
@@ -200,6 +257,7 @@ public class MiniMegaAutoRed extends OpMode
     @Override
     public void stop() {
 
+        //  drive.stop();
     }
 
 }

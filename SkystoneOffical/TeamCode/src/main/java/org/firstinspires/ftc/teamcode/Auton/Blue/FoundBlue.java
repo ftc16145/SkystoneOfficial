@@ -29,6 +29,7 @@
 
 package org.firstinspires.ftc.teamcode.Auton.Blue;
 
+import com.acmerobotics.roadrunner.trajectory.Trajectory;
 import com.qualcomm.robotcore.eventloop.opmode.Autonomous;
 import com.qualcomm.robotcore.eventloop.opmode.OpMode;
 import com.qualcomm.robotcore.util.ElapsedTime;
@@ -60,6 +61,7 @@ public class FoundBlue extends OpMode
     boolean stage1 = false;
     boolean stage2= false;
     boolean hitColor = false;
+
     //private DcMotor leftFront, leftBack, rightFront, rightBack, slide, claw, arm;
     //SLIDE MOTOR
     // 1120 Ticks/rev

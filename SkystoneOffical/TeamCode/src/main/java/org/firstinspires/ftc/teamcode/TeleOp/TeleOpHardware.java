@@ -291,12 +291,7 @@ public class TeleOpHardware {
     }
 
     public void mecanumDriveFieldOrient(double x, double y, double rot) {
-        double adjustAngle;
-        if (vision) {
-            adjustAngle = (teamRed) ? -prevXYH[2] : -(prevXYH[2] + Math.PI);
-        } else {
-            adjustAngle = -imu.getAngularOrientation(AxesReference.INTRINSIC, AxesOrder.ZYX, AngleUnit.RADIANS).firstAngle;
-        }
+        double adjustAngle = -imu.getAngularOrientation(AxesReference.INTRINSIC, AxesOrder.ZYX, AngleUnit.RADIANS).firstAngle;
         double newX = Math.cos(adjustAngle) * x - Math.sin(adjustAngle) * y;
         double newY = Math.sin(adjustAngle) * x + Math.cos(adjustAngle) * y;
         mecanumDrive(newX, newY, rot);
@@ -347,7 +342,12 @@ public class TeleOpHardware {
             targetsSkyStone.deactivate();
         }
     }
-
+    public void hardBrake(){
+        leftFront.setPower(0);
+        rightFront.setPower(0);
+        leftBack.setPower(0);
+        rightBack.setPower(0);
+    }
     public void visionInit() {
         if (vision) {
             VuforiaLocalizer.Parameters parameters = new VuforiaLocalizer.Parameters(cameraMonitorViewId);
