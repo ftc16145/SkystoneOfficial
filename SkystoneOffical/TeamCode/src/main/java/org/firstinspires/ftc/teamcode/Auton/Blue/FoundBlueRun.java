@@ -35,13 +35,10 @@ import com.acmerobotics.roadrunner.trajectory.Trajectory;
 import com.qualcomm.robotcore.eventloop.opmode.Autonomous;
 import com.qualcomm.robotcore.eventloop.opmode.OpMode;
 import com.qualcomm.robotcore.hardware.CRServo;
-import com.qualcomm.robotcore.hardware.DcMotorSimple;
 import com.qualcomm.robotcore.util.ElapsedTime;
 
-import org.firstinspires.ftc.teamcode.Auton.AutonHardware;
-import org.firstinspires.ftc.teamcode.TeleOp.TeleOpHardware;
+import org.firstinspires.ftc.teamcode.Hardware;
 
-import java.util.Timer;
 import java.util.concurrent.TimeUnit;
 
 import kotlin.Unit;
@@ -65,7 +62,7 @@ import kotlin.Unit;
 public class FoundBlueRun extends OpMode
 {// Declare OpMode members.
     private ElapsedTime runtime = new ElapsedTime();
-    private AutonHardware robot = new AutonHardware();
+    private Hardware robot = new Hardware();
     int stage = 1;
     Trajectory grabFound, moveBack, strafeOut;
     double timeOfNewStage;
@@ -96,7 +93,7 @@ public class FoundBlueRun extends OpMode
 
     @Override
     public void init() {
-        robot.init( hardwareMap, telemetry,39,63,false );
+        robot.init( hardwareMap, telemetry,39,63,false, true );
         telemetry.addData("Status", "Initialized" );
         Trajectory grabFound = robot.drive.trajectoryBuilder()
                 .splineTo(new Pose2d(50.75,24,-90))

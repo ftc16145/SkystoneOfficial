@@ -27,13 +27,15 @@
  * OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
 
-package org.firstinspires.ftc.teamcode.Auton;
+package org.firstinspires.ftc.teamcode.Tests;
 
 import com.qualcomm.robotcore.eventloop.opmode.Autonomous;
+import com.qualcomm.robotcore.eventloop.opmode.Disabled;
 import com.qualcomm.robotcore.eventloop.opmode.OpMode;
+import com.qualcomm.robotcore.hardware.DcMotor;
 import com.qualcomm.robotcore.util.ElapsedTime;
 
-import org.firstinspires.ftc.teamcode.TeleOp.TeleOpHardware;
+import org.firstinspires.ftc.teamcode.Hardware;
 
 /**
  * This file contains an example of an iterative (Non-Linear) "OpMode".
@@ -49,42 +51,28 @@ import org.firstinspires.ftc.teamcode.TeleOp.TeleOpHardware;
  * Remove or comment out the @Disabled line to add this opmode to the Driver Station OpMode list
  */
 
-@Autonomous(name="Skystone Red", group="Auto Blue")
-
-public class AutoAlignSkystone extends OpMode
-{// Declare OpMode members.
+@Autonomous(name="Claw Stop", group="Auto Red")
+@Disabled
+public class ClawStop extends OpMode
+{
+    // Declare OpMode members.
     private ElapsedTime runtime = new ElapsedTime();
-    private TeleOpHardware robot = new TeleOpHardware();
-    boolean stage1 = false;
-    boolean stage2= false;
-    //private DcMotor leftFront, leftBack, rightFront, rightBack, slide, claw, arm;
-    //SLIDE MOTOR
-    // 1120 Ticks/rev
-    // d = 3cm, r = 1.5cm, C = 3pi cm
-    // Dist = ticks/1120 * 3pi
-    // 32cm length
-    // MAX ENCODER = (32/3pi * 1120) = 3802.7, 3802 ticks+
-    //private GyroSensor gyro;
-    //DcMotor[] drivetrain;
-    //private CRServo found;
-
-
-
-
-    //public Drivetrain drive;
-
+    Hardware robot = new Hardware();
+    double clawLimit = 106;
+    /*
+     * ang start = -47 from horizontal
+     * Needs to move 133 degrees
+     * 133/360 = 0.3694444444...
+     * 0.3694444... * 288 = 106.4 EXACT
+     * */
     /*
      * Code to run ONCE when the driver hits INIT
      */
     @Override
     public void init() {
-        robot.init( hardwareMap, telemetry,0,0,true,true );
-        robot.setSearchMode( TeleOpHardware.searchMode.block );
         telemetry.addData("Status", "Initialized" );
-
-
-        // create a sound parameter that holds the desired player parameters.
-
+        robot.init( hardwareMap, telemetry, 0,0, true,false );
+        robot.claw.setMode( DcMotor.RunMode.RUN_TO_POSITION );
         // Initialize the hardware variables. Note that the strings used here as parameters
         // to 'get' must correspond to the names assigned during the robot configuration
         // step (using the FTC Robot Controller app on the phone).
@@ -94,7 +82,6 @@ public class AutoAlignSkystone extends OpMode
 
         //drive = Drivetrain.init( 0, 0, 0, Drivetrain.driveType.fourWheel );
 
-        // Tell the driver that initialization is complete.
 
         //gyro = hardwareMap.get( GyroSensor.class, "gyro" );
         //gyro.calibrate();
@@ -107,7 +94,6 @@ public class AutoAlignSkystone extends OpMode
      */
     @Override
     public void init_loop() {
-        robot.visionTeleop();
     }
 
     /*
@@ -122,56 +108,14 @@ public class AutoAlignSkystone extends OpMode
      */
     @Override
     public void loop() {
-        // First, rotate the  robot to be parallel to the face of the block
-        if (robot.blockxyh() != null) {
-            if (stage1) {
-                double[] block = robot.blockxyh();
-                double degree = Math.toDegrees(block[2]);
-                if (Math.abs(degree) > 5) {
-                    if ( degree > 0 ) {
-                        robot.mecanumDrive(0, 0, -0.3);
-                    } else {
-                        robot.mecanumDrive(0, 0, 0.3);
-                    }
-
-                } else {
-                    // End up 12 inches in front of the block
-                    robot.mecanumDrive(-0.06 * (robot.blockxyh()[0] + 12), -0.06 * robot.blockxyh()[1], 0);
-                    if ( Math.abs( robot.blockxyh()[0] + 12 ) <= 1 && Math.abs(robot.blockxyh()[1] ) <= 0.75 ) {
-                        stage1 = false;
-                        stage2 = true;
-                    }
-                }
-            } else if ( stage2 ) {
-                robot.mecanumDrive(0, 0, 0);
-                // RUN CLAW TO POSITION OPEN
-                // RUN SLIDE TO POSITION OUT
-                // RUN ARM TO POSITION DOWN
-
-            }
-            // STAGE 3
-            // MOVE FORWARD A FEW INCHES
-            // CLOSE CLAW
-
-            // PLAN A
-            // STAGE 4
-            // LEVEL ARM
-            // MOVE BACK, TOWARDS FOUNDATION LONG SIDE
-
-            // STAGE 5
-            // DROP SKYSTONE
-            // PERFORM FOUNDATION MOVING PROCEDURES FROM FOUNDRED/BLUE
-
-            // PLAN B
-            // STAGE 4
-            // LEVEL ARM
-            // MOVE BACK, TOWARDS FOUNDATION SHORT SIDE
-
-            // STAGE 5
-            // DROP SKYSTONE
-            // REPEAT ON NEXT SKYSTONE
-
-        }
+        /*
+        * ang start = -47 from horizontal
+        * Needs to move 133 degrees
+        * 133/360 = 0.3694444444...
+        * 0.3694444... * 288 = 106.4 EXACT
+        * */
+        robot.claw.setTargetPosition( ( int )clawLimit );
+        robot.claw.setPower( 0.5 );
     }
 
     /*
@@ -179,7 +123,6 @@ public class AutoAlignSkystone extends OpMode
      */
     @Override
     public void stop() {
-        robot.stop();
         //  drive.stop();
     }
 

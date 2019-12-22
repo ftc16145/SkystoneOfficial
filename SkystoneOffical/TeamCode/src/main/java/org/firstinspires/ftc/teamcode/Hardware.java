@@ -1,191 +1,149 @@
-/* Copyright (c) 2017 FIRST. All rights reserved.
- *
- * Redistribution and use in source and binary forms, with or without modification,
- * are permitted (subject to the limitations in the disclaimer below) provided that
- * the following conditions are met:
- *
- * Redistributions of source code must retain the above copyright notice, this list
- * of conditions and the following disclaimer.
- *
- * Redistributions in binary form must reproduce the above copyright notice, this
- * list of conditions and the following disclaimer in the documentation and/or
- * other materials provided with the distribution.
- *
- * Neither the name of FIRST nor the names of its contributors may be used to endorse or
- * promote products derived from this software without specific prior written permission.
- *
- * NO EXPRESS OR IMPLIED LICENSES TO ANY PARTY'S PATENT RIGHTS ARE GRANTED BY THIS
- * LICENSE. THIS SOFTWARE IS PROVIDED BY THE COPYRIGHT HOLDERS AND CONTRIBUTORS
- * "AS IS" AND ANY EXPRESS OR IMPLIED WARRANTIES, INCLUDING, BUT NOT LIMITED TO,
- * THE IMPLIED WARRANTIES OF MERCHANTABILITY AND FITNESS FOR A PARTICULAR PURPOSE
- * ARE DISCLAIMED. IN NO EVENT SHALL THE COPYRIGHT OWNER OR CONTRIBUTORS BE LIABLE
- * FOR ANY DIRECT, INDIRECT, INCIDENTAL, SPECIAL, EXEMPLARY, OR CONSEQUENTIAL
- * DAMAGES (INCLUDING, BUT NOT LIMITED TO, PROCUREMENT OF SUBSTITUTE GOODS OR
- * SERVICES; LOSS OF USE, DATA, OR PROFITS; OR BUSINESS INTERRUPTION) HOWEVER
- * CAUSED AND ON ANY THEORY OF LIABILITY, WHETHER IN CONTRACT, STRICT LIABILITY,
- * OR TORT (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE
- * OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
- */
-
-package org.firstinspires.ftc.teamcode.TeleOp;
+package org.firstinspires.ftc.teamcode;
 
 import android.content.Context;
-import android.graphics.Color;
 
+import com.acmerobotics.roadrunner.geometry.Pose2d;
+import com.acmerobotics.roadrunner.geometry.Vector2d;
+import com.acmerobotics.roadrunner.trajectory.Trajectory;
 import com.qualcomm.ftccommon.SoundPlayer;
-import com.qualcomm.hardware.bosch.BNO055IMU;
 import com.qualcomm.robotcore.hardware.CRServo;
 import com.qualcomm.robotcore.hardware.ColorSensor;
 import com.qualcomm.robotcore.hardware.DcMotor;
+import com.qualcomm.robotcore.hardware.DcMotorEx;
 import com.qualcomm.robotcore.hardware.HardwareMap;
-import com.qualcomm.robotcore.hardware.Servo;
 import com.qualcomm.robotcore.util.ElapsedTime;
 
 import org.firstinspires.ftc.robotcore.external.ClassFactory;
 import org.firstinspires.ftc.robotcore.external.Telemetry;
 import org.firstinspires.ftc.robotcore.external.matrices.OpenGLMatrix;
 import org.firstinspires.ftc.robotcore.external.matrices.VectorF;
-import org.firstinspires.ftc.robotcore.external.navigation.AngleUnit;
-import org.firstinspires.ftc.robotcore.external.navigation.AxesOrder;
-import org.firstinspires.ftc.robotcore.external.navigation.AxesReference;
 import org.firstinspires.ftc.robotcore.external.navigation.Orientation;
 import org.firstinspires.ftc.robotcore.external.navigation.VuforiaLocalizer;
 import org.firstinspires.ftc.robotcore.external.navigation.VuforiaTrackable;
 import org.firstinspires.ftc.robotcore.external.navigation.VuforiaTrackableDefaultListener;
 import org.firstinspires.ftc.robotcore.external.navigation.VuforiaTrackables;
+import org.firstinspires.ftc.teamcode.roadrunner.drive.mecanum.SampleMecanumDriveREVOptimized;
 
 import java.util.ArrayList;
 import java.util.List;
+import java.util.concurrent.TimeUnit;
+
+
+import kotlin.Unit;
 
 import static org.firstinspires.ftc.robotcore.external.navigation.AngleUnit.DEGREES;
-import static org.firstinspires.ftc.robotcore.external.navigation.AngleUnit.RADIANS;
 import static org.firstinspires.ftc.robotcore.external.navigation.AxesOrder.XYZ;
 import static org.firstinspires.ftc.robotcore.external.navigation.AxesOrder.YZX;
 import static org.firstinspires.ftc.robotcore.external.navigation.AxesReference.EXTRINSIC;
 import static org.firstinspires.ftc.robotcore.external.navigation.VuforiaLocalizer.CameraDirection.BACK;
 
-
-public class TeleOpHardware {
-    public enum searchMode {
-        block, location
-    }
-
-    /* Public OpMode members. */
-    public DcMotor leftFront = null;
-    public DcMotor leftBack = null;
-    public DcMotor rightFront = null;
-    public DcMotor rightBack = null;
-    public DcMotor[] drivetrain;
-    double prevXPower, prevYPower;
-
-    public DcMotor slide = null;
-    public DcMotor claw = null;
-    public DcMotor arm = null;
-
-    public CRServo found;
-
-    public ColorSensor color;
-
-    public BNO055IMU imu;
-    BNO055IMU.Parameters parameters;
-
-    //SLIDE MOTOR
-    // 1120 Ticks/rev
-    // d = 3cm, r = 1.5cm, C = 3pi cm
-    // Dist = ticks/1120 * 3pi
-    // 32cm length
-    // MAX ENCODER = (32/3pi * 1120) = 3802.7, 3802 ticks+
-    //private GyroSensor gyro;
+public class Hardware {
+    // Constants
+        // Height of pivot above ground
+            double hP = 0;
+        // Min size of arm
+            double dP = 0;
+        // Radius of back part of arm
+            double rB = 0;
+        // Radius of spool wheel
+            double rS = 0;
+        // Radius of gear
+            double rG = 0;
 
 
-    /* local OpMode members. */
-    HardwareMap hwMap = null;
-    Telemetry tel = null;
-    private ElapsedTime period = new ElapsedTime();
+    // Timer
+        private ElapsedTime runtime = new ElapsedTime();
+    // Is this updating?
+    // Scoring Mechanisms
+        public SampleMecanumDriveREVOptimized drive;
+        public DcMotorEx slide = null;
+        public DcMotorEx claw = null;
+        public DcMotorEx arm = null;
+        double prevXPower, prevYPower;
+        ArrayList<DcMotorEx> scoring = new ArrayList<DcMotorEx>();
 
+        public CRServo found = null;
+        boolean foundInMovement = false;
+        double startTimeFound = 0;
 
-    String sounds[] = {"ss_alarm", "ss_bb8_down", "ss_bb8_up", "ss_darth_vader", "ss_fly_by",
-            "ss_mf_fail", "ss_laser", "ss_laser_burst", "ss_light_saber", "ss_light_saber_long", "ss_light_saber_short",
-            "ss_light_speed", "ss_mine", "ss_power_up", "ss_r2d2_up", "ss_roger_roger", "ss_siren", "ss_wookie"};
-    boolean soundPlaying = false;
-    int soundIndex, soundID;
-    SoundPlayer.PlaySoundParams params;
-    Context myApp;
+        public ColorSensor color = null;
 
+    // Info for the class
+        HardwareMap hwMap = null;
+        Telemetry tel = null;
+        boolean onRed,auto;
 
-    // IMPORTANT:  For Phone Camera, set 1) the camera source and 2) the orientation, based on how your phone is mounted:
-    // 1) Camera Source.  Valid choices are:  BACK (behind screen) or FRONT (selfie side)
-    // 2) Phone Orientation. Choices are: PHONE_IS_PORTRAIT = true (portrait) or PHONE_IS_PORTRAIT = false (landscape)
-    //
-    // NOTE: If you are running on a CONTROL HUB, with only one USB WebCam, you must select CAMERA_CHOICE = BACK; and PHONE_IS_PORTRAIT = false;
-    //
-    private static final VuforiaLocalizer.CameraDirection CAMERA_CHOICE = BACK;
-    private static final boolean PHONE_IS_PORTRAIT = true;
+    // Vision
+        private static final VuforiaLocalizer.CameraDirection CAMERA_CHOICE = BACK;
+        private static final boolean PHONE_IS_PORTRAIT = true;
 
-    /*
-     * IMPORTANT: You need to obtain your own license key to use Vuforia. The string below with which
-     * 'parameters.vuforiaLicenseKey' is initialized is for illustration only, and will not function.
-     * A Vuforia 'Development' license key, can be obtained free of charge from the Vuforia developer
-     * web site at https://developer.vuforia.com/license-manager.
-     *
-     * Vuforia license keys are always 380 characters long, and look as if they contain mostly
-     * random data. As an example, here is a example of a fragment of a valid key:
-     *      ... yIgIzTqZ4mWjk9wd3cZO9T1axEqzuhxoGlfOOI2dRzKS4T0hQ8kT ...
-     * Once you've obtained a license key, copy the string from the Vuforia web site
-     * and paste it in to your code on the next line, between the double quotes.
-     */
-    private static final String VUFORIA_KEY =
+        /*
+        * IMPORTANT: You need to obtain your own license key to use Vuforia. The string below with which
+        * 'parameters.vuforiaLicenseKey' is initialized is for illustration only, and will not function.
+        * A Vuforia 'Development' license key, can be obtained free of charge from the Vuforia developer
+        * web site at https://developer.vuforia.com/license-manager.
+        *
+        * Vuforia license keys are always 380 characters long, and look as if they contain mostly
+        * random data. As an example, here is a example of a fragment of a valid key:
+        *      ... yIgIzTqZ4mWjk9wd3cZO9T1axEqzuhxoGlfOOI2dRzKS4T0hQ8kT ...
+        * Once you've obtained a license key, copy the string from the Vuforia web site
+        * and paste it in to your code on the next line, between the double quotes.
+        */
+        private static final String VUFORIA_KEY =
             "AU4HXeP/////AAABmVJly8bxo0HGllLzw8tuRc6CrpFD2db1ztBgf+59e8csd4hdmwwlhFHRBy2eue1fUGU2+Vab/tlGrbZyW6L1lUa8lrhvHT4btcGio9P0MZwprrTRCWdeHYjTzuM+gQZMrpbJO5YlaRHNb0EZmDUqw/8Wjx6B7nv90yo/jmcU2c+Z0KI0D0zqIkI7f0AxrrlrMz6kanChap54VsRMZcwhcS1oMuNN0r46XDgzEmNtxuAowf+Q/Bpsn+a1j5VVKK3ydv2L/bUBXoS7eKpXr2N3FpXEnV0CJ6gKthaoPuTSQxFyJlduBTdRi8lhU7lSSERUcf3bctSq+jhe3E3F7yySSVrvFtyLucdi7asvXys17O2v";
 
-    // Since ImageTarget trackables use mm to specifiy their dimensions, we must use mm for all the physical dimension.
-    // We will define some constants and conversions here
-    private static final float mmPerInch = 25.4f;
-    private static final float mmTargetHeight = (6) * mmPerInch;          // the height of the center of the target image above the floor
+        // Since ImageTarget trackables use mm to specifiy their dimensions, we must use mm for all the physical dimension.
+        // We will define some constants and conversions here
+            private static final float mmPerInch = 25.4f;
+            private static final float mmTargetHeight = (6) * mmPerInch;          // the height of the center of the target image above the floor
 
-    // Constant for Stone Target
-    private static final float stoneZ = 2.00f * mmPerInch;
+        // Constant for Stone Target
+            private static final float stoneZ = 2.00f * mmPerInch;
+        // Constants for the center support targets
+            private static final float bridgeZ = 6.42f * mmPerInch;
+            private static final float bridgeY = 23 * mmPerInch;
+            private static final float bridgeX = 5.18f * mmPerInch;
+            private static final float bridgeRotY = 59;                                 // Units are degrees
+            private static final float bridgeRotZ = 180;
 
-    // Constants for the center support targets
-    private static final float bridgeZ = 6.42f * mmPerInch;
-    private static final float bridgeY = 23 * mmPerInch;
-    private static final float bridgeX = 5.18f * mmPerInch;
-    private static final float bridgeRotY = 59;                                 // Units are degrees
-    private static final float bridgeRotZ = 180;
+        // Constants for perimeter targets
+            private static final float halfField = 72 * mmPerInch;
+            private static final float quadField = 36 * mmPerInch;
 
-    // Constants for perimeter targets
-    private static final float halfField = 72 * mmPerInch;
-    private static final float quadField = 36 * mmPerInch;
 
-    // Class Members
-    private OpenGLMatrix lastLocation = null;
-    private OpenGLMatrix blockLocator = null;
-    private VuforiaLocalizer vuforia = null;
-    private boolean targetVisible = false;
-    private searchMode search = searchMode.block;
-    private float phoneXRotate = 0;
-    private float phoneYRotate = 0;
-    private float phoneZRotate = 0;
-    private boolean teamRed, vision;
-    public boolean haveBlock = false;
-    int cameraMonitorViewId;
-    VuforiaTrackables targetsSkyStone;
-    List<VuforiaTrackable> allTrackables;
-    List<VuforiaTrackable> locators;
-    List<VuforiaTrackable> blocks;
-    // radians
 
-    // inches
-    double prevGyro;
-    double[] prevXYH;
+        // Class Members
+            private OpenGLMatrix lastLocation = null;
+            private OpenGLMatrix blockLocator = null;
+            private VuforiaLocalizer vuforia = null;
+            private boolean targetVisible = false;
+            private float phoneXRotate = 0;
+            private float phoneYRotate = 0;
+            private float phoneZRotate = 0;
+            int cameraMonitorViewId;
+            VuforiaTrackables targetsSkyStone;
+            List<VuforiaTrackable> allTrackables;
+            Context myApp;
+    // Trajectory Variables
+        private char option;
+        double positionModifier;
+        Pose2d estCurrent;
+        private Trajectory optionA,optionB,optionC, selectedOption;
+        public boolean actionRequest;
 
-    /* Constructor */
-    public TeleOpHardware() {
 
-    }
 
-    public void setSearchMode(searchMode s) {
-        search = s;
-    }
+    // Sounds
+        String sounds[] = {"ss_alarm", "ss_bb8_down", "ss_bb8_up", "ss_darth_vader", "ss_fly_by",
+            "ss_mf_fail", "ss_laser", "ss_laser_burst", "ss_light_saber", "ss_light_saber_long", "ss_light_saber_short",
+            "ss_light_speed", "ss_mine", "ss_power_up", "ss_r2d2_up", "ss_roger_roger", "ss_siren", "ss_wookie"};
+            boolean soundPlaying = false;
+            int soundIndex, soundID;
+            SoundPlayer.PlaySoundParams params;
+
+
+
+
 
     public void playSound(String sound) {
         if (!soundPlaying) {
@@ -205,69 +163,64 @@ public class TeleOpHardware {
         }
     }
 
-    //public double getHeading(){
-    //   return
-    //return imu.getAngularOrientation(AxesReference.INTRINSIC, AxesOrder.ZYX, AngleUnit.RADIANS).firstAngle;
-    //}
-    /* Initialize standard TeleOpHardware interfaces */
-    public void init(HardwareMap ahwMap, Telemetry atel, double initX, double initY, boolean onRed, boolean useVision) {
-        // Save reference to TeleOpHardware map
-        hwMap = ahwMap;
+    public void init( HardwareMap hardware, Telemetry atel, double initX, double initY, boolean onRed, boolean auto ){
+        hwMap = hardware;
         tel = atel;
-        double initHeading = (onRed) ? 0 : Math.PI;
-        prevXYH = new double[]{initX, initY, initHeading};
-        prevGyro = initHeading;
-        teamRed = onRed;
-        vision = useVision;
-        leftFront = hwMap.get(DcMotor.class, "leftFront");
-        rightFront = hwMap.get(DcMotor.class, "rightFront");
-        leftBack = hwMap.get(DcMotor.class, "leftBack");
-        rightBack = hwMap.get(DcMotor.class, "rightBack");
-        leftFront.setDirection(DcMotor.Direction.FORWARD);
-        leftBack.setDirection(DcMotor.Direction.FORWARD);
-        rightFront.setDirection(DcMotor.Direction.REVERSE);
-        rightBack.setDirection(DcMotor.Direction.REVERSE);
-        drivetrain = new DcMotor[]{leftFront, leftBack, rightFront, rightBack};
-        for (DcMotor d : drivetrain) {
-            d.setMode(DcMotor.RunMode.RUN_USING_ENCODER);
-            d.setZeroPowerBehavior(DcMotor.ZeroPowerBehavior.BRAKE);
+        this.onRed = onRed;
+        this.auto = auto;
+
+        drive = new SampleMecanumDriveREVOptimized(hwMap);
+        drive.setPoseEstimate( new Pose2d(initX, initY, onRed ? Math.toRadians(90) : Math.toRadians(-90) ) );
+        claw = hwMap.get(DcMotorEx.class, "claw");
+        slide = hwMap.get(DcMotorEx.class, "slide");
+        arm = hwMap.get(DcMotorEx.class, "arm");
+
+        scoring.add(claw);
+        scoring.add(slide);
+        scoring.add(arm);
+
+        for( DcMotorEx m : scoring ){
+            m.setZeroPowerBehavior(DcMotor.ZeroPowerBehavior.BRAKE);
+            m.setMode(DcMotor.RunMode.STOP_AND_RESET_ENCODER);
+            m.setMode(DcMotor.RunMode.RUN_TO_POSITION);
+            m.setPositionPIDFCoefficients(1/288);
+            m.setTargetPositionTolerance(5);
         }
-
-
-        claw = hwMap.get(DcMotor.class, "claw");
-        slide = hwMap.get(DcMotor.class, "slide");
-        arm = hwMap.get(DcMotor.class, "arm");
-        claw.setZeroPowerBehavior(DcMotor.ZeroPowerBehavior.BRAKE);
-        slide.setZeroPowerBehavior(DcMotor.ZeroPowerBehavior.BRAKE);
-        arm.setZeroPowerBehavior(DcMotor.ZeroPowerBehavior.BRAKE);
 
         found = hwMap.get(CRServo.class, "foundation");
 
         color = hwMap.get(ColorSensor.class, "color");
-
-        imu = hwMap.get(BNO055IMU.class, "imu");
-        parameters = new BNO055IMU.Parameters();
-        parameters.angleUnit = BNO055IMU.AngleUnit.RADIANS;
-        parameters.calibrationDataFile = "BNO055IMUCalibration.json";
-        parameters.loggingEnabled = true;
-        parameters.loggingTag = "IMU";
-        imu.initialize(parameters);
-        soundIndex = 0;
-        soundID = -1;
-        myApp = hwMap.appContext;
-        params = new SoundPlayer.PlaySoundParams();
-        params.loopControl = 0;
-        params.waitForNonLoopingSoundsToFinish = true;
-
-        cameraMonitorViewId = hwMap.appContext.getResources().getIdentifier("cameraMonitorViewId", "id", hwMap.appContext.getPackageName());
-        if (vision) {
-            visionInit();
-        }
-
-
+        // Random Sound/Vision Things
+            soundIndex = 0;
+            soundID = -1;
+            myApp = hwMap.appContext;
+            params = new SoundPlayer.PlaySoundParams();
+            params.loopControl = 0;
+            params.waitForNonLoopingSoundsToFinish = true;
+            cameraMonitorViewId = hwMap.appContext.getResources().getIdentifier("cameraMonitorViewId", "id", hwMap.appContext.getPackageName());
+            if(auto) {
+                visionInit();
+            }
         playSound("ss_light_saber");
     }
+    public void initLoop(){
+        if(auto) {
+            visionLoop();
+            if (option == 'A') {
+                positionModifier = 8;
+            } else if (option == 'B') {
+                positionModifier = 0;
+            } else if (option == 'C') {
+                positionModifier = -8;
+            } else {
+                positionModifier = 0;
+            }
+        }
+    }
 
+    public void hardBrake(){
+        drive.setMotorPowers(0,0,0,0);
+    }
     public void mecanumDrive(double x, double y, double rot) {
         double nX, nY;
         nX = (Math.abs(x - prevXPower) > 0.1) ? prevXPower + Math.signum(x - prevXPower) * 0.1 : x;
@@ -279,19 +232,15 @@ public class TeleOpHardware {
         final double v2 = r * Math.sin(robotAngle) - rightX;
         final double v3 = r * Math.sin(robotAngle) + rightX;
         final double v4 = r * Math.cos(robotAngle) + rightX;
-        double[] vals = new double[]{v1, v2, v3, v4};
-        double max = 0;
-        for (int i = 0; i < 4; i++) {
-            drivetrain[i].setPower(vals[i]);
-        }
-
-        tel.addData("lf lb rf rb", vals[0] + " " + vals[1] + " " + vals[2] + " " + vals[3]);
+        drive.setMotorPowers(v1,v2,v4,v3);
+        // NOW: leftFront, leftBack, rightFront, rightBack
+        // NEED: leftFront leftRear rightRear rightFront
         prevXPower = nX;
         prevYPower = nY;
     }
 
     public void mecanumDriveFieldOrient(double x, double y, double rot) {
-        double adjustAngle = -imu.getAngularOrientation(AxesReference.INTRINSIC, AxesOrder.ZYX, AngleUnit.RADIANS).firstAngle;
+        double adjustAngle = -drive.getRawExternalHeading();
         double newX = Math.cos(adjustAngle) * x - Math.sin(adjustAngle) * y;
         double newY = Math.sin(adjustAngle) * x + Math.cos(adjustAngle) * y;
         mecanumDrive(newX, newY, rot);
@@ -329,27 +278,206 @@ public class TeleOpHardware {
         slide.setPower(slideControl);
     }
 
-    public void stop() {
-        leftFront.setPower(0);
-        rightFront.setPower(0);
-        leftBack.setPower(0);
-        rightBack.setPower(0);
-        found.setPower(0);
-        claw.setPower(0);
-        arm.setPower(0);
-        slide.setPower(0);
-        if (vision) {
-            targetsSkyStone.deactivate();
+
+    // NOT DONE
+    public void setArmPosition( double x, double y ){
+        double angle, rExpand;
+        if( y == 0 && x == 0){
+            angle = Math.atan( ( 5-hP ) / 13 );
+            rExpand = (13 / Math.cos( angle ))-dP;
+        }else{
+            angle = Math.atan( ( 5*y + 2.25 - hP ) / ( 14.8 + 4*x ) );
+            rExpand = ((14.8 + 4*x) / Math.cos( angle )) - dP;
+        }
+        double armWind = ((rB*Math.sin(-angle))/(2*Math.PI*rS))*288;
+        double armExt = rExpand / (2*rG*Math.PI) * 288;
+        //if( (armWind > max || armWind < min) && (armExt > max || armExt < min)){
+            // OUT OF BOUNDS
+        //}else {
+            slide.setTargetPosition((int) armExt);
+            slide.setPower(0.8);
+            arm.setTargetPosition((int) armWind);
+            arm.setPower(0.8);
+        //}
+    }
+    public void levelArm(){
+        arm.setTargetPosition(0);
+        arm.setPower(1);
+    }
+    // NOT DONE
+    public void operateClaw(boolean open){
+        //claw.setTargetPosition(open ? : );
+        //claw.setPower(0.8);
+    }
+    public void operateFoundation(boolean up){
+        found.setDirection( up ? CRServo.Direction.FORWARD : CRServo.Direction.REVERSE );
+        found.setPower(0.8);
+        foundInMovement = true;
+        startTimeFound = runtime.time(TimeUnit.SECONDS);
+    }
+    public void autoScore(){
+        for( DcMotorEx m : scoring ){
+            if(!m.isBusy()){
+                m.setPower(0);
+            }
         }
     }
-    public void hardBrake(){
-        leftFront.setPower(0);
-        rightFront.setPower(0);
-        leftBack.setPower(0);
-        rightBack.setPower(0);
+
+
+    public void logCurrent(Pose2d current){
+        estCurrent = current;
     }
+    public void requestAction(){
+        actionRequest = true;
+    }
+    public Trajectory[] oneSkystoneFoundAuton(){
+        runtime.reset();
+        Trajectory traj1,traj2,traj3,traj4;
+        int side = onRed ? -1 : 1;
+            traj1 = drive.trajectoryBuilder()
+                    .addMarker(() -> {
+                        // Drop Arm, Open Claw
+                        setArmPosition(0,0 );
+                        operateClaw(true);
+                        return Unit.INSTANCE;
+                    })
+                    .splineTo(new Pose2d(positionModifier, 30, side * -90).plus(drive.getPoseEstimate()))
+                    .addMarker(() -> {
+                        // Close Claw, Level Arm
+                        operateClaw(false);
+                        requestAction();
+                        return Unit.INSTANCE;
+                    })
+                    .build();
+            traj2 = drive.trajectoryBuilder()
+                    .splineTo(new Pose2d(-24, side * 48, 0))
+                    .forward(24)
+                    .splineTo(new Pose2d(24, side * 24, side * -90))
+                    .splineTo(new Pose2d(30, side * 12, 0))
+                    .addMarker(() -> {
+                        // Grab foundation, Lower Arm to block 1
+
+                        setArmPosition(1,1);
+                        requestAction();
+                        return Unit.INSTANCE;
+                    })
+                    .build();
+            traj3 = drive.trajectoryBuilder()
+                    .splineTo(new Pose2d(24, 0, side * 59))
+                    .forward(30)
+                    .addMarker(() -> {
+                        logCurrent(drive.getPoseEstimate());
+                        operateClaw(true);
+                        requestAction();
+
+
+                        return Unit.INSTANCE;
+                    })
+                    .build();
+            traj4 = drive.trajectoryBuilder()
+                    .splineTo(new Pose2d(0, side * 48, 0))
+                    .addMarker(()->{
+                        requestAction();
+                        return Unit.INSTANCE;
+                    })
+                    .build();
+
+        return new Trajectory[]{traj1,traj2,traj3,traj4};
+    }
+    public Trajectory[] twoSkystoneFoundAuton(){
+        runtime.reset();
+        Trajectory traj1,traj2,traj3,traj4,traj5,traj6;
+        int side = onRed ? -1 : 1;
+        if(option != 'C') {
+            traj4 = drive.trajectoryBuilder()
+                    .splineTo(new Pose2d(0, side * 48, 0))
+                    .splineTo(new Pose2d(-36, side * 48, side * -90))
+                    .addMarker(() -> {
+                        // Lower Arm\
+                        setArmPosition(0,0 );
+                        return Unit.INSTANCE;
+                    })
+                    .splineTo(new Pose2d(-60 + positionModifier, side * 33, side * -90))
+                    .build();
+        }else{
+            traj4 = drive.trajectoryBuilder()
+                    .splineTo(new Pose2d(0, side * 48, 0))
+                    .splineTo(new Pose2d(-36, side * 48, side * -90))
+                    .addMarker(() -> {
+                        // Lower Arm
+                        setArmPosition(0,0);
+                        return Unit.INSTANCE;
+                    })
+                    .splineTo(new Pose2d(-57.6, side * 30.4, side * -135))
+                    .lineTo(new Vector2d(0,4).plus(new Vector2d(drive.getPoseEstimate().getX(),drive.getPoseEstimate().getY())))
+                    .addMarker(() -> {
+                        // Close Claw, Level Arm
+                        operateClaw(false);
+                        levelArm();
+                        return Unit.INSTANCE;
+                    })
+                    .build();
+
+        }
+        traj1 = drive.trajectoryBuilder()
+                .addMarker(() -> {
+                    // Drop Arm, Open Claw
+                    setArmPosition(0,0);
+                    operateClaw(true);
+                    return Unit.INSTANCE;
+                })
+                .splineTo(new Pose2d(positionModifier, 30, side * -90).plus(drive.getPoseEstimate()))
+                .addMarker(() -> {
+                    // Close Claw, Level Arm
+                    operateClaw(false);
+                    levelArm();
+                    return Unit.INSTANCE;
+                })
+                .build();
+        traj2 = drive.trajectoryBuilder()
+                .splineTo(new Pose2d(-24, side * 48, 0))
+                .forward(24)
+                .splineTo(new Pose2d(24, side * 24, side * -90))
+                .splineTo(new Pose2d(30, side * 12, 0))
+                .addMarker(() -> {
+                    // Grab foundation, Lower Arm to block 1
+                    operateFoundation(false);
+                    setArmPosition(1,1);
+                    return Unit.INSTANCE;
+                })
+                .build();
+        traj3 = drive.trajectoryBuilder()
+                .splineTo(new Pose2d(24, 0, side * 59))
+                .forward(30)
+                .addMarker(() -> {
+                    // Release foundation, drop block
+                    logCurrent(drive.getPoseEstimate());
+                    operateFoundation(true);
+                    operateClaw(true);
+                    return Unit.INSTANCE;
+                })
+                .build();
+        traj5 = drive.trajectoryBuilder()
+                .splineTo(new Pose2d(-36, side * 48, side * -90))
+                .splineTo(new Pose2d(0, side * 48, 0))
+                .splineTo(estCurrent)
+                .addMarker(() -> {
+                    // Lower Arm to block 2, Release Block
+                    setArmPosition(1,2);
+                    operateClaw(true);
+                    levelArm();
+                    return Unit.INSTANCE;
+                })
+                .build();
+        traj6 = drive.trajectoryBuilder()
+                .splineTo(new Pose2d(0, side * 48, 0))
+                .build();
+        return new Trajectory[]{traj1,traj2,traj3,traj4,traj5,traj6};
+    }
+
+
     public void visionInit() {
-        if (vision) {
+
             VuforiaLocalizer.Parameters parameters = new VuforiaLocalizer.Parameters(cameraMonitorViewId);
 
             // VuforiaLocalizer.Parameters parameters = new VuforiaLocalizer.Parameters();
@@ -525,11 +653,10 @@ public class TeleOpHardware {
             // Tap the preview window to receive a fresh image.
 
             targetsSkyStone.activate();
-        }
-    }
 
-    public void visionTeleop() {
-        if (vision) {
+    }
+    public void visionLoop() {
+
             // check all the trackable targets to see which one (if any) is visible.
             targetVisible = false;
 
@@ -545,7 +672,21 @@ public class TeleOpHardware {
                     if (robotLocationTransform != null) {
                         lastLocation = robotLocationTransform;
                     }
-                    haveBlock = allTrackables.indexOf(trackable) == 0;
+                    if(trackable == targetsSkyStone.get(0)){
+                        double strafe = lastLocation.getTranslation().get(1) / mmPerInch;
+
+                        if(Math.abs(strafe)<=2){
+                           option = 'B';
+                        } else if(strafe > 5) {
+                            option = 'A';
+                        }else if(strafe < 5) {
+                            option = 'C';
+                        }else{
+                            option = 'X';
+                        }
+                    }else{
+                        option = 'X';
+                    }
                     break;
                 }
             }
@@ -567,33 +708,6 @@ public class TeleOpHardware {
 
 
         }
-        prevXYH = botxyh();
-        prevGyro = imu.getAngularOrientation(AxesReference.INTRINSIC, AxesOrder.ZYX, AngleUnit.RADIANS).firstAngle;
         //tel.update();
-    }
 
-    public double[] botxyh() {
-        if (search == searchMode.location && targetVisible && vision) {
-            return new double[]{lastLocation.getTranslation().get(0) / mmPerInch, lastLocation.getTranslation().get(1) / mmPerInch, Orientation.getOrientation(lastLocation, EXTRINSIC, XYZ, RADIANS).thirdAngle};
-        } else {
-            double lf = leftFront.getCurrentPosition() / 280 * (4 * Math.PI);
-            double rf = rightFront.getCurrentPosition() / 280 * (4 * Math.PI);
-            double lb = leftBack.getCurrentPosition() / 280 * (4 * Math.PI);
-            double rb = rightBack.getCurrentPosition() / 280 * (4 * Math.PI);
-            double predx = ((lf + rb) - (rf + lb)) / 4;
-            double predy = (lf + rf + lb + rb) / 4;
-            double da = prevXYH[2] + (imu.getAngularOrientation(AxesReference.INTRINSIC, AxesOrder.ZYX, AngleUnit.RADIANS).firstAngle - prevGyro);
-            predx = Math.cos(-da) * predx - Math.sin(-da) * predy;
-            predy = Math.sin(-da) * predx + Math.cos(-da) * predy;
-            return new double[]{predx, predy, da};
-        }
-    }
-
-    public double[] blockxyh() {
-        if (!vision) {
-            return null;
-        } else {
-            return new double[]{lastLocation.getTranslation().get(0) / mmPerInch, lastLocation.getTranslation().get(1) / mmPerInch, Orientation.getOrientation(lastLocation, EXTRINSIC, XYZ, RADIANS).thirdAngle};
-        }
-    }
 }

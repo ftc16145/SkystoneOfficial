@@ -33,9 +33,7 @@ import com.qualcomm.robotcore.eventloop.opmode.OpMode;
 import com.qualcomm.robotcore.eventloop.opmode.TeleOp;
 import com.qualcomm.robotcore.util.ElapsedTime;
 
-import org.firstinspires.ftc.robotcore.external.navigation.AngleUnit;
-import org.firstinspires.ftc.robotcore.external.navigation.AxesOrder;
-import org.firstinspires.ftc.robotcore.external.navigation.AxesReference;
+import org.firstinspires.ftc.teamcode.Hardware;
 
 /**
  * This file contains an example of an iterative (Non-Linear) "OpMode".
@@ -51,13 +49,13 @@ import org.firstinspires.ftc.robotcore.external.navigation.AxesReference;
  * Remove or comment out the @Disabled line to add this opmode to the Driver Station OpMode list
  */
 
-@TeleOp(name="TeleOp Red DEFAULT", group="Mecanum")
+@TeleOp(name="TeleOp DEFAULT", group="Mecanum")
 
 public class MeccRed extends OpMode
 {
     // Declare OpMode members.
     private ElapsedTime runtime = new ElapsedTime();
-    private TeleOpHardware robot = new TeleOpHardware();
+    private Hardware robot = new Hardware();
     //private DcMotor leftFront, leftBack, rightFront, rightBack, slide, claw, arm;
     //SLIDE MOTOR
     // 1120 Ticks/rev
@@ -80,7 +78,7 @@ public class MeccRed extends OpMode
      */
     @Override
     public void init() {
-        robot.init( hardwareMap, telemetry,0,0, true,false );
+        robot.init( hardwareMap, telemetry,0,0, true, false );
         telemetry.addData("Status", "Initialized");
 
 
@@ -143,7 +141,7 @@ public class MeccRed extends OpMode
         //    robot.setSearchMode( TeleOpHardware.searchMode.location );
         //}
         telemetry.addData("RGB",robot.color.red() + " " + robot.color.green() + " " + robot.color.blue());
-        telemetry.addData("Gyro",robot.imu.getAngularOrientation(AxesReference.INTRINSIC, AxesOrder.ZYX, AngleUnit.RADIANS).firstAngle);
+        telemetry.addData("Gyro",robot.drive.getRawExternalHeading());
         telemetry.addData("Slide Enc",robot.slide.getCurrentPosition());
         telemetry.addData("Status", "Run Time: " + runtime.toString() );
 
@@ -155,7 +153,7 @@ public class MeccRed extends OpMode
      */
     @Override
     public void stop() {
-        robot.stop();
+
         //playSound("ss_alarm");
         //  drive.stop();
     }

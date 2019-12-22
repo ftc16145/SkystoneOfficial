@@ -33,9 +33,7 @@ import com.qualcomm.robotcore.eventloop.opmode.OpMode;
 import com.qualcomm.robotcore.eventloop.opmode.TeleOp;
 import com.qualcomm.robotcore.util.ElapsedTime;
 
-import org.firstinspires.ftc.robotcore.external.navigation.AngleUnit;
-import org.firstinspires.ftc.robotcore.external.navigation.AxesOrder;
-import org.firstinspires.ftc.robotcore.external.navigation.AxesReference;
+import org.firstinspires.ftc.teamcode.Hardware;
 
 /**
  * This file contains an example of an iterative (Non-Linear) "OpMode".
@@ -57,7 +55,7 @@ public class FieldOperatorAssist extends OpMode
 {
     // Declare OpMode members.
     private ElapsedTime runtime = new ElapsedTime();
-    private TeleOpHardware robot = new TeleOpHardware();
+    private Hardware robot = new Hardware();
     //private DcMotor leftFront, leftBack, rightFront, rightBack, slide, claw, arm;
     //SLIDE MOTOR
     // 1120 Ticks/rev
@@ -70,8 +68,13 @@ public class FieldOperatorAssist extends OpMode
     //private CRServo found;
     double num = 0;
     boolean clawLock = false;
-
-
+    boolean ypressed = false;
+    boolean apressed = false;
+    boolean lbump = false;
+    boolean ltrig = false;
+    boolean xtap = false;
+    boolean scoreMode = false;
+    int armx, army;
 
     //public Drivetrain drive;
 
@@ -80,7 +83,7 @@ public class FieldOperatorAssist extends OpMode
      */
     @Override
     public void init() {
-        robot.init( hardwareMap, telemetry,0,0, true,false );
+        robot.init( hardwareMap, telemetry,0,0, true, false );
         telemetry.addData("Status", "Initialized");
 
 
@@ -123,6 +126,24 @@ public class FieldOperatorAssist extends OpMode
     /*
      * Code to run REPEATEDLY after the driver hits PLAY but before they hit STOP
      */
+    private void checkArmRestraint(){
+        if(armx > 2){
+            armx = 2;
+        }else if(armx < 1){
+            armx = 1;
+        }
+        if(army > 3){
+            army = 3;
+        }else if(army < 1){
+            army = 1;
+        }
+        if(armx == 2){
+            if(army > 2){
+                army = 2;
+            }
+        }
+
+    }
     @Override
     public void loop() {
         if(gamepad1.y){
@@ -130,18 +151,50 @@ public class FieldOperatorAssist extends OpMode
         }else if(gamepad1.a){
             robot.hardBrake();
         }else {
-            robot.mecanumDrive(gamepad1.left_stick_x, gamepad1.left_stick_y, gamepad1.right_stick_x);
+            robot.mecanumDriveFieldOrient(gamepad1.left_stick_x, gamepad1.left_stick_y, gamepad1.right_stick_x);
         }
+
+        if(gamepad2.x && !xtap){
+            xtap = true;
+            // ACTION
+            scoreMode = !scoreMode;
+        }
+        if(!gamepad2.x && xtap){
+            xtap = false;
+        }
+
         robot.foundationControls( gamepad2.dpad_down, gamepad2.dpad_up );
-        double slider = 0;
-        if( gamepad2.y ){
-            slider=0.5;
-        }else if( gamepad2.a ){
-            slider=-0.5;
+
+
+
+        if(scoreMode){
+            if(gamepad1.left_bumper && !lbump){
+                lbump = true;
+                // ACTION
+                army++;
+
+            }else if(gamepad1.left_trigger >= 0.5 && !ltrig){
+                ltrig = true;
+                // ACTION
+                army--;
+            }
+            if(!gamepad1.left_bumper && lbump){
+                lbump = false;
+            }
+            if(!(gamepad1.left_trigger >= 0.5) && ltrig){
+                ltrig = false;
+            }
         }else{
-            slider=0;
+            double slider = 0;
+            if( gamepad2.y ){
+                slider=0.5;
+            }else if( gamepad2.a ){
+                slider=-0.5;
+            }else{
+                slider=0;
+            }
+            robot.armMechanismControls(gamepad2.right_bumper, gamepad2.right_trigger >= 0.5, gamepad2.left_bumper, gamepad2.left_trigger >= 0.5, slider);
         }
-        robot.armMechanismControls( gamepad2.right_bumper, gamepad2.right_trigger >= 0.5, gamepad2.left_bumper, gamepad2.left_trigger >= 0.5, slider );
         //robot.visionTeleop();
         //if( gamepad1.a ){
         //    robot.setSearchMode( TeleOpHardware.searchMode.block );
@@ -149,7 +202,7 @@ public class FieldOperatorAssist extends OpMode
         //    robot.setSearchMode( TeleOpHardware.searchMode.location );
         //}
         telemetry.addData("RGB",robot.color.red() + " " + robot.color.green() + " " + robot.color.blue());
-        telemetry.addData("Gyro",robot.imu.getAngularOrientation(AxesReference.INTRINSIC, AxesOrder.ZYX, AngleUnit.RADIANS).firstAngle);
+        telemetry.addData("Gyro",robot.drive.getRawExternalHeading());
         telemetry.addData("Slide Enc",robot.slide.getCurrentPosition());
         telemetry.addData("Claw Enc",robot.claw.getCurrentPosition());
         telemetry.addData("Arm Enc",robot.arm.getCurrentPosition());
@@ -163,7 +216,7 @@ public class FieldOperatorAssist extends OpMode
      */
     @Override
     public void stop() {
-        robot.stop();
+
         //playSound("ss_alarm");
         //  drive.stop();
     }

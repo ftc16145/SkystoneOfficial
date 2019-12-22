@@ -37,7 +37,7 @@ import com.qualcomm.robotcore.eventloop.opmode.OpMode;
 import com.qualcomm.robotcore.hardware.CRServo;
 import com.qualcomm.robotcore.util.ElapsedTime;
 
-import org.firstinspires.ftc.teamcode.Auton.AutonHardware;
+import org.firstinspires.ftc.teamcode.Hardware;
 
 import java.util.concurrent.TimeUnit;
 
@@ -62,7 +62,7 @@ import kotlin.Unit;
 public class FoundRedOneBlockRun extends OpMode
 {// Declare OpMode members.
     private ElapsedTime runtime = new ElapsedTime();
-    private AutonHardware robot = new AutonHardware();
+    private Hardware robot = new Hardware();
     int stage = 1;
     Trajectory grabFound, moveBack, strafeOut, toBlockA, checkNext, dropFinal, finish;
     char currentBlock;
@@ -94,7 +94,7 @@ public class FoundRedOneBlockRun extends OpMode
 
     @Override
     public void init() {
-        robot.init( hardwareMap, telemetry,39,63,true );
+        robot.init( hardwareMap, telemetry,39,63,true, true );
         telemetry.addData("Status", "Initialized" );
         grabFound = robot.drive.trajectoryBuilder()
                 .splineTo(new Pose2d(50.75,24,90))

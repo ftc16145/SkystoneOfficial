@@ -27,7 +27,7 @@
  * OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
 
-package org.firstinspires.ftc.teamcode.TeleOp;
+package org.firstinspires.ftc.teamcode.Tests;
 
 import com.qualcomm.robotcore.eventloop.opmode.Disabled;
 import com.qualcomm.robotcore.eventloop.opmode.OpMode;
@@ -48,13 +48,13 @@ import com.qualcomm.robotcore.util.ElapsedTime;
  * Remove or comment out the @Disabled line to add this opmode to the Driver Station OpMode list
  */
 
-@TeleOp(name="TeleOp Blue", group="Mecanum")
+@TeleOp(name="TestVision", group="Mecanum")
 @Disabled
-public class MeccBlue extends OpMode
+public class TestVision extends OpMode
 {
     // Declare OpMode members.
     private ElapsedTime runtime = new ElapsedTime();
-    private TeleOpHardware robot = new TeleOpHardware();
+    private TESTHardware robot = new TESTHardware();
     //private DcMotor leftFront, leftBack, rightFront, rightBack, slide, claw, arm;
     //SLIDE MOTOR
     // 1120 Ticks/rev
@@ -77,7 +77,7 @@ public class MeccBlue extends OpMode
      */
     @Override
     public void init() {
-        robot.init( hardwareMap, telemetry,0,0, false, false );
+        robot.init( hardwareMap, telemetry,0,0, true );
         telemetry.addData("Status", "Initialized");
 
 
@@ -121,14 +121,14 @@ public class MeccBlue extends OpMode
      */
     @Override
     public void loop() {
-        robot.mecanumDrive( gamepad1.left_stick_x, gamepad1.left_stick_y, gamepad1.right_stick_x );
-        robot.foundationControls( gamepad1.dpad_down, gamepad1.dpad_up );
-        robot.armMechanismControls( gamepad2.right_bumper, gamepad2.right_trigger >= 0.5, gamepad2.left_bumper, gamepad2.left_trigger >= 0.5, -0.5*gamepad2.left_stick_y );
+        //robot.mecanumDrive( gamepad1.left_stick_x, gamepad1.left_stick_y, gamepad1.right_stick_x );
+        //robot.foundationControls( gamepad1.dpad_down, gamepad1.dpad_up );
+        //robot.armMechanismControls( gamepad2.right_bumper, gamepad2.right_trigger >= 0.5, gamepad2.left_bumper, gamepad2.left_trigger >= 0.5, -0.5*gamepad2.left_stick_y );
         robot.visionTeleop();
         if( gamepad1.a ){
-            robot.setSearchMode( TeleOpHardware.searchMode.block );
+            robot.setSearchMode( TESTHardware.searchMode.block );
         }else if(gamepad1.b){
-            robot.setSearchMode( TeleOpHardware.searchMode.location );
+            robot.setSearchMode( TESTHardware.searchMode.location );
         }
         telemetry.addData("Status", "Run Time: " + runtime.toString() );
 

@@ -27,7 +27,7 @@
  * OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
 
-package org.firstinspires.ftc.teamcode;
+package org.firstinspires.ftc.teamcode.Tests;
 
 import com.qualcomm.robotcore.eventloop.opmode.Autonomous;
 import com.qualcomm.robotcore.eventloop.opmode.Disabled;
@@ -35,7 +35,7 @@ import com.qualcomm.robotcore.eventloop.opmode.OpMode;
 import com.qualcomm.robotcore.hardware.DcMotor;
 import com.qualcomm.robotcore.util.ElapsedTime;
 
-import org.firstinspires.ftc.teamcode.TeleOp.TeleOpHardware;
+import org.firstinspires.ftc.teamcode.Hardware;
 
 /**
  * This file contains an example of an iterative (Non-Linear) "OpMode".
@@ -51,21 +51,27 @@ import org.firstinspires.ftc.teamcode.TeleOp.TeleOpHardware;
  * Remove or comment out the @Disabled line to add this opmode to the Driver Station OpMode list
  */
 
-@Autonomous(name="Arm Stop", group="Auto Red")
+@Autonomous(name="Slide Stop", group="Auto Red")
 @Disabled
-public class ArmStop extends OpMode
-{
-    // Declare OpMode members.
+public class SlideStop extends OpMode
+{// Declare OpMode members.
     private ElapsedTime runtime = new ElapsedTime();
-    TeleOpHardware robot = new TeleOpHardware();
+    Hardware robot = new Hardware();
+    double slideLimit = ( 28.5 / ( 3  * Math.PI ) ) * 288;
+    //SLIDE MOTOR
+    // 1120 Ticks/rev
+    // d = 3cm, r = 1.5cm, C = 3pi cm
+    // Dist = ticks/1120 * 3pi
+    // 32cm length
+    // MAX ENCODER = (32/3pi * 1120) = 3802.7, 3802 ticks+
     /*
      * Code to run ONCE when the driver hits INIT
      */
     @Override
     public void init() {
-        telemetry.addData("Status", "Initialized");
-        robot.init( hardwareMap, telemetry, 0,0,true,false );
-        robot.arm.setMode( DcMotor.RunMode.RUN_TO_POSITION );
+        telemetry.addData("Status", "Initialized" );
+        robot.init( hardwareMap, telemetry,0,0,true, false );
+        robot.slide.setMode( DcMotor.RunMode.RUN_TO_POSITION );
         // Initialize the hardware variables. Note that the strings used here as parameters
         // to 'get' must correspond to the names assigned during the robot configuration
         // step (using the FTC Robot Controller app on the phone).
@@ -74,6 +80,7 @@ public class ArmStop extends OpMode
         // Reverse the motor that runs backwards when connected directly to the battery
 
         //drive = Drivetrain.init( 0, 0, 0, Drivetrain.driveType.fourWheel );
+
 
 
         //gyro = hardwareMap.get( GyroSensor.class, "gyro" );
@@ -95,21 +102,23 @@ public class ArmStop extends OpMode
     @Override
     public void start() {
         runtime.reset();
-
     }
     /*
      * Code to run REPEATEDLY after the driver hits PLAY but before they hit STOP
      */
     @Override
     public void loop() {
-        /* max = 30
-        * 4.5 = diameter
-        * rev circ = 4.5 * pi
-        * max enc = 30/(rev circ) * (enc/rev)
-        *
+        /*
+        * diameter = 3
+        * d = 28.5
+        * limit rev = 28.5 / (3pi)
+        * limit enc = (limit rev) * (enc/rev)
         * */
-        robot.arm.setTargetPosition( 100 );
-        robot.arm.setPower( 0.5 );
+
+        robot.slide.setTargetPosition( ( int )slideLimit );
+        robot.slide.setPower( 0.5 );
+
+
     }
 
     /*
@@ -117,7 +126,6 @@ public class ArmStop extends OpMode
      */
     @Override
     public void stop() {
-        robot.stop();
         //  drive.stop();
     }
 

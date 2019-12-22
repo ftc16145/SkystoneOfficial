@@ -34,13 +34,9 @@ import com.qualcomm.robotcore.eventloop.opmode.Autonomous;
 import com.qualcomm.robotcore.eventloop.opmode.OpMode;
 import com.qualcomm.robotcore.util.ElapsedTime;
 
-import org.firstinspires.ftc.teamcode.Auton.AutonHardware;
-import org.firstinspires.ftc.teamcode.TeleOp.TeleOpHardware;
+import org.firstinspires.ftc.teamcode.Hardware;
 
-import java.util.ArrayList;
 import java.util.concurrent.TimeUnit;
-
-import static java.lang.Math.toRadians;
 
 /**
  * This file contains an example of an iterative (Non-Linear) "OpMode".
@@ -61,9 +57,9 @@ import static java.lang.Math.toRadians;
 public class MegaAutoRed extends OpMode
 {// Declare OpMode members.
     private ElapsedTime runtime = new ElapsedTime();
-    private AutonHardware robot = new AutonHardware();
+    private Hardware robot = new Hardware();
     //private ArrayList<Trajectory> trajectories;
-    private Trajectory currentTraj;
+    private Trajectory[] currentTraj;
     int step = 1;
     //private DcMotor leftFront, leftBack, rightFront, rightBack, slide, claw, arm;
     //SLIDE MOTOR
@@ -86,7 +82,7 @@ public class MegaAutoRed extends OpMode
      */
     @Override
     public void init() {
-        robot.init( hardwareMap, telemetry,-36,-63,true );
+        robot.init( hardwareMap, telemetry,-36,-63,true, true );
         telemetry.addData("Status", "Initialized" );
 
 
@@ -133,7 +129,7 @@ public class MegaAutoRed extends OpMode
     public void loop() {
         double t = runtime.time(TimeUnit.SECONDS);
 
-        robot.drive.followTrajectory(currentTraj);
+        //robot.drive.followTrajectory(currentTraj);
         robot.autoScore();
         robot.drive.update();
 

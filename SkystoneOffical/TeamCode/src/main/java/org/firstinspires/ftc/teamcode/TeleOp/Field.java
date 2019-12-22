@@ -33,9 +33,7 @@ import com.qualcomm.robotcore.eventloop.opmode.OpMode;
 import com.qualcomm.robotcore.eventloop.opmode.TeleOp;
 import com.qualcomm.robotcore.util.ElapsedTime;
 
-import org.firstinspires.ftc.robotcore.external.navigation.AngleUnit;
-import org.firstinspires.ftc.robotcore.external.navigation.AxesOrder;
-import org.firstinspires.ftc.robotcore.external.navigation.AxesReference;
+import org.firstinspires.ftc.teamcode.Hardware;
 
 /**
  * This file contains an example of an iterative (Non-Linear) "OpMode".
@@ -57,7 +55,7 @@ public class Field extends OpMode
 {
     // Declare OpMode members.
     private ElapsedTime runtime = new ElapsedTime();
-    private TeleOpHardware robot = new TeleOpHardware();
+    private Hardware robot = new Hardware();
     //private DcMotor leftFront, leftBack, rightFront, rightBack, slide, claw, arm;
     //SLIDE MOTOR
     // 1120 Ticks/rev
@@ -80,7 +78,7 @@ public class Field extends OpMode
      */
     @Override
     public void init() {
-        robot.init( hardwareMap, telemetry,0,0, true,false );
+        robot.init( hardwareMap, telemetry,0,0, true, false );
         telemetry.addData("Status", "Initialized");
 
 
@@ -130,7 +128,7 @@ public class Field extends OpMode
         }else if(gamepad1.a){
             robot.hardBrake();
         }else {
-            robot.mecanumDrive(gamepad1.left_stick_x, gamepad1.left_stick_y, gamepad1.right_stick_x);
+            robot.mecanumDriveFieldOrient(gamepad1.left_stick_x, gamepad1.left_stick_y, gamepad1.right_stick_x);
         }
         robot.foundationControls( gamepad2.dpad_down, gamepad2.dpad_up );
         double slider = 0;
@@ -149,7 +147,7 @@ public class Field extends OpMode
         //    robot.setSearchMode( TeleOpHardware.searchMode.location );
         //}
         telemetry.addData("RGB",robot.color.red() + " " + robot.color.green() + " " + robot.color.blue());
-        telemetry.addData("Gyro",robot.imu.getAngularOrientation(AxesReference.INTRINSIC, AxesOrder.ZYX, AngleUnit.RADIANS).firstAngle);
+        telemetry.addData("Gyro",robot.drive.getRawExternalHeading());
         telemetry.addData("Slide Enc",robot.slide.getCurrentPosition());
         telemetry.addData("Claw Enc",robot.claw.getCurrentPosition());
         telemetry.addData("Arm Enc",robot.arm.getCurrentPosition());
@@ -163,7 +161,7 @@ public class Field extends OpMode
      */
     @Override
     public void stop() {
-        robot.stop();
+
         //playSound("ss_alarm");
         //  drive.stop();
     }

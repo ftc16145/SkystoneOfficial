@@ -35,7 +35,7 @@ import com.qualcomm.robotcore.eventloop.opmode.OpMode;
 import com.qualcomm.robotcore.hardware.CRServo;
 import com.qualcomm.robotcore.util.ElapsedTime;
 
-import org.firstinspires.ftc.teamcode.Auton.AutonHardware;
+import org.firstinspires.ftc.teamcode.Hardware;
 
 import java.util.concurrent.TimeUnit;
 
@@ -58,7 +58,7 @@ import java.util.concurrent.TimeUnit;
 public class MiniMegaAutoBlue extends OpMode
 {// Declare OpMode members.
     private ElapsedTime runtime = new ElapsedTime();
-    private AutonHardware robot = new AutonHardware();
+    private Hardware robot = new Hardware();
     int stage = 1;
     Trajectory[] currentTraj;
     char currentBlock;
@@ -88,7 +88,7 @@ public class MiniMegaAutoBlue extends OpMode
     }
     @Override
     public void init() {
-        robot.init( hardwareMap, telemetry,-36,63,false );
+        robot.init( hardwareMap, telemetry,-36,63,false, true );
         telemetry.addData("Status", "Initialized" );
 
 

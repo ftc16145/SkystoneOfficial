@@ -27,15 +27,16 @@
  * OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
 
-package org.firstinspires.ftc.teamcode;
+package org.firstinspires.ftc.teamcode.Tests;
 
 import com.qualcomm.robotcore.eventloop.opmode.Autonomous;
-import com.qualcomm.robotcore.eventloop.opmode.Disabled;
 import com.qualcomm.robotcore.eventloop.opmode.OpMode;
-import com.qualcomm.robotcore.hardware.DcMotor;
 import com.qualcomm.robotcore.util.ElapsedTime;
 
-import org.firstinspires.ftc.teamcode.TeleOp.TeleOpHardware;
+
+import org.firstinspires.ftc.teamcode.Hardware;
+
+import java.util.concurrent.TimeUnit;
 
 /**
  * This file contains an example of an iterative (Non-Linear) "OpMode".
@@ -51,27 +52,43 @@ import org.firstinspires.ftc.teamcode.TeleOp.TeleOpHardware;
  * Remove or comment out the @Disabled line to add this opmode to the Driver Station OpMode list
  */
 
-@Autonomous(name="Slide Stop", group="Auto Red")
-@Disabled
-public class SlideStop extends OpMode
+@Autonomous(name="Found Blue", group="Auto Blue")
+
+public class AccelTest extends OpMode
 {// Declare OpMode members.
     private ElapsedTime runtime = new ElapsedTime();
-    TeleOpHardware robot = new TeleOpHardware();
-    double slideLimit = ( 28.5 / ( 3  * Math.PI ) ) * 288;
+    private Hardware robot = new Hardware();
+    boolean stage1 = false;
+    boolean stage2= false;
+    boolean hitColor = false;
+    boolean hasReached;
+    //private DcMotor leftFront, leftBack, rightFront, rightBack, slide, claw, arm;
     //SLIDE MOTOR
     // 1120 Ticks/rev
     // d = 3cm, r = 1.5cm, C = 3pi cm
     // Dist = ticks/1120 * 3pi
     // 32cm length
     // MAX ENCODER = (32/3pi * 1120) = 3802.7, 3802 ticks+
+    //private GyroSensor gyro;
+    //DcMotor[] drivetrain;
+    //private CRServo found;
+
+
+
+
+    //public Drivetrain drive;
+
     /*
      * Code to run ONCE when the driver hits INIT
      */
     @Override
     public void init() {
-        telemetry.addData("Status", "Initialized" );
         robot.init( hardwareMap, telemetry,0,0,true,false );
-        robot.slide.setMode( DcMotor.RunMode.RUN_TO_POSITION );
+        telemetry.addData("Status", "Initialized" );
+        hasReached = false;
+
+        // create a sound parameter that holds the desired player parameters.
+
         // Initialize the hardware variables. Note that the strings used here as parameters
         // to 'get' must correspond to the names assigned during the robot configuration
         // step (using the FTC Robot Controller app on the phone).
@@ -81,7 +98,7 @@ public class SlideStop extends OpMode
 
         //drive = Drivetrain.init( 0, 0, 0, Drivetrain.driveType.fourWheel );
 
-
+        // Tell the driver that initialization is complete.
 
         //gyro = hardwareMap.get( GyroSensor.class, "gyro" );
         //gyro.calibrate();
@@ -94,6 +111,7 @@ public class SlideStop extends OpMode
      */
     @Override
     public void init_loop() {
+        robot.initLoop();
     }
 
     /*
@@ -102,32 +120,35 @@ public class SlideStop extends OpMode
     @Override
     public void start() {
         runtime.reset();
+
     }
     /*
      * Code to run REPEATEDLY after the driver hits PLAY but before they hit STOP
      */
     @Override
     public void loop() {
-        /*
-        * diameter = 3
-        * d = 28.5
-        * limit rev = 28.5 / (3pi)
-        * limit enc = (limit rev) * (enc/rev)
-        * */
+        // First, rotate the  robot to be parallel to the face of the block
+        double reachedTime = 0;
 
-        robot.slide.setTargetPosition( ( int )slideLimit );
-        robot.slide.setPower( 0.5 );
-
-
+        if(!hasReached) {
+            robot.mecanumDrive(0, 1, 0);
+        }else{
+            telemetry.addData("Stopped time",reachedTime);
+            telemetry.addLine("Acceleration = distance travelled / Stopped Time ^2");
+        }
+        if(robot.drive.leftFront.getPower()==1){
+            robot.hardBrake();
+            reachedTime = runtime.time(TimeUnit.SECONDS);
+            hasReached = true;
+        }
     }
+
 
     /*
      * Code to run ONCE after the driver hits STOP
      */
     @Override
-    public void stop() {
-        robot.stop();
-        //  drive.stop();
+    public void stop() {        //  drive.stop();
     }
 
 }

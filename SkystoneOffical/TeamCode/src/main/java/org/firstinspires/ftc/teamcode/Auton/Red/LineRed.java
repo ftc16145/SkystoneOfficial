@@ -33,7 +33,7 @@ import com.qualcomm.robotcore.eventloop.opmode.Autonomous;
 import com.qualcomm.robotcore.eventloop.opmode.OpMode;
 import com.qualcomm.robotcore.util.ElapsedTime;
 
-import org.firstinspires.ftc.teamcode.TeleOp.TeleOpHardware;
+import org.firstinspires.ftc.teamcode.Hardware;
 
 /**
  * This file contains an example of an iterative (Non-Linear) "OpMode".
@@ -54,7 +54,7 @@ import org.firstinspires.ftc.teamcode.TeleOp.TeleOpHardware;
 public class LineRed extends OpMode
 {// Declare OpMode members.
     private ElapsedTime runtime = new ElapsedTime();
-    private TeleOpHardware robot = new TeleOpHardware();
+    private Hardware robot = new Hardware();
     boolean reached = false;
     //private DcMotor leftFront, leftBack, rightFront, rightBack, slide, claw, arm;
     //SLIDE MOTOR
@@ -76,7 +76,7 @@ public class LineRed extends OpMode
      */
     @Override
     public void init() {
-        robot.init( hardwareMap, telemetry,0,0,true, false );
+        robot.init( hardwareMap, telemetry,0,0,true, true );
         telemetry.addData("Status", "Initialized" );
 
 
@@ -134,7 +134,6 @@ public class LineRed extends OpMode
      */
     @Override
     public void stop() {
-        robot.stop();
         //  drive.stop();
     }
 
