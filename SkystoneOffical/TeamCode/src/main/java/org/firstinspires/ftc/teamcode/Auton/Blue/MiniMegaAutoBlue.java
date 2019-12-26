@@ -201,7 +201,7 @@ public class MiniMegaAutoBlue extends OpMode
      */
     @Override
     public void stop() {
-
+        robot.updateTracker();
     }
 
 }

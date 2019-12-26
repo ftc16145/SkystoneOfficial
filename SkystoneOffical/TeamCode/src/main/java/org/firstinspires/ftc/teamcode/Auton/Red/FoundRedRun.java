@@ -195,6 +195,7 @@ public class FoundRedRun extends OpMode
      */
     @Override
     public void stop() {
+        robot.updateTracker();
         //  drive.stop();
     }
 

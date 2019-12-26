@@ -52,7 +52,7 @@ import java.util.concurrent.TimeUnit;
  * Remove or comment out the @Disabled line to add this opmode to the Driver Station OpMode list
  */
 
-@Autonomous(name="Found Blue", group="Auto Blue")
+@Autonomous(name="Accel Test", group="Auto Blue")
 
 public class AccelTest extends OpMode
 {// Declare OpMode members.
@@ -141,6 +141,7 @@ public class AccelTest extends OpMode
             reachedTime = runtime.time(TimeUnit.SECONDS);
             hasReached = true;
         }
+        telemetry.update();
     }
 
 

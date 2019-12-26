@@ -136,7 +136,7 @@ public class LineBlue extends OpMode
      */
     @Override
     public void stop() {
-
+        robot.updateTracker();
         //  drive.stop();
     }
 

@@ -27,16 +27,22 @@
  * OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
 
-package org.firstinspires.ftc.teamcode.Auton.Red;
+package org.firstinspires.ftc.teamcode.Tests;
 
-import com.acmerobotics.roadrunner.trajectory.Trajectory;
+import android.support.annotation.NonNull;
+import android.support.annotation.Nullable;
+
 import com.qualcomm.robotcore.eventloop.opmode.Autonomous;
 import com.qualcomm.robotcore.eventloop.opmode.OpMode;
-import com.qualcomm.robotcore.hardware.CRServo;
 import com.qualcomm.robotcore.util.ElapsedTime;
 
 import org.firstinspires.ftc.teamcode.Hardware;
 
+import java.util.ArrayList;
+import java.util.Collection;
+import java.util.Iterator;
+import java.util.List;
+import java.util.ListIterator;
 import java.util.concurrent.TimeUnit;
 
 /**
@@ -53,16 +59,16 @@ import java.util.concurrent.TimeUnit;
  * Remove or comment out the @Disabled line to add this opmode to the Driver Station OpMode list
  */
 
-@Autonomous(name="1SFBlue", group="Auto Blue")
+@Autonomous(name="Spin Test", group="Auto Blue")
 
-public class MiniMegaAutoRed extends OpMode
+public class SpinTest extends OpMode
 {// Declare OpMode members.
     private ElapsedTime runtime = new ElapsedTime();
     private Hardware robot = new Hardware();
-    int stage = 1;
-    Trajectory[] currentTraj;
-    char currentBlock;
-    double timeOfNewStage;
+    boolean startRecord = false;
+    ArrayList<Double> times = new ArrayList<>();
+    double n = 0;
+    boolean hasReached;
     //private DcMotor leftFront, leftBack, rightFront, rightBack, slide, claw, arm;
     //SLIDE MOTOR
     // 1120 Ticks/rev
@@ -82,15 +88,11 @@ public class MiniMegaAutoRed extends OpMode
     /*
      * Code to run ONCE when the driver hits INIT
      */
-    private void nextStage(){
-        stage++;
-        timeOfNewStage = runtime.time(TimeUnit.SECONDS);
-    }
     @Override
     public void init() {
-        robot.init( hardwareMap, telemetry,-36,-63,true, true );
+        robot.init( hardwareMap, telemetry,0,0,true,false );
         telemetry.addData("Status", "Initialized" );
-
+        hasReached = false;
 
         // create a sound parameter that holds the desired player parameters.
 
@@ -117,7 +119,6 @@ public class MiniMegaAutoRed extends OpMode
     @Override
     public void init_loop() {
         robot.initLoop();
-
     }
 
     /*
@@ -126,71 +127,37 @@ public class MiniMegaAutoRed extends OpMode
     @Override
     public void start() {
         runtime.reset();
-        currentTraj = robot.oneSkystoneFoundAuton();
+
     }
     /*
      * Code to run REPEATEDLY after the driver hits PLAY but before they hit STOP
      */
     @Override
     public void loop() {
-        if(stage == 1){
-            if(robot.actionRequest){
-                if(!robot.claw.isBusy()){
-                    robot.levelArm();
-                    robot.actionRequest = false;
-                    nextStage();
+        // First, rotate the  robot to be parallel to the face of the block
+        double reachedTime = 0;
+        if( n != 5 ) {
+            robot.mecanumDrive(0,0,1);
+            if ( robot.drive.getRawExternalHeading() == 0 ) {
+                if (!startRecord) {
+                    startRecord = true;
+                } else {
+                    times.add( (double) runtime.time(TimeUnit.SECONDS) );
+                    n++;
                 }
-            }else{
-                robot.drive.followTrajectorySync(currentTraj[0]);
-            }
-        }else if(stage == 2){
-            robot.drive.followTrajectorySync(currentTraj[1]);
-            if(robot.actionRequest){
-                robot.actionRequest = false;
-                nextStage();
-            }
-        } else if (stage == 3) {
-            if(runtime.time(TimeUnit.SECONDS)>timeOfNewStage+2){
-                robot.found.setDirection(CRServo.Direction.REVERSE);
-                robot.found.setPower(1);
-            }else{
-                robot.found.setPower(0);
-                nextStage();
-            }
-        }else if(stage == 4){
-            if(robot.actionRequest) {
-                boolean foundDone = false, clawDone = false;
-                if(runtime.time(TimeUnit.SECONDS)>timeOfNewStage+2){
-                    robot.found.setDirection(CRServo.Direction.REVERSE);
-                    robot.found.setPower(1);
-                }else{
-                    robot.found.setPower(0);
-                    foundDone = true;
-                }
-                if(!robot.claw.isBusy()){
-                    clawDone = true;
-                }
-                if(foundDone && clawDone){
-                    robot.actionRequest = false;
-                    robot.setArmPosition(0,0);
-                    robot.levelArm();
-                    nextStage();
-                }
-            }else{
-                robot.drive.followTrajectorySync(currentTraj[2]);
-            }
-        }else if(stage == 5){
-            if(robot.actionRequest){
-                robot.drive.setMotorPowers(0,0,0,0);
-                nextStage();
-            }else {
-                robot.drive.followTrajectorySync(currentTraj[3]);
             }
         }else{
-            robot.drive.setMotorPowers(0,0,0,0);
-        }
-        robot.autoScore();
+            robot.mecanumDrive(0,0,0);
+            double avgTRot = 0;
+            for(double t : times){
+                avgTRot += t;
+            }
+            avgTRot /= times.size();
+            double avgDegSec = 360/avgTRot;
 
+            telemetry.addData("Average Degrees/second", avgTRot );
+        }
+        telemetry.update();
     }
 
 
@@ -198,8 +165,7 @@ public class MiniMegaAutoRed extends OpMode
      * Code to run ONCE after the driver hits STOP
      */
     @Override
-    public void stop() {
-        robot.updateTracker();
+    public void stop() {        //  drive.stop();
     }
 
 }

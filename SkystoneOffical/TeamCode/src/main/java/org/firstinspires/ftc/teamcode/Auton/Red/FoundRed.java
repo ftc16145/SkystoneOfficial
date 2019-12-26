@@ -30,6 +30,7 @@
 package org.firstinspires.ftc.teamcode.Auton.Red;
 
 import com.qualcomm.robotcore.eventloop.opmode.Autonomous;
+import com.qualcomm.robotcore.eventloop.opmode.Disabled;
 import com.qualcomm.robotcore.eventloop.opmode.OpMode;
 import com.qualcomm.robotcore.util.ElapsedTime;
 
@@ -52,7 +53,7 @@ import java.util.concurrent.TimeUnit;
  */
 
 @Autonomous(name="Found Red", group="Auto Blue")
-
+@Disabled
 public class FoundRed extends OpMode
 {// Declare OpMode members.
     private ElapsedTime runtime = new ElapsedTime();
@@ -81,7 +82,7 @@ public class FoundRed extends OpMode
      */
     @Override
     public void init() {
-        robot.init( hardwareMap, telemetry,0,0,true,true );
+        robot.init( hardwareMap, telemetry,39,-63,true,true );
         telemetry.addData("Status", "Initialized" );
 
 
@@ -171,7 +172,7 @@ public class FoundRed extends OpMode
      */
     @Override
     public void stop() {
-        //  drive.stop();
+        robot.updateTracker();
     }
 
 }

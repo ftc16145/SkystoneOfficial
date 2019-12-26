@@ -141,7 +141,7 @@ public class MegaAutoRed extends OpMode
      */
     @Override
     public void stop() {
-
+        robot.updateTracker();
     }
 
 }

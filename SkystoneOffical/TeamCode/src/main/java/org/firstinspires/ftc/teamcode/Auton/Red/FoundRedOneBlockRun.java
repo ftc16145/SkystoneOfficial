@@ -94,7 +94,7 @@ public class FoundRedOneBlockRun extends OpMode
 
     @Override
     public void init() {
-        robot.init( hardwareMap, telemetry,39,63,true, true );
+        robot.init( hardwareMap, telemetry,39,-63,true, true );
         telemetry.addData("Status", "Initialized" );
         grabFound = robot.drive.trajectoryBuilder()
                 .splineTo(new Pose2d(50.75,24,90))
@@ -256,7 +256,7 @@ public class FoundRedOneBlockRun extends OpMode
      */
     @Override
     public void stop() {
-
+        robot.updateTracker();
         //  drive.stop();
     }
 

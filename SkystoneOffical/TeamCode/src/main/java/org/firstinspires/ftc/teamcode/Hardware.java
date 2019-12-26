@@ -22,7 +22,9 @@ import org.firstinspires.ftc.robotcore.external.navigation.VuforiaLocalizer;
 import org.firstinspires.ftc.robotcore.external.navigation.VuforiaTrackable;
 import org.firstinspires.ftc.robotcore.external.navigation.VuforiaTrackableDefaultListener;
 import org.firstinspires.ftc.robotcore.external.navigation.VuforiaTrackables;
+import org.firstinspires.ftc.teamcode.TeleOp.PositionTransfer;
 import org.firstinspires.ftc.teamcode.roadrunner.drive.mecanum.SampleMecanumDriveREVOptimized;
+import org.firstinspires.ftc.teamcode.utils.VuforiaSkyStoneNavigation;
 
 import java.util.ArrayList;
 import java.util.List;
@@ -164,13 +166,19 @@ public class Hardware {
     }
 
     public void init( HardwareMap hardware, Telemetry atel, double initX, double initY, boolean onRed, boolean auto ){
+        init( hardware, atel, initX, initY, onRed ? Math.toRadians(90) : Math.toRadians(-90), onRed, auto );
+    }
+    public void init( HardwareMap hardware, Telemetry atel, double initX, double initY, double initAng, boolean onRed, boolean auto ){
         hwMap = hardware;
         tel = atel;
         this.onRed = onRed;
         this.auto = auto;
 
         drive = new SampleMecanumDriveREVOptimized(hwMap);
-        drive.setPoseEstimate( new Pose2d(initX, initY, onRed ? Math.toRadians(90) : Math.toRadians(-90) ) );
+        drive.setPoseEstimate( new Pose2d(initX, initY, initAng ) );
+        PositionTransfer.robotX = initX;
+        PositionTransfer.robotY = initY;
+        PositionTransfer.robotRot = initAng;
         claw = hwMap.get(DcMotorEx.class, "claw");
         slide = hwMap.get(DcMotorEx.class, "slide");
         arm = hwMap.get(DcMotorEx.class, "arm");
@@ -191,16 +199,16 @@ public class Hardware {
 
         color = hwMap.get(ColorSensor.class, "color");
         // Random Sound/Vision Things
-            soundIndex = 0;
-            soundID = -1;
-            myApp = hwMap.appContext;
-            params = new SoundPlayer.PlaySoundParams();
-            params.loopControl = 0;
-            params.waitForNonLoopingSoundsToFinish = true;
-            cameraMonitorViewId = hwMap.appContext.getResources().getIdentifier("cameraMonitorViewId", "id", hwMap.appContext.getPackageName());
-            if(auto) {
-                visionInit();
-            }
+        soundIndex = 0;
+        soundID = -1;
+        myApp = hwMap.appContext;
+        params = new SoundPlayer.PlaySoundParams();
+        params.loopControl = 0;
+        params.waitForNonLoopingSoundsToFinish = true;
+        cameraMonitorViewId = hwMap.appContext.getResources().getIdentifier("cameraMonitorViewId", "id", hwMap.appContext.getPackageName());
+        if(auto) {
+            visionInit();
+        }
         playSound("ss_light_saber");
     }
     public void initLoop(){
@@ -240,7 +248,7 @@ public class Hardware {
     }
 
     public void mecanumDriveFieldOrient(double x, double y, double rot) {
-        double adjustAngle = -drive.getRawExternalHeading();
+        double adjustAngle = -(drive.getExternalHeading()+(onRed ? -90 : 90));
         double newX = Math.cos(adjustAngle) * x - Math.sin(adjustAngle) * y;
         double newY = Math.sin(adjustAngle) * x + Math.cos(adjustAngle) * y;
         mecanumDrive(newX, newY, rot);
@@ -707,6 +715,12 @@ public class Hardware {
             // Provide feedback as to where the robot is located (if we know).
 
 
+        }
+        public void updateTracker(){
+            PositionTransfer.robotX = drive.getPoseEstimate().getX();
+            PositionTransfer.robotY = drive.getPoseEstimate().getY();
+            PositionTransfer.robotRot = drive.getExternalHeading();
+            PositionTransfer.onRed = onRed;
         }
         //tel.update();
 

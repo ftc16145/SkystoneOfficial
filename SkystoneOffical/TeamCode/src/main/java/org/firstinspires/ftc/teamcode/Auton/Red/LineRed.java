@@ -134,7 +134,7 @@ public class LineRed extends OpMode
      */
     @Override
     public void stop() {
-        //  drive.stop();
+        robot.updateTracker();
     }
 
 }

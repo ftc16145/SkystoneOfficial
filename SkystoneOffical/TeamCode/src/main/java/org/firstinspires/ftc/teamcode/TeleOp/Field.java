@@ -34,6 +34,7 @@ import com.qualcomm.robotcore.eventloop.opmode.TeleOp;
 import com.qualcomm.robotcore.util.ElapsedTime;
 
 import org.firstinspires.ftc.teamcode.Hardware;
+import org.firstinspires.ftc.teamcode.utils.VuforiaSkyStoneNavigation;
 
 /**
  * This file contains an example of an iterative (Non-Linear) "OpMode".
@@ -78,7 +79,7 @@ public class Field extends OpMode
      */
     @Override
     public void init() {
-        robot.init( hardwareMap, telemetry,0,0, true, false );
+        robot.init( hardwareMap, telemetry, PositionTransfer.robotX,PositionTransfer.robotY,PositionTransfer.robotRot, PositionTransfer.onRed , false );
         telemetry.addData("Status", "Initialized");
 
 
