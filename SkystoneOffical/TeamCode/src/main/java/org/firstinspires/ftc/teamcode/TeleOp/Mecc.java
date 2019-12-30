@@ -49,9 +49,9 @@ import org.firstinspires.ftc.teamcode.Hardware;
  * Remove or comment out the @Disabled line to add this opmode to the Driver Station OpMode list
  */
 
-@TeleOp(name="No Auto Field Op Assist", group="Mecanum")
+@TeleOp(name="TeleOp DEFAULT", group="Mecanum")
 
-public class FieldOperatorAssistNoAuto extends OpMode
+public class Mecc extends OpMode
 {
     // Declare OpMode members.
     private ElapsedTime runtime = new ElapsedTime();
@@ -68,16 +68,8 @@ public class FieldOperatorAssistNoAuto extends OpMode
     //private CRServo found;
     double num = 0;
     boolean clawLock = false;
-    boolean ypressed = false;
-    boolean apressed = false;
-    boolean lbump = false;
-    boolean ltrig = false;
-    boolean gy = false;
-    boolean ga = false;
-    boolean gb = false;
-    boolean xtap = false;
-    boolean scoreMode = false;
-    int armx, army;
+
+
 
     //public Drivetrain drive;
 
@@ -86,7 +78,7 @@ public class FieldOperatorAssistNoAuto extends OpMode
      */
     @Override
     public void init() {
-        robot.init( hardwareMap, telemetry, 0,0,true, false );
+        robot.init( hardwareMap, telemetry,0,0, true, false );
         telemetry.addData("Status", "Initialized");
 
 
@@ -129,103 +121,28 @@ public class FieldOperatorAssistNoAuto extends OpMode
     /*
      * Code to run REPEATEDLY after the driver hits PLAY but before they hit STOP
      */
-    private void checkArmRestraint(){
-        if(armx > 2){
-            armx = 2;
-        }else if(armx < 1){
-            armx = 1;
-        }
-        if(army > 3){
-            army = 3;
-        }else if(army < 1){
-            army = 1;
-        }
-        if(armx == 2){
-            if(army > 2){
-                army = 2;
-            }
-        }
-
-    }
     @Override
     public void loop() {
-        if( gamepad1.y ){
-            robot.mecanumDrive(0,1,0);
-        }else if( gamepad1.a ){
-            robot.hardBrake();
-        }else {
-            robot.mecanumDriveFieldOrient( gamepad1.left_stick_x, gamepad1.left_stick_y, gamepad1.right_stick_x );
-        }
-
-        if( gamepad2.x && !xtap ){
-            xtap = true;
-            // ACTION
-            scoreMode = !scoreMode;
-        }
-        if( !gamepad2.x && xtap ){
-            xtap = false;
-        }
-
-
-
-
-
-        if( scoreMode ){
-            if( gamepad2.left_bumper && !lbump ){
-                lbump = true;
-                // ACTION
-                army++;
-            }else if( gamepad2.left_trigger >= 0.5 && !ltrig ){
-                ltrig = true;
-                // ACTION
-                army--;
-            }
-            if( !gamepad2.left_bumper && lbump ){
-                lbump = false;
-            }
-            if( !( gamepad2.left_trigger >= 0.5 ) && ltrig ){
-                ltrig = false;
-            }
-
-            if( gamepad2.y && !gy ){
-                gy = true;
-                // ACTION
-                army++;
-            }else if( gamepad2.a && !ga ){
-                ga = true;
-                // ACTION
-                army--;
-            }
-            if( !gamepad2.y && gy ){
-                gy = false;
-            }
-            if( !gamepad2.a && ga ){
-                ga = false;
-            }
-
-            if( gamepad2.b && !gb ){
-                gb = true;
-                robot.levelArm();
-            }
-            if( !gamepad2.b && gb ){
-                gb = false;
-            }
+        robot.mecanumDrive( gamepad1.left_stick_x, gamepad1.left_stick_y, gamepad1.right_stick_x );
+        robot.foundationControls( gamepad2.dpad_down, gamepad2.dpad_up );
+        double slider = 0;
+        if( gamepad2.y ){
+            slider=0.5;
+        }else if( gamepad2.a ){
+            slider=-0.5;
         }else{
-            //double slider = 0;
-           // if( gamepad2.y ){
-            //    slider=0.5;
-            //}else if( gamepad2.a ){
-            //    slider=-0.5;
-            //}else{
-            //    slider=0;
-            //}
-            robot.armMechanismControls( gamepad2.right_bumper, gamepad2.right_trigger >= 0.5, gamepad2.left_bumper, gamepad2.left_trigger >= 0.5, gamepad2.y ? 0.5 : gamepad1.a ? -0.5 : 0 );
-            robot.foundationControls( gamepad2.dpad_down, gamepad2.dpad_up );
+            slider=0;
         }
-        telemetry.addData("RGB",robot.color.red() + " " + robot.color.green() + " " + robot.color.blue() );
-        telemetry.addData("Gyro",robot.drive.getRawExternalHeading() );
-        telemetry.addData("ScoreMode X/Y",scoreMode + " " + armx + " " + army );
-        telemetry.addData("Slide/Claw/Arm Enc",robot.slide.getCurrentPosition() + " " + robot.claw.getCurrentPosition() + " " + robot.arm.getCurrentPosition() );
+        robot.armMechanismControls( gamepad2.right_bumper, gamepad2.right_trigger >= 0.5, gamepad2.left_bumper, gamepad2.left_trigger >= 0.5, slider );
+        //robot.visionTeleop();
+        //if( gamepad1.a ){
+        //    robot.setSearchMode( TeleOpHardware.searchMode.block );
+        //}else if( gamepad1.b ){
+        //    robot.setSearchMode( TeleOpHardware.searchMode.location );
+        //}
+        telemetry.addData("RGB",robot.color.red() + " " + robot.color.green() + " " + robot.color.blue());
+        telemetry.addData("Gyro",robot.drive.getRawExternalHeading());
+        telemetry.addData("Slide Enc",robot.slide.getCurrentPosition());
         telemetry.addData("Status", "Run Time: " + runtime.toString() );
 
         telemetry.update();

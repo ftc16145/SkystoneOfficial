@@ -38,17 +38,49 @@ import static org.firstinspires.ftc.robotcore.external.navigation.AxesOrder.XYZ;
 import static org.firstinspires.ftc.robotcore.external.navigation.AxesOrder.YZX;
 import static org.firstinspires.ftc.robotcore.external.navigation.AxesReference.EXTRINSIC;
 import static org.firstinspires.ftc.robotcore.external.navigation.VuforiaLocalizer.CameraDirection.BACK;
+/*
+* ⠀⠀⠀⠀⠀⠀⣤⣿⣿⠶⠀⠀⣀⣀
 
+⠀⠀⠀⠀⠀⠀⣀⣀⣤⣤⣶⣿⣿⣿⣿⣿⣿
+
+⠀⠀⣀⣶⣤⣤⠿⠶⠿⠿⠿⣿⣿⣿⣉⣿⣿
+
+⠿⣉⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠛⣤⣿⣿⣿⣀
+
+⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠉⣿⣿⣿⣿⣶⣤
+
+⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⣤⣿⣿⣿⣿⠿⣛⣿
+
+⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⣿⣿⣿⠛⣿⣿⣿⣿
+
+⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⣶⣿⣿⠿⠀⣿⣿⣿⠛
+
+⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⣿⣿⣿⠀⠀⣿⣿⣿
+
+⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠿⠿⣿⠀⠀⣿⣶
+
+⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⣿⠛⠀⠀⣿⣿⣶
+
+⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠉⣿⣿⠤
+
+⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠿⣿
+
+⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⣿
+
+⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⣿⣀
+
+⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⣶⣿
+* */
 public class Hardware {
     // Constants
         // Height of pivot above ground
-            double hP = 0;
+            double hP = 12;
         // Min size of arm
-            double dP = 0;
+            double dP = 7;
         // Radius of back part of arm
-            double rB = 0;
+            double rB = 10;
         // Radius of spool wheel
-            double rS = 0;
+            double rS = 7/16;
         // Radius of gear
             double rG = 0;
 
@@ -61,6 +93,7 @@ public class Hardware {
         public DcMotorEx slide = null;
         public DcMotorEx claw = null;
         public DcMotorEx arm = null;
+        public DcMotorEx autoGrab = null;
         double prevXPower, prevYPower;
         ArrayList<DcMotorEx> scoring = new ArrayList<DcMotorEx>();
 
@@ -121,7 +154,7 @@ public class Hardware {
             private boolean targetVisible = false;
             private float phoneXRotate = 0;
             private float phoneYRotate = 0;
-            private float phoneZRotate = 0;
+            private float phoneZRotate = -90;
             int cameraMonitorViewId;
             VuforiaTrackables targetsSkyStone;
             List<VuforiaTrackable> allTrackables;
@@ -130,7 +163,6 @@ public class Hardware {
         private char option;
         double positionModifier;
         Pose2d estCurrent;
-        private Trajectory optionA,optionB,optionC, selectedOption;
         public boolean actionRequest;
 
 
@@ -182,14 +214,15 @@ public class Hardware {
         claw = hwMap.get(DcMotorEx.class, "claw");
         slide = hwMap.get(DcMotorEx.class, "slide");
         arm = hwMap.get(DcMotorEx.class, "arm");
-
+        autoGrab = hwMap.get(DcMotorEx.class,"grab");
         scoring.add(claw);
         scoring.add(slide);
         scoring.add(arm);
-
+        scoring.add(autoGrab);
         for( DcMotorEx m : scoring ){
             m.setZeroPowerBehavior(DcMotor.ZeroPowerBehavior.BRAKE);
             m.setMode(DcMotor.RunMode.STOP_AND_RESET_ENCODER);
+            m.setTargetPosition(0);
             m.setMode(DcMotor.RunMode.RUN_TO_POSITION);
             m.setPositionPIDFCoefficients(1/288);
             m.setTargetPositionTolerance(5);
@@ -231,8 +264,10 @@ public class Hardware {
     }
     public void mecanumDrive(double x, double y, double rot) {
         double nX, nY;
-        nX = (Math.abs(x - prevXPower) > 0.1) ? prevXPower + Math.signum(x - prevXPower) * 0.1 : x;
-        nY = (Math.abs(y - prevYPower) > 0.1) ? prevYPower + Math.signum(y - prevYPower) * 0.1 : y;
+        //nX = (Math.abs(x - prevXPower) > 0.1) ? prevXPower + Math.signum(x - prevXPower) * 0.1 : x;
+        //nY = (Math.abs(y - prevYPower) > 0.1) ? prevYPower + Math.signum(y - prevYPower) * 0.1 : y;
+        nX=x;
+        nY=y;
         double r = Math.hypot(-nX, nY);
         double robotAngle = Math.atan2(nY, -nX) - Math.PI / 4;
         double rightX = rot;
@@ -243,12 +278,12 @@ public class Hardware {
         drive.setMotorPowers(v1,v2,v4,v3);
         // NOW: leftFront, leftBack, rightFront, rightBack
         // NEED: leftFront leftRear rightRear rightFront
-        prevXPower = nX;
-        prevYPower = nY;
+        //prevXPower = nX;
+        //prevYPower = nY;
     }
 
     public void mecanumDriveFieldOrient(double x, double y, double rot) {
-        double adjustAngle = -(drive.getExternalHeading()+(onRed ? -90 : 90));
+        double adjustAngle = -(drive.getExternalHeading()+(onRed ? 90 : -90));
         double newX = Math.cos(adjustAngle) * x - Math.sin(adjustAngle) * y;
         double newY = Math.sin(adjustAngle) * x + Math.cos(adjustAngle) * y;
         mecanumDrive(newX, newY, rot);
@@ -287,35 +322,36 @@ public class Hardware {
     }
 
 
-    // NOT DONE
+    // NOT DONE, NEEDS VALUES, MAX
     public void setArmPosition( double x, double y ){
         double angle, rExpand;
         if( y == 0 && x == 0){
-            angle = Math.atan( ( 5-hP ) / 13 );
-            rExpand = (13 / Math.cos( angle ))-dP;
+            angle = Math.atan( ( 5-hP ) / 19 );
+            rExpand = (19 / Math.cos( angle ))-dP;
         }else{
             angle = Math.atan( ( 5*y + 2.25 - hP ) / ( 14.8 + 4*x ) );
             rExpand = ((14.8 + 4*x) / Math.cos( angle )) - dP;
         }
         double armWind = ((rB*Math.sin(-angle))/(2*Math.PI*rS))*288;
         double armExt = rExpand / (2*rG*Math.PI) * 288;
-        //if( (armWind > max || armWind < min) && (armExt > max || armExt < min)){
-            // OUT OF BOUNDS
-        //}else {
+        // Fix ArmWInd
             slide.setTargetPosition((int) armExt);
             slide.setPower(0.8);
             arm.setTargetPosition((int) armWind);
             arm.setPower(0.8);
-        //}
+
     }
     public void levelArm(){
         arm.setTargetPosition(0);
         arm.setPower(1);
+        if(slide.getCurrentPosition()<288){
+            slide.setTargetPosition(288);
+            slide.setPower(0.5);
+        }
     }
-    // NOT DONE
     public void operateClaw(boolean open){
-        //claw.setTargetPosition(open ? : );
-        //claw.setPower(0.8);
+        claw.setTargetPosition(open ? 240 : 72);
+        claw.setPower(0.8);
     }
     public void operateFoundation(boolean up){
         found.setDirection( up ? CRServo.Direction.FORWARD : CRServo.Direction.REVERSE );

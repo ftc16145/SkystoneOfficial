@@ -68,8 +68,6 @@ public class FieldOperatorAssist extends OpMode
     //private CRServo found;
     double num = 0;
     boolean clawLock = false;
-    boolean ypressed = false;
-    boolean apressed = false;
     boolean lbump = false;
     boolean ltrig = false;
     boolean gy = false;

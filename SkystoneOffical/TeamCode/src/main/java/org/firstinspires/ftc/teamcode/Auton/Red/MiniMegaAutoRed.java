@@ -53,7 +53,7 @@ import java.util.concurrent.TimeUnit;
  * Remove or comment out the @Disabled line to add this opmode to the Driver Station OpMode list
  */
 
-@Autonomous(name="1SFBlue", group="Auto Blue")
+@Autonomous(name="1SFRed", group="Auto Blue")
 
 public class MiniMegaAutoRed extends OpMode
 {// Declare OpMode members.
