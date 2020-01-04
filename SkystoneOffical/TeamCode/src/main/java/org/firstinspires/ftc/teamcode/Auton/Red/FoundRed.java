@@ -53,7 +53,7 @@ import java.util.concurrent.TimeUnit;
  */
 
 @Autonomous(name="Found Red", group="Auto Blue")
-@Disabled
+
 public class FoundRed extends OpMode
 {// Declare OpMode members.
     private ElapsedTime runtime = new ElapsedTime();
@@ -172,7 +172,7 @@ public class FoundRed extends OpMode
      */
     @Override
     public void stop() {
-        robot.updateTracker();
+
     }
 
 }

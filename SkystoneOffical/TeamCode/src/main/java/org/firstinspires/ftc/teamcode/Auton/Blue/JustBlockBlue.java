@@ -27,16 +27,20 @@
  * OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
 
-package org.firstinspires.ftc.teamcode.Tests;
+package org.firstinspires.ftc.teamcode.Auton.Blue;
 
+import com.acmerobotics.roadrunner.geometry.Vector2d;
+import com.acmerobotics.roadrunner.trajectory.Trajectory;
 import com.qualcomm.robotcore.eventloop.opmode.Autonomous;
 import com.qualcomm.robotcore.eventloop.opmode.OpMode;
 import com.qualcomm.robotcore.util.ElapsedTime;
 
-
+import org.firstinspires.ftc.robotcore.external.navigation.DistanceUnit;
 import org.firstinspires.ftc.teamcode.Hardware;
 
 import java.util.concurrent.TimeUnit;
+
+import kotlin.Unit;
 
 /**
  * This file contains an example of an iterative (Non-Linear) "OpMode".
@@ -52,16 +56,18 @@ import java.util.concurrent.TimeUnit;
  * Remove or comment out the @Disabled line to add this opmode to the Driver Station OpMode list
  */
 
-@Autonomous(name="Accel Test", group="Auto Blue")
+@Autonomous(name="1 Block B", group="Auto Blue")
 
-public class AccelTest extends OpMode
+public class JustBlockBlue extends OpMode
 {// Declare OpMode members.
     private ElapsedTime runtime = new ElapsedTime();
     private Hardware robot = new Hardware();
-    boolean stage1 = false;
-    boolean stage2= false;
-    boolean hitColor = false;
-    boolean hasReached;
+    int stage = 1;
+    Trajectory grabFound, moveBack, strafeOut, toBlockA, checkNext, dropFinal, finish;
+    char currentBlock;
+    double timeOfNewStage;
+    Trajectory stage1, toFound;
+    boolean foundCube = false;
     //private DcMotor leftFront, leftBack, rightFront, rightBack, slide, claw, arm;
     //SLIDE MOTOR
     // 1120 Ticks/rev
@@ -81,11 +87,14 @@ public class AccelTest extends OpMode
     /*
      * Code to run ONCE when the driver hits INIT
      */
+    private void nextStage(){
+        stage++;
+        timeOfNewStage = runtime.time(TimeUnit.SECONDS);
+    }
+
     @Override
     public void init() {
-        robot.init( hardwareMap, telemetry,0,0,true,false );
-        telemetry.addData("Status", "Initialized" );
-        hasReached = false;
+        robot.init( hardwareMap, telemetry,39,-63,180,true, true );
 
         // create a sound parameter that holds the desired player parameters.
 
@@ -112,6 +121,7 @@ public class AccelTest extends OpMode
     @Override
     public void init_loop() {
         robot.initLoop();
+
     }
 
     /*
@@ -119,6 +129,7 @@ public class AccelTest extends OpMode
      */
     @Override
     public void start() {
+        //robot.levelArm();
         runtime.reset();
 
     }
@@ -128,20 +139,69 @@ public class AccelTest extends OpMode
     @Override
     public void loop() {
         // First, rotate the  robot to be parallel to the face of the block
-        double reachedTime = 0;
+        if( stage == 1 ){
+            if(robot.distance.getDistance(DistanceUnit.CM)<= 5){
+                nextStage();
+            }else{
+                robot.mecanumDrive(0.5,0,0);
+            }
+        }else if( stage == 2 ){
+            if( robot.color.red() < 1000 && robot.color.green() < 1000 ){
+                nextStage();
+            }else{
+                robot.mecanumDrive(0,-0.3,0);
+            }
+        } else if( stage == 3 ) {
+           if(runtime.time(TimeUnit.SECONDS) > timeOfNewStage + 1){
+               nextStage();
+           }else{
+               robot.mecanumDrive(0.5,0.1,0);
+           }
+        }else if (stage == 4){
+            if(runtime.time(TimeUnit.SECONDS) > timeOfNewStage + 0.5){
+                nextStage();
+            }else{
+                robot.mecanumDrive(0,0,0);
+                robot.autoGrab.setTargetPosition(144);
+                robot.autoGrab.setPower(1);
+            }
+        }else if (stage == 5){
+            if(runtime.time(TimeUnit.SECONDS) > timeOfNewStage + 1){
+                nextStage();
+            }else{
+                robot.mecanumDrive(-0.5,0,0);
+                robot.autoGrab.setPower(0);
+            }
+        } else if (stage == 6) {
+            if(runtime.time(TimeUnit.SECONDS) > timeOfNewStage + 1){
+                nextStage();
+            }else{
+                robot.mecanumDrive(-0.5,0,0);
+                robot.autoGrab.setPower(0);
+            }
+        }else if(stage == 7){
+            if(runtime.time(TimeUnit.SECONDS) > timeOfNewStage + 3){
+                nextStage();
+            }else{
+                robot.mecanumDrive(0,0.75,0);
+            }
+        }else if(stage == 8){
+            if(runtime.time(TimeUnit.SECONDS) > timeOfNewStage + 0.5){
+                nextStage();
+            }else{
+                robot.autoGrab.setTargetPosition(0);
+                robot.autoGrab.setPower(1);
+            }
+        }else if(stage == 9){
+            if(runtime.time(TimeUnit.SECONDS) > timeOfNewStage + 1){
+                robot.mecanumDrive(0,0,0);
+            }else{
+                robot.mecanumDrive(0,-0.5,0);
+                robot.autoGrab.setPower(0);
+            }
+        }
 
-        if(!hasReached) {
-            robot.mecanumDrive(0, 1, 0);
-        }else{
-            telemetry.addData("Stopped time",reachedTime);
-            telemetry.addLine("Acceleration = distance travelled / Stopped Time ^2");
-        }
-        if(robot.drive.leftFront.getPower()==1){
-            robot.hardBrake();
-            reachedTime = runtime.time(TimeUnit.SECONDS);
-            hasReached = true;
-        }
-        telemetry.update();
+
     }
 
 
@@ -149,7 +209,9 @@ public class AccelTest extends OpMode
      * Code to run ONCE after the driver hits STOP
      */
     @Override
-    public void stop() {        //  drive.stop();
+    public void stop() {
+
+        //  drive.stop();
     }
 
 }

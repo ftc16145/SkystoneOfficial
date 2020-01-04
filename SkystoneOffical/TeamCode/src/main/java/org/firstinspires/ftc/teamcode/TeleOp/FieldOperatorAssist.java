@@ -31,6 +31,8 @@ package org.firstinspires.ftc.teamcode.TeleOp;
 
 import com.qualcomm.robotcore.eventloop.opmode.OpMode;
 import com.qualcomm.robotcore.eventloop.opmode.TeleOp;
+import com.qualcomm.robotcore.hardware.DcMotor;
+import com.qualcomm.robotcore.hardware.DcMotorEx;
 import com.qualcomm.robotcore.util.ElapsedTime;
 
 import org.firstinspires.ftc.teamcode.Hardware;
@@ -147,6 +149,15 @@ public class FieldOperatorAssist extends OpMode
     }
     @Override
     public void loop() {
+        if( scoreMode ){
+            for(DcMotorEx m : robot.scoring){
+                m.setMode(DcMotorEx.RunMode.RUN_TO_POSITION);
+            }
+        }else{
+            for(DcMotorEx m : robot.scoring){
+                m.setMode(DcMotorEx.RunMode.RUN_USING_ENCODER);
+            }
+        }
         if( gamepad1.y ){
             robot.mecanumDrive(0,1,0);
         }else if( gamepad1.a ){
@@ -159,9 +170,7 @@ public class FieldOperatorAssist extends OpMode
             xtap = true;
             // ACTION
             scoreMode = !scoreMode;
-            if( scoreMode ){
-                robot.levelArm();
-            }
+
         }
         if( !gamepad2.x && xtap ){
             xtap = false;
@@ -224,7 +233,7 @@ public class FieldOperatorAssist extends OpMode
             robot.foundationControls( gamepad2.dpad_down, gamepad2.dpad_up );
         }
         telemetry.addData("RGB",robot.color.red() + " " + robot.color.green() + " " + robot.color.blue() );
-        telemetry.addData("Gyro",robot.drive.getRawExternalHeading() );
+        telemetry.addData("Gyro",robot.yaw() );
         telemetry.addData("ScoreMode X/Y",scoreMode + " " + armx + " " + army );
         telemetry.addData("Slide/Claw/Arm Enc",robot.slide.getCurrentPosition() + " " + robot.claw.getCurrentPosition() + " " + robot.arm.getCurrentPosition() );
         telemetry.addData("Status", "Run Time: " + runtime.toString() );

@@ -37,11 +37,14 @@ import com.qualcomm.robotcore.eventloop.opmode.OpMode;
 import com.qualcomm.robotcore.hardware.CRServo;
 import com.qualcomm.robotcore.util.ElapsedTime;
 
+import org.firstinspires.ftc.robotcore.external.navigation.DistanceUnit;
 import org.firstinspires.ftc.teamcode.Hardware;
 
 import java.util.concurrent.TimeUnit;
 
 import kotlin.Unit;
+
+import static java.lang.Double.NaN;
 
 /**
  * This file contains an example of an iterative (Non-Linear) "OpMode".
@@ -57,7 +60,7 @@ import kotlin.Unit;
  * Remove or comment out the @Disabled line to add this opmode to the Driver Station OpMode list
  */
 
-@Autonomous(name="1 Block", group="Auto Blue")
+@Autonomous(name="1 Block R", group="Auto Blue")
 
 public class JustBlockRed extends OpMode
 {// Declare OpMode members.
@@ -67,7 +70,8 @@ public class JustBlockRed extends OpMode
     Trajectory grabFound, moveBack, strafeOut, toBlockA, checkNext, dropFinal, finish;
     char currentBlock;
     double timeOfNewStage;
-
+    Trajectory stage1, toFound;
+    boolean foundCube = false;
     //private DcMotor leftFront, leftBack, rightFront, rightBack, slide, claw, arm;
     //SLIDE MOTOR
     // 1120 Ticks/rev
@@ -90,14 +94,12 @@ public class JustBlockRed extends OpMode
     private void nextStage(){
         stage++;
         timeOfNewStage = runtime.time(TimeUnit.SECONDS);
+        robot.setMotorPowers(0,0,0,0);
     }
 
     @Override
     public void init() {
-        robot.init( hardwareMap, telemetry,39,-63,true, true );
-        telemetry.addData("Status", "Initialized" );
-
-
+        robot.init( hardwareMap, telemetry,39,-63,180,true, true );
         // create a sound parameter that holds the desired player parameters.
 
         // Initialize the hardware variables. Note that the strings used here as parameters
@@ -131,6 +133,7 @@ public class JustBlockRed extends OpMode
      */
     @Override
     public void start() {
+        //robot.levelArm();
         runtime.reset();
 
     }
@@ -140,9 +143,66 @@ public class JustBlockRed extends OpMode
     @Override
     public void loop() {
         // First, rotate the  robot to be parallel to the face of the block
+        if( stage == 1 ){
+            if(runtime.time(TimeUnit.SECONDS) > 3){
+                nextStage();
+            }else{
+                robot.mecanumDrive(0.6,0,0);
+            }
+        }else if( stage == 2 ){
+            if( robot.color.red()+robot.color.green()+robot.color.blue() < 75 ){
+                nextStage();
+            }else{
+                robot.mecanumDrive(0,-0.3,0);
+            }
+        } else if( stage == 3 ) {
+            if(runtime.time(TimeUnit.SECONDS) > timeOfNewStage + 2){
+                nextStage();
+            }else{
+                robot.mecanumDrive(0.5,0,0);
+            }
+        }else if (stage == 4){
+            if(runtime.time(TimeUnit.SECONDS) > timeOfNewStage + 0.5){
+                nextStage();
+            }else{
+                robot.mecanumDrive(0,0,0);
+                robot.autoGrab.setTargetPosition(-175);
+                robot.autoGrab.setPower(1);
+            }
+        }else if (stage == 5){
+            if(runtime.time(TimeUnit.SECONDS) > timeOfNewStage + 1){
+                nextStage();
+            }else{
+                robot.mecanumDrive(-0.7,0,0);
 
-        robot.autoScore();
+            }
+        }else if(stage == 6){
+            if(runtime.time(TimeUnit.SECONDS) > timeOfNewStage + 3){
+                nextStage();
+            }else{
+                robot.mecanumDrive(0,0.75,0);
+            }
+        }else if(stage == 7){
+            if(runtime.time(TimeUnit.SECONDS) > timeOfNewStage + 0.5){
+                nextStage();
+            }else{
+                robot.autoGrab.setTargetPosition(0);
+                robot.autoGrab.setPower(1);
+            }
+        }else if(stage == 8){
+            if(runtime.time(TimeUnit.SECONDS) > timeOfNewStage + 2.5){
+                nextStage();
 
+            }else{
+                robot.mecanumDrive(0,-0.6,0);
+                robot.autoGrab.setPower(0);
+            }
+        }
+
+        telemetry.addData("Distance",robot.distance.getDistance(DistanceUnit.CM));
+        telemetry.addData("Runtime",runtime.time(TimeUnit.SECONDS));
+        telemetry.addData("Stage",stage);
+        telemetry.update();
     }
 
 
@@ -151,7 +211,7 @@ public class JustBlockRed extends OpMode
      */
     @Override
     public void stop() {
-        robot.updateTracker();
+
         //  drive.stop();
     }
 

@@ -141,7 +141,7 @@ public class Mecc extends OpMode
         //    robot.setSearchMode( TeleOpHardware.searchMode.location );
         //}
         telemetry.addData("RGB",robot.color.red() + " " + robot.color.green() + " " + robot.color.blue());
-        telemetry.addData("Gyro",robot.drive.getRawExternalHeading());
+        telemetry.addData("Gyro",robot.yaw());
         telemetry.addData("Slide Enc",robot.slide.getCurrentPosition());
         telemetry.addData("Status", "Run Time: " + runtime.toString() );
 

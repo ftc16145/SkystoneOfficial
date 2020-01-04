@@ -149,14 +149,7 @@ public class FieldOperatorAssistNoAuto extends OpMode
     }
     @Override
     public void loop() {
-        if( gamepad1.y ){
-            robot.mecanumDrive(0,1,0);
-        }else if( gamepad1.a ){
-            robot.hardBrake();
-        }else {
-            robot.mecanumDriveFieldOrient( gamepad1.left_stick_x, gamepad1.left_stick_y, gamepad1.right_stick_x );
-        }
-
+        robot.mecanumDriveFieldOrient( gamepad1.left_stick_x, gamepad1.left_stick_y, gamepad1.right_stick_x );
         if( gamepad2.x && !xtap ){
             xtap = true;
             // ACTION
@@ -223,7 +216,7 @@ public class FieldOperatorAssistNoAuto extends OpMode
             robot.foundationControls( gamepad2.dpad_down, gamepad2.dpad_up );
         }
         telemetry.addData("RGB",robot.color.red() + " " + robot.color.green() + " " + robot.color.blue() );
-        telemetry.addData("Gyro",robot.drive.getRawExternalHeading() );
+        telemetry.addData("Gyro",robot.yaw() );
         telemetry.addData("ScoreMode X/Y",scoreMode + " " + armx + " " + army );
         telemetry.addData("Slide/Claw/Arm Enc",robot.slide.getCurrentPosition() + " " + robot.claw.getCurrentPosition() + " " + robot.arm.getCurrentPosition() );
         telemetry.addData("Status", "Run Time: " + runtime.toString() );

@@ -27,13 +27,14 @@
  * OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
 
-package org.firstinspires.ftc.teamcode.Auton.Blue;
+package org.firstinspires.ftc.teamcode.Auton.Red;
 
 import com.acmerobotics.roadrunner.trajectory.Trajectory;
 import com.qualcomm.robotcore.eventloop.opmode.Autonomous;
 import com.qualcomm.robotcore.eventloop.opmode.OpMode;
 import com.qualcomm.robotcore.util.ElapsedTime;
 
+import org.firstinspires.ftc.robotcore.external.navigation.DistanceUnit;
 import org.firstinspires.ftc.teamcode.Hardware;
 
 import java.util.concurrent.TimeUnit;
@@ -52,15 +53,18 @@ import java.util.concurrent.TimeUnit;
  * Remove or comment out the @Disabled line to add this opmode to the Driver Station OpMode list
  */
 
-@Autonomous(name="2SFBlue", group="Auto Blue")
+@Autonomous(name="1 Block R", group="Auto Blue")
 
-public class MegaAutoBlue extends OpMode
+public class BlockFoundRed extends OpMode
 {// Declare OpMode members.
     private ElapsedTime runtime = new ElapsedTime();
     private Hardware robot = new Hardware();
-    //private ArrayList<Trajectory> trajectories;
-    private Trajectory[] currentTraj;
-    int step = 1;
+    int stage = 1;
+    Trajectory grabFound, moveBack, strafeOut, toBlockA, checkNext, dropFinal, finish;
+    char currentBlock;
+    double timeOfNewStage;
+    Trajectory stage1, toFound;
+    boolean foundCube = false;
     //private DcMotor leftFront, leftBack, rightFront, rightBack, slide, claw, arm;
     //SLIDE MOTOR
     // 1120 Ticks/rev
@@ -80,12 +84,15 @@ public class MegaAutoBlue extends OpMode
     /*
      * Code to run ONCE when the driver hits INIT
      */
+    private void nextStage(){
+        stage++;
+        timeOfNewStage = runtime.time(TimeUnit.SECONDS);
+        robot.setMotorPowers(0,0,0,0);
+    }
+
     @Override
     public void init() {
-        robot.init( hardwareMap, telemetry,-36,63,false,true );
-        telemetry.addData("Status", "Initialized" );
-
-
+        robot.init( hardwareMap, telemetry,39,-63,180,true, true );
         // create a sound parameter that holds the desired player parameters.
 
         // Initialize the hardware variables. Note that the strings used here as parameters
@@ -119,20 +126,76 @@ public class MegaAutoBlue extends OpMode
      */
     @Override
     public void start() {
+        //robot.levelArm();
         runtime.reset();
-        currentTraj = robot.twoSkystoneFoundAuton();
+
     }
     /*
      * Code to run REPEATEDLY after the driver hits PLAY but before they hit STOP
      */
     @Override
     public void loop() {
-        double t = runtime.time(TimeUnit.SECONDS);
+        // First, rotate the  robot to be parallel to the face of the block
+        if( stage == 1 ){
+            if(runtime.time(TimeUnit.SECONDS) > 3){
+                nextStage();
+            }else{
+                robot.mecanumDrive(0.4,0,0);
+            }
+        }else if( stage == 2 ){
+            if( robot.color.red() < 500 && robot.color.green() < 500 ){
+                nextStage();
+            }else{
+                robot.mecanumDrive(0,-0.3,0);
+            }
+        } else if( stage == 3 ) {
+           if(runtime.time(TimeUnit.SECONDS) > timeOfNewStage + 1){
+               nextStage();
+           }else{
+               robot.mecanumDrive(0,-0.2,0);
+           }
+        }else if (stage == 4){
+            if(runtime.time(TimeUnit.SECONDS) > timeOfNewStage + 0.5){
+                nextStage();
+            }else{
+                robot.mecanumDrive(0,0,0);
+                robot.autoGrab.setTargetPosition(-144);
+                robot.autoGrab.setPower(1);
+            }
+        }else if (stage == 5){
+            if(runtime.time(TimeUnit.SECONDS) > timeOfNewStage + 1){
+                nextStage();
+            }else{
+                robot.mecanumDrive(-0.7,0,0);
 
-        //robot.drive.followTrajectory(currentTraj);
-        robot.autoScore();
-        robot.drive.update();
+            }
+        }else if(stage == 6){
+            if(runtime.time(TimeUnit.SECONDS) > timeOfNewStage + 3){
+                nextStage();
+            }else{
+                robot.mecanumDrive(0,0.75,0);
+            }
+        }else if(stage == 7){
+            if(runtime.time(TimeUnit.SECONDS) > timeOfNewStage + 0.5){
+                nextStage();
+            }else{
+                robot.autoGrab.setTargetPosition(0);
+                robot.autoGrab.setPower(1);
+            }
+        }else if(stage == 8){
+            if(runtime.time(TimeUnit.SECONDS) > timeOfNewStage + 2.5){
+                nextStage();
 
+            }else{
+                robot.mecanumDrive(0,-0.6,0);
+                robot.autoGrab.setPower(0);
+            }
+        }
+
+        telemetry.addData("Distance",robot.distance.getDistance(DistanceUnit.CM));
+        telemetry.addData("Runtime",runtime.time(TimeUnit.SECONDS));
+        telemetry.addData("Stage",stage);
+        telemetry.update();
     }
 
 
@@ -141,7 +204,8 @@ public class MegaAutoBlue extends OpMode
      */
     @Override
     public void stop() {
-        robot.updateTracker();
+
+        //  drive.stop();
     }
 
 }
