@@ -34,7 +34,6 @@ import com.qualcomm.robotcore.eventloop.opmode.TeleOp;
 import com.qualcomm.robotcore.util.ElapsedTime;
 
 import org.firstinspires.ftc.teamcode.Hardware;
-import org.firstinspires.ftc.teamcode.utils.VuforiaSkyStoneNavigation;
 
 /**
  * This file contains an example of an iterative (Non-Linear) "OpMode".
