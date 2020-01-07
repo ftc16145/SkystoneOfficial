@@ -82,7 +82,7 @@ public class FoundRed extends OpMode
      */
     @Override
     public void init() {
-        robot.init( hardwareMap, telemetry,39,-63,true,true );
+        robot.init( hardwareMap, telemetry );
         telemetry.addData("Status", "Initialized" );
 
 

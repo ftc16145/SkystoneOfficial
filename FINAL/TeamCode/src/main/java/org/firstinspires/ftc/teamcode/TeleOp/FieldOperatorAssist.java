@@ -29,6 +29,7 @@
 
 package org.firstinspires.ftc.teamcode.TeleOp;
 
+import com.qualcomm.robotcore.eventloop.opmode.Disabled;
 import com.qualcomm.robotcore.eventloop.opmode.OpMode;
 import com.qualcomm.robotcore.eventloop.opmode.TeleOp;
 import com.qualcomm.robotcore.hardware.DcMotor;
@@ -51,8 +52,8 @@ import org.firstinspires.ftc.teamcode.Hardware;
  * Remove or comment out the @Disabled line to add this opmode to the Driver Station OpMode list
  */
 
-@TeleOp(name="TeleOp Field Op Assist", group="Mecanum")
-
+@TeleOp(name="Field-Oriented w/ Assist", group="Mecanum")
+@Disabled
 public class FieldOperatorAssist extends OpMode
 {
     // Declare OpMode members.
@@ -68,8 +69,6 @@ public class FieldOperatorAssist extends OpMode
     //private GyroSensor gyro;
     //DcMotor[] drivetrain;
     //private CRServo found;
-    double num = 0;
-    boolean clawLock = false;
     boolean lbump = false;
     boolean ltrig = false;
     boolean gy = false;
@@ -78,6 +77,7 @@ public class FieldOperatorAssist extends OpMode
     boolean xtap = false;
     boolean scoreMode = false;
     int armx, army;
+    boolean leveling = false;
 
     //public Drivetrain drive;
 
@@ -86,7 +86,7 @@ public class FieldOperatorAssist extends OpMode
      */
     @Override
     public void init() {
-        robot.init( hardwareMap, telemetry, PositionTransfer.robotX,PositionTransfer.robotY,PositionTransfer.robotRot, PositionTransfer.onRed, false );
+        robot.init( hardwareMap, telemetry );
         telemetry.addData("Status", "Initialized");
 
 
@@ -150,21 +150,11 @@ public class FieldOperatorAssist extends OpMode
     @Override
     public void loop() {
         if( scoreMode ){
-            for(DcMotorEx m : robot.scoring){
-                m.setMode(DcMotorEx.RunMode.RUN_TO_POSITION);
-            }
+            robot.setScoreModes( DcMotorEx.RunMode.RUN_TO_POSITION );
         }else{
-            for(DcMotorEx m : robot.scoring){
-                m.setMode(DcMotorEx.RunMode.RUN_USING_ENCODER);
-            }
+            robot.setScoreModes( DcMotorEx.RunMode.RUN_USING_ENCODER );
         }
-        if( gamepad1.y ){
-            robot.mecanumDrive(0,1,0);
-        }else if( gamepad1.a ){
-            robot.hardBrake();
-        }else {
-            robot.mecanumDriveFieldOrient( gamepad1.left_stick_x, gamepad1.left_stick_y, gamepad1.right_stick_x );
-        }
+        robot.mecanumDriveFieldOrient( gamepad1.left_stick_x, gamepad1.left_stick_y, gamepad1.right_stick_x );
 
         if( gamepad2.x && !xtap ){
             xtap = true;
@@ -221,14 +211,20 @@ public class FieldOperatorAssist extends OpMode
                 gb = false;
             }
         }else{
-            //double slider = 0;
-           // if( gamepad2.y ){
-            //    slider=0.5;
-            //}else if( gamepad2.a ){
-            //    slider=-0.5;
-            //}else{
-            //    slider=0;
-            //}
+            if( leveling ){
+                robot.clawControl( gamepad2.right_bumper, gamepad2.right_trigger >= 0.5 );
+                robot.slideControl( gamepad2.y ? 0.5 : gamepad1.a ? -0.5 : 0 );
+                if( !robot.arm.isBusy() ){
+                    leveling = false;
+                    robot.spoolControl( 0 );
+                }
+            }
+            if( gamepad2.left_stick_button ){
+                leveling = true;
+                robot.arm.setMode( DcMotorEx.RunMode.RUN_TO_POSITION );
+                robot.arm.setTargetPosition( 0 );
+                robot.spoolControl( 0.25 );
+            }
             robot.armMechanismControls( gamepad2.right_bumper, gamepad2.right_trigger >= 0.5, gamepad2.left_bumper, gamepad2.left_trigger >= 0.5, gamepad2.y ? 0.5 : gamepad1.a ? -0.5 : 0 );
             robot.foundationControls( gamepad2.dpad_down, gamepad2.dpad_up );
         }

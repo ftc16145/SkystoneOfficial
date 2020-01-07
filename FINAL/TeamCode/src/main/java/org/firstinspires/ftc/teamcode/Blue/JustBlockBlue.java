@@ -31,6 +31,7 @@ package org.firstinspires.ftc.teamcode.Blue;
 
 
 import com.qualcomm.robotcore.eventloop.opmode.Autonomous;
+import com.qualcomm.robotcore.eventloop.opmode.Disabled;
 import com.qualcomm.robotcore.eventloop.opmode.OpMode;
 import com.qualcomm.robotcore.util.ElapsedTime;
 
@@ -56,7 +57,7 @@ import java.util.concurrent.TimeUnit;
  */
 
 @Autonomous(name="1 Block B", group="Auto Blue")
-
+@Disabled
 public class JustBlockBlue extends OpMode
 {// Declare OpMode members.
     private ElapsedTime runtime = new ElapsedTime();
@@ -91,7 +92,7 @@ public class JustBlockBlue extends OpMode
 
     @Override
     public void init() {
-        robot.init( hardwareMap, telemetry,39,-63,180,true, true );
+        robot.init( hardwareMap, telemetry );
 
         // create a sound parameter that holds the desired player parameters.
 

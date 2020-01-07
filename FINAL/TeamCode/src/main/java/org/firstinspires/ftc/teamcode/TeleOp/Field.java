@@ -31,6 +31,8 @@ package org.firstinspires.ftc.teamcode.TeleOp;
 
 import com.qualcomm.robotcore.eventloop.opmode.OpMode;
 import com.qualcomm.robotcore.eventloop.opmode.TeleOp;
+import com.qualcomm.robotcore.hardware.DcMotor;
+import com.qualcomm.robotcore.hardware.DcMotorEx;
 import com.qualcomm.robotcore.util.ElapsedTime;
 
 import org.firstinspires.ftc.teamcode.Hardware;
@@ -49,7 +51,7 @@ import org.firstinspires.ftc.teamcode.Hardware;
  * Remove or comment out the @Disabled line to add this opmode to the Driver Station OpMode list
  */
 
-@TeleOp(name="TeleOp Field", group="Mecanum")
+@TeleOp(name="Field-Oriented", group="Mecanum")
 
 public class Field extends OpMode
 {
@@ -66,8 +68,7 @@ public class Field extends OpMode
     //private GyroSensor gyro;
     //DcMotor[] drivetrain;
     //private CRServo found;
-    double num = 0;
-    boolean clawLock = false;
+
 
 
 
@@ -78,7 +79,8 @@ public class Field extends OpMode
      */
     @Override
     public void init() {
-        robot.init( hardwareMap, telemetry, PositionTransfer.robotX,PositionTransfer.robotY,PositionTransfer.robotRot, PositionTransfer.onRed , false );
+        robot.init( hardwareMap, telemetry );
+        robot.setScoreModes( DcMotorEx.RunMode.RUN_USING_ENCODER );
         telemetry.addData("Status", "Initialized");
 
 
@@ -123,36 +125,16 @@ public class Field extends OpMode
      */
     @Override
     public void loop() {
-        if(gamepad1.y){
-            robot.mecanumDrive(0,1,0);
-        }else if(gamepad1.a){
-            robot.hardBrake();
-        }else {
-            robot.mecanumDriveFieldOrient(gamepad1.left_stick_x, gamepad1.left_stick_y, gamepad1.right_stick_x);
-        }
+        robot.mecanumDriveFieldOrient(gamepad1.left_stick_x, gamepad1.left_stick_y, gamepad1.right_stick_x);
         robot.foundationControls( gamepad2.dpad_down, gamepad2.dpad_up );
-        double slider = 0;
-        if( gamepad2.y ){
-            slider=0.5;
-        }else if( gamepad2.a ){
-            slider=-0.5;
-        }else{
-            slider=0;
-        }
-        robot.armMechanismControls( gamepad2.right_bumper, gamepad2.right_trigger >= 0.5, gamepad2.left_bumper, gamepad2.left_trigger >= 0.5, slider );
-        //robot.visionTeleop();
-        //if( gamepad1.a ){
-        //    robot.setSearchMode( TeleOpHardware.searchMode.block );
-        //}else if( gamepad1.b ){
-        //    robot.setSearchMode( TeleOpHardware.searchMode.location );
-        //}
+        robot.armMechanismControls( gamepad2.right_bumper, gamepad2.right_trigger >= 0.5, gamepad2.left_bumper, gamepad2.left_trigger >= 0.5, gamepad2.y ? 0.5 : gamepad1.a ? -0.5 : 0 );
+
         telemetry.addData("RGB",robot.color.red() + " " + robot.color.green() + " " + robot.color.blue());
         telemetry.addData("Gyro",robot.yaw());
         telemetry.addData("Slide Enc",robot.slide.getCurrentPosition());
         telemetry.addData("Claw Enc",robot.claw.getCurrentPosition());
         telemetry.addData("Arm Enc",robot.arm.getCurrentPosition());
         telemetry.addData("Status", "Run Time: " + runtime.toString() );
-
         telemetry.update();
     }
 

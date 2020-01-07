@@ -21,27 +21,11 @@ import org.firstinspires.ftc.robotcore.external.matrices.VectorF;
 import org.firstinspires.ftc.robotcore.external.navigation.AngleUnit;
 import org.firstinspires.ftc.robotcore.external.navigation.AxesOrder;
 import org.firstinspires.ftc.robotcore.external.navigation.AxesReference;
-import org.firstinspires.ftc.robotcore.external.navigation.Orientation;
-import org.firstinspires.ftc.robotcore.external.navigation.VuforiaLocalizer;
-import org.firstinspires.ftc.robotcore.external.navigation.VuforiaTrackable;
-import org.firstinspires.ftc.robotcore.external.navigation.VuforiaTrackableDefaultListener;
-import org.firstinspires.ftc.robotcore.external.navigation.VuforiaTrackables;
-import org.firstinspires.ftc.teamcode.TeleOp.PositionTransfer;
 
 
 import java.util.ArrayList;
-import java.util.List;
-import java.util.concurrent.TimeUnit;
-
-
-
-
-import static org.firstinspires.ftc.robotcore.external.navigation.AngleUnit.DEGREES;
-import static org.firstinspires.ftc.robotcore.external.navigation.AxesOrder.XYZ;
-import static org.firstinspires.ftc.robotcore.external.navigation.AxesOrder.YZX;
-import static org.firstinspires.ftc.robotcore.external.navigation.AxesReference.EXTRINSIC;
-import static org.firstinspires.ftc.robotcore.external.navigation.VuforiaLocalizer.CameraDirection.BACK;
 /*
+Fortnite!
 * ⠀⠀⠀⠀⠀⠀⣤⣿⣿⠶⠀⠀⣀⣀
 
 ⠀⠀⠀⠀⠀⠀⣀⣀⣤⣤⣶⣿⣿⣿⣿⣿⣿
@@ -109,7 +93,7 @@ public class Hardware {
     // Info for the class
         HardwareMap hwMap = null;
         Telemetry tel = null;
-        boolean onRed,auto;
+
 
 
         /*
@@ -167,14 +151,14 @@ public class Hardware {
             m.setMode(r);
         }
     }
-    public void init( HardwareMap hardware, Telemetry atel, double initX, double initY, boolean onRed, boolean auto ){
-        init( hardware, atel, initX, initY, onRed ? Math.toRadians(90) : Math.toRadians(-90), onRed, auto );
+    public void setScoreModes( DcMotorEx.RunMode r ){
+        for( DcMotorEx m : scoring ){
+            m.setMode(r);
+        }
     }
-    public void init( HardwareMap hardware, Telemetry atel, double initX, double initY, double initAng, boolean onRed, boolean auto ){
+    public void init( HardwareMap hardware, Telemetry atel ){
         hwMap = hardware;
         tel = atel;
-        this.onRed = onRed;
-        this.auto = auto;
 
         leftFront = hwMap.get(DcMotorEx.class, "leftFront");
         leftBack = hwMap.get(DcMotorEx.class, "leftBack");
@@ -296,23 +280,46 @@ public class Hardware {
             found.setPower(0);
         }
     }
-
-    public void armMechanismControls(boolean clawOpen, boolean clawClose, boolean armUp, boolean armDown, double slideControl) {
-        if (clawOpen) {
-            claw.setPower(0.8);
-        } else if (clawClose) {
-            claw.setPower(-0.8);
-        } else {
-            claw.setPower(0);
-        }
-        if (armUp) {
+    public void spoolControl( boolean up, boolean down ){
+        if (up) {
             arm.setPower(-0.25);
-        } else if (armDown) {
+        } else if (down) {
             arm.setPower(0.25);
         } else {
             arm.setPower(0);
         }
-        slide.setPower(slideControl);
+    }
+    public void spoolControl( double power ){
+        arm.setPower( power );
+    }
+    public void clawControl( boolean open, boolean close ){
+        if (open) {
+            clawControl(0.8);
+        } else if (close) {
+            clawControl(-0.8);
+        } else {
+            clawControl(0);
+        }
+    }
+    public void clawControl( double power ){
+        claw.setPower( power );
+    }
+    public void slideControl( boolean out, boolean in ){
+        if (out) {
+            slideControl(0.8);
+        } else if (in) {
+            slideControl(-0.8);
+        } else {
+            slideControl(0);
+        }
+    }
+    public void slideControl( double power ){
+        slide.setPower( power );
+    }
+    public void armMechanismControls(boolean clawOpen, boolean clawClose, boolean armUp, boolean armDown, double slideControl) {
+        clawControl( clawOpen, clawClose );
+        spoolControl( armUp, armDown );
+        slideControl( slideControl );
     }
     public void setSideGrab( boolean open ){
         autoGrab.setTargetPosition( open ? 0 : 144 );
