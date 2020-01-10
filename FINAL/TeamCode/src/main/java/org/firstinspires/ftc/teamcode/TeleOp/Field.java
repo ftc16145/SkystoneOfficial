@@ -127,7 +127,7 @@ public class Field extends OpMode
     public void loop() {
         robot.mecanumDriveFieldOrient(gamepad1.left_stick_x, gamepad1.left_stick_y, gamepad1.right_stick_x);
         robot.foundationControls( gamepad2.dpad_down, gamepad2.dpad_up );
-        robot.armMechanismControls( gamepad2.right_bumper, gamepad2.right_trigger >= 0.5, gamepad2.left_bumper, gamepad2.left_trigger >= 0.5, gamepad2.y ? 0.5 : gamepad1.a ? -0.5 : 0 );
+        robot.armMechanismControls( gamepad2.right_bumper, gamepad2.right_trigger >= 0.5, gamepad2.left_bumper, gamepad2.left_trigger >= 0.5, gamepad2.y ? 0.5 : gamepad2.a ? -0.5 : 0 );
 
         telemetry.addData("RGB",robot.color.red() + " " + robot.color.green() + " " + robot.color.blue());
         telemetry.addData("Gyro",robot.yaw());

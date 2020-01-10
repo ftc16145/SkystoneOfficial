@@ -27,20 +27,14 @@
  * OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
 
-package org.firstinspires.ftc.teamcode.Blue;
+package org.firstinspires.ftc.teamcode.TeleOp;
 
-
-import com.qualcomm.robotcore.eventloop.opmode.Autonomous;
-import com.qualcomm.robotcore.eventloop.opmode.Disabled;
 import com.qualcomm.robotcore.eventloop.opmode.OpMode;
+import com.qualcomm.robotcore.eventloop.opmode.TeleOp;
+import com.qualcomm.robotcore.hardware.DcMotorEx;
 import com.qualcomm.robotcore.util.ElapsedTime;
 
-import org.firstinspires.ftc.robotcore.external.navigation.DistanceUnit;
 import org.firstinspires.ftc.teamcode.Hardware;
-
-import java.util.concurrent.TimeUnit;
-
-
 
 /**
  * This file contains an example of an iterative (Non-Linear) "OpMode".
@@ -56,16 +50,13 @@ import java.util.concurrent.TimeUnit;
  * Remove or comment out the @Disabled line to add this opmode to the Driver Station OpMode list
  */
 
-@Autonomous(name="1 Block B", group="Blue")
-@Disabled
-public class JustBlockBlue extends OpMode
-{// Declare OpMode members.
+@TeleOp(name="Regular Drive SOLO", group="Mecanum")
+
+public class MeccSolo extends OpMode
+{
+    // Declare OpMode members.
     private ElapsedTime runtime = new ElapsedTime();
     private Hardware robot = new Hardware();
-    int stage = 1;
-    char currentBlock;
-    double timeOfNewStage;
-    boolean foundCube = false;
     //private DcMotor leftFront, leftBack, rightFront, rightBack, slide, claw, arm;
     //SLIDE MOTOR
     // 1120 Ticks/rev
@@ -78,21 +69,18 @@ public class JustBlockBlue extends OpMode
     //private CRServo found;
 
 
-
-
     //public Drivetrain drive;
 
     /*
      * Code to run ONCE when the driver hits INIT
      */
-    private void nextStage(){
-        stage++;
-        timeOfNewStage = runtime.time(TimeUnit.SECONDS);
-    }
-
     @Override
     public void init() {
+
         robot.init( hardwareMap, telemetry );
+        robot.setScoreModes( DcMotorEx.RunMode.RUN_USING_ENCODER );
+        telemetry.addData("Status", "Initialized");
+
 
         // create a sound parameter that holds the desired player parameters.
 
@@ -106,6 +94,7 @@ public class JustBlockBlue extends OpMode
         //drive = Drivetrain.init( 0, 0, 0, Drivetrain.driveType.fourWheel );
 
         // Tell the driver that initialization is complete.
+        telemetry.addData("Status", "Initialized" );
 
         //gyro = hardwareMap.get( GyroSensor.class, "gyro" );
         //gyro.calibrate();
@@ -118,8 +107,8 @@ public class JustBlockBlue extends OpMode
      */
     @Override
     public void init_loop() {
-        robot.initLoop();
 
+        //robot.visionTeleop();
     }
 
     /*
@@ -127,81 +116,25 @@ public class JustBlockBlue extends OpMode
      */
     @Override
     public void start() {
-        //robot.levelArm();
         runtime.reset();
-
     }
     /*
      * Code to run REPEATEDLY after the driver hits PLAY but before they hit STOP
      */
     @Override
     public void loop() {
-        // First, rotate the  robot to be parallel to the face of the block
-        if( stage == 1 ){
-            if(robot.distance.getDistance(DistanceUnit.CM)<= 5){
-                nextStage();
-            }else{
-                robot.mecanumDrive(0.5,0,0);
-            }
-        }else if( stage == 2 ){
-            if( robot.color.red() < 1000 && robot.color.green() < 1000 ){
-                nextStage();
-            }else{
-                robot.mecanumDrive(0,-0.3,0);
-            }
-        } else if( stage == 3 ) {
-           if(runtime.time(TimeUnit.SECONDS) > timeOfNewStage + 1){
-               nextStage();
-           }else{
-               robot.mecanumDrive(0.5,0.1,0);
-           }
-        }else if (stage == 4){
-            if(runtime.time(TimeUnit.SECONDS) > timeOfNewStage + 0.5){
-                nextStage();
-            }else{
-                robot.mecanumDrive(0,0,0);
-                robot.autoGrab.setTargetPosition(144);
-                robot.autoGrab.setPower(1);
-            }
-        }else if (stage == 5){
-            if(runtime.time(TimeUnit.SECONDS) > timeOfNewStage + 1){
-                nextStage();
-            }else{
-                robot.mecanumDrive(-0.5,0,0);
-                robot.autoGrab.setPower(0);
-            }
-        } else if (stage == 6) {
-            if(runtime.time(TimeUnit.SECONDS) > timeOfNewStage + 1){
-                nextStage();
-            }else{
-                robot.mecanumDrive(-0.5,0,0);
-                robot.autoGrab.setPower(0);
-            }
-        }else if(stage == 7){
-            if(runtime.time(TimeUnit.SECONDS) > timeOfNewStage + 3){
-                nextStage();
-            }else{
-                robot.mecanumDrive(0,0.75,0);
-            }
-        }else if(stage == 8){
-            if(runtime.time(TimeUnit.SECONDS) > timeOfNewStage + 0.5){
-                nextStage();
-            }else{
-                robot.autoGrab.setTargetPosition(0);
-                robot.autoGrab.setPower(1);
-            }
-        }else if(stage == 9){
-            if(runtime.time(TimeUnit.SECONDS) > timeOfNewStage + 1){
-                robot.mecanumDrive(0,0,0);
-            }else{
-                robot.mecanumDrive(0,-0.5,0);
-                robot.autoGrab.setPower(0);
-            }
-        }
+        robot.mecanumDrive( gamepad1.left_stick_x, gamepad1.left_stick_y, gamepad1.right_stick_x );
+        robot.foundationControls( gamepad1.dpad_down, gamepad1.dpad_up );
+        robot.armMechanismControls( gamepad1.right_bumper, gamepad1.right_trigger >= 0.5, gamepad1.left_bumper, gamepad1.left_trigger >= 0.5, gamepad1.y ? 0.5 : gamepad1.a ? -0.5 : 0 );
+        telemetry.addData("RGB",robot.color.red() + " " + robot.color.green() + " " + robot.color.blue());
+        telemetry.addData("Gyro",robot.yaw());
+        telemetry.addData("Slide Enc",robot.slide.getCurrentPosition());
+        telemetry.addData("Claw Enc",robot.claw.getCurrentPosition());
+        telemetry.addData("Arm Enc",robot.arm.getCurrentPosition());
+        telemetry.addData("Status", "Run Time: " + runtime.toString() );
 
-
+        telemetry.update();
     }
-
 
     /*
      * Code to run ONCE after the driver hits STOP
@@ -209,6 +142,7 @@ public class JustBlockBlue extends OpMode
     @Override
     public void stop() {
 
+        //playSound("ss_alarm");
         //  drive.stop();
     }
 

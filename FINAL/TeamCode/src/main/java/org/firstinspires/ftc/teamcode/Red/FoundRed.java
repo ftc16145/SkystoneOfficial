@@ -52,7 +52,7 @@ import java.util.concurrent.TimeUnit;
  * Remove or comment out the @Disabled line to add this opmode to the Driver Station OpMode list
  */
 
-@Autonomous(name="Found Red", group="Auto Blue")
+@Autonomous(name="Found Red", group="Red")
 
 public class FoundRed extends OpMode
 {// Declare OpMode members.
@@ -129,15 +129,8 @@ public class FoundRed extends OpMode
         // First, rotate the  robot to be parallel to the face of the block
 
         double t = runtime.time(TimeUnit.SECONDS);
-        if(t<1){
-            robot.slide.setPower(0.3);
-        }else if(t>1 && t<2){
-            robot.slide.setPower(0);
-        }
-        if(t>2.5 && t <5){
-            robot.claw.setPower(0.5);
-        }else if(t>5&& t<5.5){
-            robot.claw.setPower(0);
+        if(t<2){
+            robot.levelArm();
         }
             if( t < 2.5 ){
                 robot.mecanumDrive(0.15,-0.5,0);
@@ -151,17 +144,11 @@ public class FoundRed extends OpMode
                 robot.mecanumDrive(0,-0.3,0);
             }else if( t < 10 ) {
                 robot.foundationControls(true,false);
+            }else if(t<14){
+                robot.foundationControls(false,false);
+                robot.mecanumDrive(-0.5,0,0);
             }else{
-                if( !hitColor ) {
-                    robot.foundationControls(false, false);
-                    robot.mecanumDrive(-0.5, 0, 0);
-                    if( robot.color.blue() > 75 ){
-                        hitColor=true;
-                    }
-                }else{
-                    robot.foundationControls(false, false );
-                    robot.mecanumDrive(0, 0, 0 );
-                }
+               robot.mecanumDrive(0,0,0);
             }
 
     }

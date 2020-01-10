@@ -29,13 +29,18 @@
 
 package org.firstinspires.ftc.teamcode.Red;
 
+
 import com.qualcomm.robotcore.eventloop.opmode.Autonomous;
 import com.qualcomm.robotcore.eventloop.opmode.Disabled;
 import com.qualcomm.robotcore.eventloop.opmode.OpMode;
+import com.qualcomm.robotcore.hardware.DcMotor;
+import com.qualcomm.robotcore.hardware.DcMotorEx;
 import com.qualcomm.robotcore.util.ElapsedTime;
+import com.vuforia.CameraDevice;
 
 import org.firstinspires.ftc.robotcore.external.navigation.DistanceUnit;
 import org.firstinspires.ftc.teamcode.Hardware;
+import org.firstinspires.ftc.teamcode.VuforiaSkyStoneTrack;
 
 import java.util.concurrent.TimeUnit;
 
@@ -53,9 +58,9 @@ import java.util.concurrent.TimeUnit;
  * Remove or comment out the @Disabled line to add this opmode to the Driver Station OpMode list
  */
 
-@Autonomous(name="1 Block R", group="Red")
-@Disabled
-public class BlockFoundRed extends OpMode
+@Autonomous(name="Test 18", group="Red")
+
+public class Test18 extends OpMode
 {// Declare OpMode members.
     private ElapsedTime runtime = new ElapsedTime();
     private Hardware robot = new Hardware();
@@ -63,6 +68,9 @@ public class BlockFoundRed extends OpMode
     char currentBlock;
     double timeOfNewStage;
     boolean foundCube = false;
+    boolean reachedTarget = false;
+    int failedAttempts = 0;
+    VuforiaSkyStoneTrack nav = new VuforiaSkyStoneTrack();
     //private DcMotor leftFront, leftBack, rightFront, rightBack, slide, claw, arm;
     //SLIDE MOTOR
     // 1120 Ticks/rev
@@ -85,11 +93,21 @@ public class BlockFoundRed extends OpMode
     private void nextStage(){
         stage++;
         timeOfNewStage = runtime.time(TimeUnit.SECONDS);
+        robot.setDriveModes(DcMotorEx.RunMode.STOP_AND_RESET_ENCODER);
+        robot.setDriveModes(DcMotorEx.RunMode.RUN_TO_POSITION);
+        robot.setMotorPowers(0,0,0,0);
+    }
+    private void setStage( int s ){
+        stage = s;
+        timeOfNewStage = runtime.time(TimeUnit.SECONDS);
+        robot.setDriveModes(DcMotorEx.RunMode.STOP_AND_RESET_ENCODER);
+        robot.setDriveModes(DcMotorEx.RunMode.RUN_TO_POSITION);
         robot.setMotorPowers(0,0,0,0);
     }
 
     @Override
     public void init() {
+        nav.init(hardwareMap);
         robot.init( hardwareMap, telemetry );
         // create a sound parameter that holds the desired player parameters.
 
@@ -125,7 +143,15 @@ public class BlockFoundRed extends OpMode
     @Override
     public void start() {
         //robot.levelArm();
+        nav.activate();
+        CameraDevice.getInstance().setFlashTorchMode(true);
         runtime.reset();
+        for(DcMotorEx m : robot.drivetrain){
+            m.setTargetPosition(0);
+            m.setPower(0);
+            m.setPositionPIDFCoefficients(1.25);
+        }
+        robot.setDriveModes(DcMotor.RunMode.RUN_TO_POSITION);
 
     }
     /*
@@ -134,66 +160,148 @@ public class BlockFoundRed extends OpMode
     @Override
     public void loop() {
         // First, rotate the  robot to be parallel to the face of the block
-        if( stage == 1 ){
-            if(runtime.time(TimeUnit.SECONDS) > 3){
-                nextStage();
-            }else{
-                robot.mecanumDrive(0.4,0,0);
-            }
-        }else if( stage == 2 ){
-            if( robot.color.red() < 500 && robot.color.green() < 500 ){
-                nextStage();
-            }else{
-                robot.mecanumDrive(0,-0.3,0);
-            }
-        } else if( stage == 3 ) {
-           if(runtime.time(TimeUnit.SECONDS) > timeOfNewStage + 1){
-               nextStage();
-           }else{
-               robot.mecanumDrive(0,-0.2,0);
-           }
-        }else if (stage == 4){
-            if(runtime.time(TimeUnit.SECONDS) > timeOfNewStage + 0.5){
-                nextStage();
-            }else{
-                robot.mecanumDrive(0,0,0);
-                robot.autoGrab.setTargetPosition(-144);
-                robot.autoGrab.setPower(1);
-            }
-        }else if (stage == 5){
-            if(runtime.time(TimeUnit.SECONDS) > timeOfNewStage + 1){
-                nextStage();
-            }else{
-                robot.mecanumDrive(-0.7,0,0);
+        if(stage == -1){
+            robot.leftFront.setTargetPosition(725);
+            robot.rightBack.setTargetPosition(725);
+            robot.leftBack.setTargetPosition(-725);
+            robot.rightFront.setTargetPosition(-725);
+            robot.setMotorPowers(1, 1, 1, 1);
+            if (Math.abs(robot.leftFront.getCurrentPosition() - 725) < 50) {
+                setStage( 2 );
 
+            }
+        }else if(stage == 1) {
+            for (DcMotorEx m : robot.drivetrain) {
+                m.setTargetPosition(-1785);
+                m.setPower(1);
+            }
+            robot.operateClaw(true);
+            robot.levelArm();
+
+                if (Math.abs(robot.leftFront.getCurrentPosition() + 1785) < 50) {
+                    nextStage();
+            }
+        }else if(stage == 2){
+            if(failedAttempts <= 1) {
+                if (nav.getPosition().isPositionValid) {
+                    reachedTarget = true;
+                    reachedTarget = false;
+                    nextStage();
+                } else {
+                    if (runtime.time(TimeUnit.SECONDS) > timeOfNewStage + 3) {
+                        setStage(-1);
+                        failedAttempts++;
+                    }
+
+                }
+            }else{
+                nextStage();
+            }
+
+            if(runtime.time(TimeUnit.SECONDS) > timeOfNewStage+2 && failedAttempts == 0){
+                robot.foundationControls(true,false);
+            }else{
+                robot.foundationControls(false,false);
+                robot.arm.setTargetPosition(260);
+                robot.arm.setPower(0.75);
+            }
+        }else if(stage == 3){
+            if(!reachedTarget) {
+                robot.leftFront.setTargetPosition(725);
+                robot.rightBack.setTargetPosition(725);
+                robot.leftBack.setTargetPosition(-725);
+                robot.rightFront.setTargetPosition(-725);
+                robot.setMotorPowers(1, 1, 1, 1);
+                if (Math.abs(robot.leftFront.getCurrentPosition() - 725) < 50) {
+                    robot.mecanumDrive(0, 0, 0);
+                    robot.setDriveModes(DcMotorEx.RunMode.STOP_AND_RESET_ENCODER);
+                    robot.setDriveModes(DcMotorEx.RunMode.RUN_TO_POSITION);
+                    reachedTarget = true;
+
+                }
+            }else{
+                robot.slide.setTargetPosition(800);
+                robot.slide.setPower(0.5);
+                //robot.arm.setTargetPosition(360);
+                //+
+                //
+                //
+                //
+                //
+                //
+                //
+                //
+                //
+                //
+                //
+                //
+                //
+                // robot.arm.setPower(0.75);
+                for (DcMotorEx m : robot.drivetrain) {
+                    m.setTargetPosition(-1250);
+                    m.setPower(1);
+                }
+                if (Math.abs(robot.leftFront.getCurrentPosition() + 1250) < 50) {
+                    nextStage();
+                }
+            }
+        }else if(stage == 4){
+            robot.operateClaw(false);
+            for (DcMotorEx m : robot.drivetrain) {
+                m.setTargetPosition(1250);
+                m.setPower(1);
+            }
+            if (Math.abs(robot.leftFront.getCurrentPosition() - 1250) < 50) {
+                robot.levelArm();
+                nextStage();
+
+            }
+        }else if(stage == 5){
+            double gyroP = 0.2;
+            double error = Math.PI - robot.yaw();
+            if(Math.abs(Math.toDegrees(error)) < 5){
+                nextStage();
+            }else{
+                robot.mecanumDrive(0,0,gyroP*error);
             }
         }else if(stage == 6){
-            if(runtime.time(TimeUnit.SECONDS) > timeOfNewStage + 3){
-                nextStage();
+            if(runtime.time(TimeUnit.SECONDS)>timeOfNewStage + 5){
+                robot.mecanumDrive(0,-0.75,0);
             }else{
-                robot.mecanumDrive(0,0.75,0);
+                robot.mecanumDrive(0,0,0);
+                robot.operateClaw(true);
+                nextStage();
+            }
+            if(runtime.time(TimeUnit.SECONDS)>timeOfNewStage + 3){
+                robot.levelArm();
+            }else{
+                robot.arm.setTargetPosition(200);
+                robot.arm.setPower(0.75);
             }
         }else if(stage == 7){
-            if(runtime.time(TimeUnit.SECONDS) > timeOfNewStage + 0.5){
-                nextStage();
-            }else{
-                robot.autoGrab.setTargetPosition(0);
-                robot.autoGrab.setPower(1);
+            robot.levelArm();
+            for (DcMotorEx m : robot.drivetrain) {
+                m.setTargetPosition(2540);
+                m.setPower(1);
             }
-        }else if(stage == 8){
-            if(runtime.time(TimeUnit.SECONDS) > timeOfNewStage + 2.5){
+            if (Math.abs(robot.leftFront.getCurrentPosition() - 2540) < 50) {
+                robot.levelArm();
                 nextStage();
 
-            }else{
-                robot.mecanumDrive(0,-0.6,0);
-                robot.autoGrab.setPower(0);
             }
+        }else{
+            robot.mecanumDrive(0,0,0);
+            robot.foundationControls(false,false);
+            robot.armMechanismControls(false,false,false,false,0);
         }
-
+        telemetry.addData("Target",reachedTarget);
         telemetry.addData("Distance",robot.distance.getDistance(DistanceUnit.CM));
         telemetry.addData("Runtime",runtime.time(TimeUnit.SECONDS));
         telemetry.addData("Stage",stage);
+        telemetry.addData("X Y Z",nav.getPosition().x + " " + nav.getPosition().y + nav.getPosition().z);
         telemetry.update();
+
+
     }
 
 

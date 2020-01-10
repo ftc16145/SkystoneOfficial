@@ -58,7 +58,7 @@ import static java.lang.Double.NaN;
  * Remove or comment out the @Disabled line to add this opmode to the Driver Station OpMode list
  */
 
-@Autonomous(name="1 Block R", group="Auto Blue")
+@Autonomous(name="1 Block R", group="Red")
 @Disabled
 public class JustBlockRed extends OpMode
 {// Declare OpMode members.

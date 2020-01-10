@@ -172,6 +172,7 @@ public class Hardware {
         leftBack.setDirection(DcMotorEx.Direction.REVERSE);
         for( DcMotorEx m : drivetrain ){
             m.setZeroPowerBehavior(DcMotorEx.ZeroPowerBehavior.BRAKE);
+            m.setMode(DcMotorEx.RunMode.STOP_AND_RESET_ENCODER);
             m.setMode(DcMotorEx.RunMode.RUN_USING_ENCODER);
         }
         claw = hwMap.get(DcMotorEx.class, "claw");
@@ -186,8 +187,9 @@ public class Hardware {
             m.setZeroPowerBehavior(DcMotor.ZeroPowerBehavior.BRAKE);
             m.setMode(DcMotor.RunMode.STOP_AND_RESET_ENCODER);
             m.setTargetPosition(0);
+            m.setPower(0);
             m.setMode(DcMotor.RunMode.RUN_TO_POSITION);
-            m.setPositionPIDFCoefficients(4);
+            m.setPositionPIDFCoefficients(10);
             m.setTargetPositionTolerance(5);
         }
 
@@ -261,7 +263,7 @@ public class Hardware {
     }
 
     public void mecanumDriveFieldOrient(double x, double y, double rot) {
-        double adjustAngle = -imu.getAngularOrientation(AxesReference.INTRINSIC, AxesOrder.ZYX, AngleUnit.RADIANS).firstAngle;
+        double adjustAngle = imu.getAngularOrientation(AxesReference.INTRINSIC, AxesOrder.ZYX, AngleUnit.RADIANS).firstAngle;
         double newX = Math.cos(adjustAngle) * x - Math.sin(adjustAngle) * y;
         double newY = Math.sin(adjustAngle) * x + Math.cos(adjustAngle) * y;
         mecanumDrive(newX, newY, rot);
@@ -282,9 +284,9 @@ public class Hardware {
     }
     public void spoolControl( boolean up, boolean down ){
         if (up) {
-            arm.setPower(-0.25);
+            arm.setPower(-0.75);
         } else if (down) {
-            arm.setPower(0.25);
+            arm.setPower(0.75);
         } else {
             arm.setPower(0);
         }
@@ -348,13 +350,13 @@ public class Hardware {
     public void levelArm(){
         arm.setTargetPosition(0);
         arm.setPower(1);
-        if(slide.getCurrentPosition()<288){
-            slide.setTargetPosition(288);
+        if(slide.getCurrentPosition()<630){
+            slide.setTargetPosition(630);
             slide.setPower(0.5);
         }
     }
     public void operateClaw(boolean open){
-        claw.setTargetPosition(open ? 240 : 72);
+        claw.setTargetPosition(open ? -240 : 0);
         claw.setPower(0.8);
     }
 

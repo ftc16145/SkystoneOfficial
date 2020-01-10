@@ -52,7 +52,7 @@ import java.util.concurrent.TimeUnit;
  * Remove or comment out the @Disabled line to add this opmode to the Driver Station OpMode list
  */
 
-@Autonomous(name="Found Blue", group="Auto Blue")
+@Autonomous(name="Found Blue", group="Blue")
 
 public class FoundBlue extends OpMode
 {// Declare OpMode members.
@@ -155,17 +155,11 @@ public class FoundBlue extends OpMode
             }else if( t < 10 ) {
                 robot.foundationControls(true,false);
 
+            }else if(t<14){
+                robot.foundationControls(false,false);
+                robot.mecanumDrive(0.5,0,0);
             }else{
-                if( !hitColor ) {
-                    robot.foundationControls(false, false);
-                    robot.mecanumDrive(0.5, 0, 0);
-                    if( robot.color.blue() > 75 ){
-                        hitColor=true;
-                    }
-                }else{
-                    robot.foundationControls(false, false);
-                    robot.mecanumDrive(0, 0, 0);
-                }
+                robot.mecanumDrive(0,0,0);
             }
 
     }

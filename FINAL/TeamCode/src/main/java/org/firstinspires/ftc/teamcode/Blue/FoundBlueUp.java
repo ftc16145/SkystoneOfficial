@@ -29,18 +29,13 @@
 
 package org.firstinspires.ftc.teamcode.Blue;
 
-
 import com.qualcomm.robotcore.eventloop.opmode.Autonomous;
-import com.qualcomm.robotcore.eventloop.opmode.Disabled;
 import com.qualcomm.robotcore.eventloop.opmode.OpMode;
 import com.qualcomm.robotcore.util.ElapsedTime;
 
-import org.firstinspires.ftc.robotcore.external.navigation.DistanceUnit;
 import org.firstinspires.ftc.teamcode.Hardware;
 
 import java.util.concurrent.TimeUnit;
-
-
 
 /**
  * This file contains an example of an iterative (Non-Linear) "OpMode".
@@ -56,16 +51,16 @@ import java.util.concurrent.TimeUnit;
  * Remove or comment out the @Disabled line to add this opmode to the Driver Station OpMode list
  */
 
-@Autonomous(name="1 Block B", group="Blue")
-@Disabled
-public class JustBlockBlue extends OpMode
+@Autonomous(name="Found Blue Up", group="Blue")
+
+public class FoundBlueUp extends OpMode
 {// Declare OpMode members.
     private ElapsedTime runtime = new ElapsedTime();
     private Hardware robot = new Hardware();
-    int stage = 1;
-    char currentBlock;
-    double timeOfNewStage;
-    boolean foundCube = false;
+    boolean stage1 = false;
+    boolean stage2= false;
+    boolean hitColor = false;
+
     //private DcMotor leftFront, leftBack, rightFront, rightBack, slide, claw, arm;
     //SLIDE MOTOR
     // 1120 Ticks/rev
@@ -85,14 +80,12 @@ public class JustBlockBlue extends OpMode
     /*
      * Code to run ONCE when the driver hits INIT
      */
-    private void nextStage(){
-        stage++;
-        timeOfNewStage = runtime.time(TimeUnit.SECONDS);
-    }
-
     @Override
     public void init() {
         robot.init( hardwareMap, telemetry );
+
+        telemetry.addData("Status", "Initialized" );
+
 
         // create a sound parameter that holds the desired player parameters.
 
@@ -119,7 +112,6 @@ public class JustBlockBlue extends OpMode
     @Override
     public void init_loop() {
         robot.initLoop();
-
     }
 
     /*
@@ -127,7 +119,6 @@ public class JustBlockBlue extends OpMode
      */
     @Override
     public void start() {
-        //robot.levelArm();
         runtime.reset();
 
     }
@@ -137,67 +128,40 @@ public class JustBlockBlue extends OpMode
     @Override
     public void loop() {
         // First, rotate the  robot to be parallel to the face of the block
-        if( stage == 1 ){
-            if(robot.distance.getDistance(DistanceUnit.CM)<= 5){
-                nextStage();
-            }else{
-                robot.mecanumDrive(0.5,0,0);
-            }
-        }else if( stage == 2 ){
-            if( robot.color.red() < 1000 && robot.color.green() < 1000 ){
-                nextStage();
-            }else{
-                robot.mecanumDrive(0,-0.3,0);
-            }
-        } else if( stage == 3 ) {
-           if(runtime.time(TimeUnit.SECONDS) > timeOfNewStage + 1){
-               nextStage();
-           }else{
-               robot.mecanumDrive(0.5,0.1,0);
-           }
-        }else if (stage == 4){
-            if(runtime.time(TimeUnit.SECONDS) > timeOfNewStage + 0.5){
-                nextStage();
-            }else{
-                robot.mecanumDrive(0,0,0);
-                robot.autoGrab.setTargetPosition(144);
-                robot.autoGrab.setPower(1);
-            }
-        }else if (stage == 5){
-            if(runtime.time(TimeUnit.SECONDS) > timeOfNewStage + 1){
-                nextStage();
-            }else{
-                robot.mecanumDrive(-0.5,0,0);
-                robot.autoGrab.setPower(0);
-            }
-        } else if (stage == 6) {
-            if(runtime.time(TimeUnit.SECONDS) > timeOfNewStage + 1){
-                nextStage();
-            }else{
-                robot.mecanumDrive(-0.5,0,0);
-                robot.autoGrab.setPower(0);
-            }
-        }else if(stage == 7){
-            if(runtime.time(TimeUnit.SECONDS) > timeOfNewStage + 3){
-                nextStage();
-            }else{
-                robot.mecanumDrive(0,0.75,0);
-            }
-        }else if(stage == 8){
-            if(runtime.time(TimeUnit.SECONDS) > timeOfNewStage + 0.5){
-                nextStage();
-            }else{
-                robot.autoGrab.setTargetPosition(0);
-                robot.autoGrab.setPower(1);
-            }
-        }else if(stage == 9){
-            if(runtime.time(TimeUnit.SECONDS) > timeOfNewStage + 1){
-                robot.mecanumDrive(0,0,0);
-            }else{
-                robot.mecanumDrive(0,-0.5,0);
-                robot.autoGrab.setPower(0);
-            }
+
+        double t = runtime.time(TimeUnit.SECONDS);
+        if( t < 1 ){
+            robot.slide.setPower(0.3);
+        }else if( t < 2 ){
+            robot.slide.setPower(0);
         }
+        if( t > 2.5 && t <5){
+            robot.claw.setPower(0.5);
+        }else if( t < 5.5 ){
+            robot.claw.setPower(0);
+        }
+            if( t < 2.5 ){
+                robot.mecanumDrive(-0.15,-0.5,0);
+            }else if( t < 4.5 ){
+                robot.hardBrake();
+                robot.foundationControls(false,true);
+            }else if( t < 7.5 ){
+                robot.foundationControls(false,false);
+                robot.mecanumDrive(-0.2,0.75,0);
+            }else if( t < 8 ){
+
+                robot.mecanumDrive(0,-0.3,0);
+            }else if( t < 10 ) {
+                robot.foundationControls(true,false);
+
+            }else if(t<14){
+                robot.foundationControls(false,false);
+                robot.mecanumDrive(0.5,0,0);
+            }else if(t<16){
+                robot.mecanumDrive(0,-0.3,0);
+            }else{
+                robot.mecanumDrive(0,0,0);
+            }
 
 
     }

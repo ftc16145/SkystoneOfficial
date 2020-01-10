@@ -29,34 +29,17 @@
 
 package org.firstinspires.ftc.teamcode.Red;
 
-
 import com.qualcomm.robotcore.eventloop.opmode.Autonomous;
 import com.qualcomm.robotcore.eventloop.opmode.OpMode;
 import com.qualcomm.robotcore.hardware.DcMotor;
 import com.qualcomm.robotcore.hardware.DcMotorEx;
+import com.qualcomm.robotcore.hardware.HardwareMap;
 import com.qualcomm.robotcore.util.ElapsedTime;
 
-import org.firstinspires.ftc.robotcore.external.ClassFactory;
-import org.firstinspires.ftc.robotcore.external.matrices.OpenGLMatrix;
-import org.firstinspires.ftc.robotcore.external.matrices.VectorF;
-import org.firstinspires.ftc.robotcore.external.navigation.DistanceUnit;
-import org.firstinspires.ftc.robotcore.external.navigation.Orientation;
-import org.firstinspires.ftc.robotcore.external.navigation.VuforiaLocalizer;
-import org.firstinspires.ftc.robotcore.external.navigation.VuforiaTrackable;
-import org.firstinspires.ftc.robotcore.external.navigation.VuforiaTrackableDefaultListener;
-import org.firstinspires.ftc.robotcore.external.navigation.VuforiaTrackables;
 import org.firstinspires.ftc.teamcode.Hardware;
 import org.firstinspires.ftc.teamcode.VuforiaSkyStoneTrack;
 
-import java.util.ArrayList;
-import java.util.List;
 import java.util.concurrent.TimeUnit;
-
-import static org.firstinspires.ftc.robotcore.external.navigation.AngleUnit.DEGREES;
-import static org.firstinspires.ftc.robotcore.external.navigation.AxesOrder.XYZ;
-import static org.firstinspires.ftc.robotcore.external.navigation.AxesOrder.YZX;
-import static org.firstinspires.ftc.robotcore.external.navigation.AxesReference.EXTRINSIC;
-import static org.firstinspires.ftc.robotcore.external.navigation.VuforiaLocalizer.CameraDirection.BACK;
 
 /**
  * This file contains an example of an iterative (Non-Linear) "OpMode".
@@ -72,60 +55,76 @@ import static org.firstinspires.ftc.robotcore.external.navigation.VuforiaLocaliz
  * Remove or comment out the @Disabled line to add this opmode to the Driver Station OpMode list
  */
 
-@Autonomous(name="1 Block R Vision", group="Red")
+@Autonomous(name="Found Red Block", group="Red")
 
-public class JustBlockRedVision extends OpMode
+public class FoundRedBlock extends OpMode
 {// Declare OpMode members.
     private ElapsedTime runtime = new ElapsedTime();
     private Hardware robot = new Hardware();
-    int stage = 1;
-    double timeOfNewStage;
-    double error;
-
-
-    /*
-     * IMPORTANT: You need to obtain your own license key to use Vuforia. The string below with which
-     * 'parameters.vuforiaLicenseKey' is initialized is for illustration only, and will not function.
-     * A Vuforia 'Development' license key, can be obtained free of charge from the Vuforia developer
-     * web site at https://developer.vuforia.com/license-manager.
-     *
-     * Vuforia license keys are always 380 characters long, and look as if they contain mostly
-     * random data. As an example, here is a example of a fragment of a valid key:
-     *      ... yIgIzTqZ4mWjk9wd3cZO9T1axEqzuhxoGlfOOI2dRzKS4T0hQ8kT ...
-     * Once you've obtained a license key, copy the string from the Vuforia web site
-     * and paste it in to your code on the next line, between the double quotes.
-     */
-
-
-
-
-
-    double accelBlock = 0.1;
+    boolean stage1 = false;
+    boolean stage2= false;
+    boolean hitColor = false;
+    int stage =0;
+    double timeOfNewStage = 0;
     VuforiaSkyStoneTrack nav = new VuforiaSkyStoneTrack();
+    boolean first = true;
+    double accelBlock = 0;
+    double error = 0;
+    //private DcMotor leftFront, leftBack, rightFront, rightBack, slide, claw, arm;
+    //SLIDE MOTOR
+    // 1120 Ticks/rev
+    // d = 3cm, r = 1.5cm, C = 3pi cm
+    // Dist = ticks/1120 * 3pi
+    // 32cm length
+    // MAX ENCODER = (32/3pi * 1120) = 3802.7, 3802 ticks+
+    //private GyroSensor gyro;
+    //DcMotor[] drivetrain;
+    //private CRServo found;
+
+
+
+
+    //public Drivetrain drive;
 
     /*
      * Code to run ONCE when the driver hits INIT
      */
+    @Override
+    public void init() {
+        robot.init( hardwareMap, telemetry );
+        telemetry.addData("Status", "Initialized" );
+        nav.init(hardwareMap);
+
+        // create a sound parameter that holds the desired player parameters.
+
+        // Initialize the hardware variables. Note that the strings used here as parameters
+        // to 'get' must correspond to the names assigned during the robot configuration
+        // step (using the FTC Robot Controller app on the phone).
+
+        // Most robots need the motor on one side to be reversed to drive forward
+        // Reverse the motor that runs backwards when connected directly to the battery
+
+        //drive = Drivetrain.init( 0, 0, 0, Drivetrain.driveType.fourWheel );
+
+        // Tell the driver that initialization is complete.
+
+        //gyro = hardwareMap.get( GyroSensor.class, "gyro" );
+        //gyro.calibrate();
+
+
+    }
     private void nextStage(){
         stage++;
         timeOfNewStage = runtime.time(TimeUnit.SECONDS);
         robot.setMotorPowers(0,0,0,0);
+        first = true;
     }
-
-    @Override
-    public void init() {
-        robot.init( hardwareMap, telemetry );
-        nav.init( hardwareMap );
-
-    }
-
     /*
      * Code to run REPEATEDLY after the driver hits INIT, but before they hit PLAY
      */
     @Override
     public void init_loop() {
         robot.initLoop();
-
     }
 
     /*
@@ -133,17 +132,8 @@ public class JustBlockRedVision extends OpMode
      */
     @Override
     public void start() {
-        nav.activate();
-        robot.setDriveModes(DcMotorEx.RunMode.STOP_AND_RESET_ENCODER);
-        for( DcMotorEx m : robot.drivetrain ){
-            m.setTargetPosition(0);
-            m.setPower(0);
-            m.setPositionPIDFCoefficients(4);
-        }
-        robot.setDriveModes(DcMotorEx.RunMode.RUN_TO_POSITION);
-        robot.levelArm();
-        robot.operateClaw(true);
         runtime.reset();
+
 
     }
     /*
@@ -151,20 +141,42 @@ public class JustBlockRedVision extends OpMode
      */
     @Override
     public void loop() {
-
         // First, rotate the  robot to be parallel to the face of the block
-        if( stage == 1 ){
-            for( DcMotorEx m : robot.drivetrain ){
-                // (24/(4*Math.PI))*1120 == 2140
-                m.setTargetPosition(2140);
-                m.setPower(accelBlock);
+
+        double t = runtime.time(TimeUnit.SECONDS);
+        if(stage == 1) {
+            if (t < 2) {
+                robot.levelArm();
             }
-            if(accelBlock < 1){
-                accelBlock += 0.1;
-            }
-            if( !(robot.leftFront.isBusy() || robot.leftBack.isBusy() || robot.rightFront.isBusy() || robot.rightBack.isBusy()) ){
-                robot.setDriveModes(DcMotorEx.RunMode.RUN_USING_ENCODER);
-                robot.mecanumDrive(0,0,0);
+            if (t < 2.5) {
+                robot.mecanumDrive(0.15, -0.5, 0);
+            } else if (t < 4.5) {
+                robot.hardBrake();
+                robot.foundationControls(false, true);
+            } else if (t < 7.5) {
+                robot.foundationControls(false, false);
+                robot.mecanumDrive(0.2, 0.75, 0);
+            } else if (t < 8) {
+                robot.mecanumDrive(0, -0.3, 0);
+            } else if (t < 10) {
+                robot.foundationControls(true, false);
+            } else if (t < 14) {
+                robot.foundationControls(false, false);
+                robot.mecanumDrive(-0.5, 0, 0);
+            } else if (t < 16) {
+                robot.mecanumDrive(0, -0.3, 0);
+                if (first) {
+                    nav.activate();
+                }
+                first = false;
+            } else if (t < 18) {
+                robot.foundationControls(false, false);
+                robot.mecanumDrive(0, -0.5, 0);
+                if(nav.getPosition().isPositionValid){
+                    robot.hardBrake();
+                    nextStage();
+                }
+            }else {
                 nextStage();
             }
         }else if( stage == 2 ){
@@ -196,11 +208,9 @@ public class JustBlockRedVision extends OpMode
                 if( !(robot.leftFront.isBusy() || robot.leftBack.isBusy() || robot.rightFront.isBusy() || robot.rightBack.isBusy()) ){
                     robot.setDriveModes(DcMotorEx.RunMode.RUN_USING_ENCODER);
                     robot.mecanumDrive(0,0,0);
-                    robot.operateClaw(false);
-                    if(!robot.claw.isBusy()){
-                        robot.levelArm();
-                        nextStage();
-                    }
+                    robot.claw.setMode(DcMotorEx.RunMode.RUN_USING_ENCODER);
+                    robot.claw.setPower(-0.8);
+                    nextStage();
                 }
             }
         }else if( stage == 4 ){
@@ -251,10 +261,6 @@ public class JustBlockRedVision extends OpMode
         }else{
             robot.mecanumDrive(0,0,0);
         }
-        telemetry.addData("Runtime",runtime.time(TimeUnit.SECONDS));
-        telemetry.addData("Stage",stage);
-        telemetry.update();
-
 
     }
 
@@ -264,8 +270,7 @@ public class JustBlockRedVision extends OpMode
      */
     @Override
     public void stop() {
-        nav.deactivate();
-        //  drive.stop();
+
     }
 
 }

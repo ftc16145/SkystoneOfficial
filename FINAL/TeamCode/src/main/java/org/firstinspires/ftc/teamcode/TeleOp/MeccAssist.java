@@ -213,7 +213,7 @@ public class MeccAssist extends OpMode
         }else{
             if( leveling ){
                 robot.clawControl( gamepad2.right_bumper, gamepad2.right_trigger >= 0.5 );
-                robot.slideControl( gamepad2.y ? 0.5 : gamepad1.a ? -0.5 : 0 );
+                robot.slideControl( gamepad2.y ? 0.5 : gamepad2.a ? -0.5 : 0 );
                 if( !robot.arm.isBusy() ){
                     leveling = false;
                     robot.spoolControl( 0 );
@@ -223,9 +223,9 @@ public class MeccAssist extends OpMode
                 leveling = true;
                 robot.arm.setMode( DcMotorEx.RunMode.RUN_TO_POSITION );
                 robot.arm.setTargetPosition( 0 );
-                robot.spoolControl( 0.25 );
+                robot.spoolControl( 0.5 );
             }
-            robot.armMechanismControls( gamepad2.right_bumper, gamepad2.right_trigger >= 0.5, gamepad2.left_bumper, gamepad2.left_trigger >= 0.5, gamepad2.y ? 0.5 : gamepad1.a ? -0.5 : 0 );
+            robot.armMechanismControls( gamepad2.right_bumper, gamepad2.right_trigger >= 0.5, gamepad2.left_bumper, gamepad2.left_trigger >= 0.5, gamepad2.y ? 0.5 : gamepad2.a ? -0.5 : 0 );
             robot.foundationControls( gamepad2.dpad_down, gamepad2.dpad_up );
         }
         telemetry.addData("RGB",robot.color.red() + " " + robot.color.green() + " " + robot.color.blue() );
