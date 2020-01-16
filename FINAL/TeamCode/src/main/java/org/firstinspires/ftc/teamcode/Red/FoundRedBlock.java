@@ -30,6 +30,7 @@
 package org.firstinspires.ftc.teamcode.Red;
 
 import com.qualcomm.robotcore.eventloop.opmode.Autonomous;
+import com.qualcomm.robotcore.eventloop.opmode.Disabled;
 import com.qualcomm.robotcore.eventloop.opmode.OpMode;
 import com.qualcomm.robotcore.hardware.DcMotor;
 import com.qualcomm.robotcore.hardware.DcMotorEx;
@@ -56,7 +57,7 @@ import java.util.concurrent.TimeUnit;
  */
 
 @Autonomous(name="Found Red Block", group="Red")
-
+@Disabled
 public class FoundRedBlock extends OpMode
 {// Declare OpMode members.
     private ElapsedTime runtime = new ElapsedTime();

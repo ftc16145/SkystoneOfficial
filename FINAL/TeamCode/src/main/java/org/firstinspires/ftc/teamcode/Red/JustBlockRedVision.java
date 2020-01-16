@@ -31,6 +31,7 @@ package org.firstinspires.ftc.teamcode.Red;
 
 
 import com.qualcomm.robotcore.eventloop.opmode.Autonomous;
+import com.qualcomm.robotcore.eventloop.opmode.Disabled;
 import com.qualcomm.robotcore.eventloop.opmode.OpMode;
 import com.qualcomm.robotcore.hardware.DcMotor;
 import com.qualcomm.robotcore.hardware.DcMotorEx;
@@ -73,7 +74,7 @@ import static org.firstinspires.ftc.robotcore.external.navigation.VuforiaLocaliz
  */
 
 @Autonomous(name="1 Block R Vision", group="Red")
-
+@Disabled
 public class JustBlockRedVision extends OpMode
 {// Declare OpMode members.
     private ElapsedTime runtime = new ElapsedTime();

@@ -31,7 +31,6 @@ package org.firstinspires.ftc.teamcode.Red;
 
 
 import com.qualcomm.robotcore.eventloop.opmode.Autonomous;
-import com.qualcomm.robotcore.eventloop.opmode.Disabled;
 import com.qualcomm.robotcore.eventloop.opmode.OpMode;
 import com.qualcomm.robotcore.hardware.DcMotor;
 import com.qualcomm.robotcore.hardware.DcMotorEx;
@@ -60,7 +59,7 @@ import java.util.concurrent.TimeUnit;
 
 @Autonomous(name="Test 18", group="Red")
 
-public class Test18 extends OpMode
+public class TestTurn extends OpMode
 {// Declare OpMode members.
     private ElapsedTime runtime = new ElapsedTime();
     private Hardware robot = new Hardware();
@@ -166,7 +165,10 @@ public class Test18 extends OpMode
             robot.rightBack.setTargetPosition(725);
             robot.leftBack.setTargetPosition(-725);
             robot.rightFront.setTargetPosition(-725);
-            robot.setMotorPowers(1, 1, 1, 1);
+            robot.setMotorPowers(.4, .4, .4, .4);
+            if(nav.getPosition().isPositionValid){
+                setStage( 3 );
+            }
             if (Math.abs(robot.leftFront.getCurrentPosition() - 725) < 50) {
                 setStage( 2 );
 

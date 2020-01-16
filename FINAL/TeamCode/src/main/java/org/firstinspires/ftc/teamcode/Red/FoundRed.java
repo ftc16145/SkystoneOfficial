@@ -58,9 +58,6 @@ public class FoundRed extends OpMode
 {// Declare OpMode members.
     private ElapsedTime runtime = new ElapsedTime();
     private Hardware robot = new Hardware();
-    boolean stage1 = false;
-    boolean stage2= false;
-    boolean hitColor = false;
     //private DcMotor leftFront, leftBack, rightFront, rightBack, slide, claw, arm;
     //SLIDE MOTOR
     // 1120 Ticks/rev
@@ -132,19 +129,19 @@ public class FoundRed extends OpMode
         if(t<2){
             robot.levelArm();
         }
-            if( t < 2.5 ){
+            if( t < 3 ){
                 robot.mecanumDrive(0.15,-0.5,0);
-            }else if( t < 4.5 ){
+            }else if( t < 6 ){
                 robot.hardBrake();
                 robot.foundationControls(false,true);
-            }else if( t < 7.5 ){
+            }else if( t < 9 ){
                 robot.foundationControls(false,false);
                 robot.mecanumDrive(0.2,0.75,0);
-            }else if( t < 8 ){
+            }else if( t < 10 ){
                 robot.mecanumDrive(0,-0.3,0);
-            }else if( t < 10 ) {
+            }else if( t < 13 ) {
                 robot.foundationControls(true,false);
-            }else if(t<14){
+            }else if( t < 17 ){
                 robot.foundationControls(false,false);
                 robot.mecanumDrive(-0.5,0,0);
             }else{
