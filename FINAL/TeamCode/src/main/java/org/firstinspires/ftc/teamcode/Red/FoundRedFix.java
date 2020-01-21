@@ -30,8 +30,8 @@
 package org.firstinspires.ftc.teamcode.Red;
 
 import com.qualcomm.robotcore.eventloop.opmode.Autonomous;
-import com.qualcomm.robotcore.eventloop.opmode.Disabled;
 import com.qualcomm.robotcore.eventloop.opmode.OpMode;
+import com.qualcomm.robotcore.hardware.DcMotorEx;
 import com.qualcomm.robotcore.util.ElapsedTime;
 
 import org.firstinspires.ftc.teamcode.Hardware;
@@ -52,15 +52,16 @@ import java.util.concurrent.TimeUnit;
  * Remove or comment out the @Disabled line to add this opmode to the Driver Station OpMode list
  */
 
-@Autonomous(name="Found Red Up", group="Red")
-@Disabled
-public class FoundRedUp extends OpMode
+@Autonomous(name="Found Red Rot", group="Red")
+
+public class FoundRedFix extends OpMode
 {// Declare OpMode members.
     private ElapsedTime runtime = new ElapsedTime();
     private Hardware robot = new Hardware();
-    boolean stage1 = false;
-    boolean stage2= false;
-    boolean hitColor = false;
+    boolean rotated = false;
+    int delay = 0;
+    int stage = 1;
+    double timeOfNewStage;
     //private DcMotor leftFront, leftBack, rightFront, rightBack, slide, claw, arm;
     //SLIDE MOTOR
     // 1120 Ticks/rev
@@ -76,7 +77,13 @@ public class FoundRedUp extends OpMode
 
 
     //public Drivetrain drive;
-
+    private void nextStage(){
+        robot.setDriveModes(DcMotorEx.RunMode.STOP_AND_RESET_ENCODER);
+        robot.setDriveModes(DcMotorEx.RunMode.RUN_TO_POSITION);
+        stage++;
+        timeOfNewStage = runtime.time(TimeUnit.SECONDS);
+        robot.setMotorPowers(0,0,0,0);
+    }
     /*
      * Code to run ONCE when the driver hits INIT
      */
@@ -129,28 +136,47 @@ public class FoundRedUp extends OpMode
         // First, rotate the  robot to be parallel to the face of the block
 
         double t = runtime.time(TimeUnit.SECONDS);
-        if(t<2){
-            robot.levelArm();
-        }
-            if( t < 2.5 ){
-                robot.mecanumDrive(0.15,-0.5,0);
-            }else if( t < 4.5 ){
-                robot.hardBrake();
-                robot.foundationControls(false,true);
-            }else if( t < 7.5 ){
-                robot.foundationControls(false,false);
-                robot.mecanumDrive(0.2,0.75,0);
-            }else if( t < 8 ){
-                robot.mecanumDrive(0,-0.3,0);
-            }else if( t < 10 ) {
+        if( stage == 1 ){
+           if( t >= delay ){
+               nextStage();
+           }
+        } else if( stage == 2 ) {
+            robot.mecanumDrive(0.15, -0.5, 0);
+            if (t > timeOfNewStage + 3) {
+                nextStage();
+            }
+        }else if( stage == 3 ) {
+            robot.hardBrake();
+            robot.foundationControls(false, true);
+            if (t > timeOfNewStage + 3) {
+                nextStage();
+            }
+        }else if( stage == 4 ) {
+            robot.foundationControls(false, false);
+            robot.mecanumDrive(0.2, 0.75, 0);
+            if (t > timeOfNewStage + 3) {
+                nextStage();
+            }
+        }else if( stage == 5 ){
+                double error = Math.toDegrees(robot.yaw())-90;
+                if( Math.abs(error) < 5 ){
+                    nextStage();
+                }else{
+                    robot.mecanumDrive(0,0,error*-0.2);
+                }
+            }else if( stage == 6 ) {
                 robot.foundationControls(true,false);
-            }else if(t<14){
+            if (t > timeOfNewStage + 3) {
+                nextStage();
+            }
+            }else if( stage == 7 ){
                 robot.foundationControls(false,false);
-                robot.mecanumDrive(-0.5,0,0);
-            }else if(t<16){
-               robot.mecanumDrive(0,-0.3,0);
+                robot.mecanumDriveFieldOrient(0,0.75,0);
+                if (t > timeOfNewStage + 4) {
+                    nextStage();
+                }
             }else{
-                robot.mecanumDrive(0,0,0);
+               robot.mecanumDrive(0,0,0);
             }
 
     }

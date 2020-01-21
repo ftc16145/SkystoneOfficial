@@ -31,6 +31,7 @@ package org.firstinspires.ftc.teamcode.TeleOp;
 
 import com.qualcomm.robotcore.eventloop.opmode.OpMode;
 import com.qualcomm.robotcore.eventloop.opmode.TeleOp;
+import com.qualcomm.robotcore.hardware.DcMotor;
 import com.qualcomm.robotcore.hardware.DcMotorEx;
 import com.qualcomm.robotcore.util.ElapsedTime;
 
@@ -116,6 +117,7 @@ public class Mecc extends OpMode
     @Override
     public void start() {
         runtime.reset();
+        robot.autoGrab.setMode( DcMotorEx.RunMode.RUN_TO_POSITION );
     }
     /*
      * Code to run REPEATEDLY after the driver hits PLAY but before they hit STOP
@@ -124,12 +126,20 @@ public class Mecc extends OpMode
     public void loop() {
         robot.mecanumDrive( gamepad1.left_stick_x, gamepad1.left_stick_y, gamepad1.right_stick_x );
         robot.foundationControls( gamepad2.dpad_down, gamepad2.dpad_up );
-        robot.armMechanismControls( gamepad2.right_bumper, gamepad2.right_trigger >= 0.5, gamepad2.left_bumper, gamepad2.left_trigger >= 0.5, gamepad2.y ? 0.5 : gamepad2.a ? -0.5 : 0 );
+        robot.armMechanismControls(gamepad2.right_bumper, gamepad2.right_trigger >= 0.5, gamepad2.left_bumper, gamepad2.left_trigger >= 0.5, gamepad2.y ? 0.5 : gamepad2.a ? -0.5 : 0);
+        if(gamepad2.dpad_right){
+            robot.autoGrab.setTargetPosition(0);
+            robot.autoGrab.setPower(0.75);
+        }else if(gamepad2.dpad_left){
+            robot.autoGrab.setTargetPosition(- 175);
+            robot.autoGrab.setPower(-0.75);
+        }else{
+            robot.autoGrab.setPower(0);
+        }
         telemetry.addData("RGB",robot.color.red() + " " + robot.color.green() + " " + robot.color.blue());
         telemetry.addData("Gyro",robot.yaw());
         telemetry.addData("Slide Enc",robot.slide.getCurrentPosition());
         telemetry.addData("Status", "Run Time: " + runtime.toString() );
-
         telemetry.update();
     }
 

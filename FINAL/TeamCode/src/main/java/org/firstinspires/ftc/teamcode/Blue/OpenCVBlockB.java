@@ -27,29 +27,19 @@
  * OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
 
-package org.firstinspires.ftc.teamcode.Red;
+package org.firstinspires.ftc.teamcode.Blue;
 
 import com.qualcomm.robotcore.eventloop.opmode.Autonomous;
-import com.qualcomm.robotcore.eventloop.opmode.Disabled;
 import com.qualcomm.robotcore.eventloop.opmode.OpMode;
-import com.qualcomm.robotcore.hardware.DcMotor;
 import com.qualcomm.robotcore.hardware.DcMotorEx;
 import com.qualcomm.robotcore.util.ElapsedTime;
 
 import org.firstinspires.ftc.robotcore.external.navigation.DistanceUnit;
 import org.firstinspires.ftc.teamcode.Hardware;
-import org.firstinspires.ftc.teamcode.opencvSkystoneDetector;
-import org.openftc.easyopencv.OpenCvCamera;
-
-import java.sql.Time;
-import java.util.concurrent.TimeUnit;
-
 import org.opencv.core.Core;
 import org.opencv.core.Mat;
 import org.opencv.core.MatOfPoint;
-import org.opencv.core.MatOfPoint2f;
 import org.opencv.core.Point;
-import org.opencv.core.Rect;
 import org.opencv.core.Scalar;
 import org.opencv.imgproc.Imgproc;
 import org.openftc.easyopencv.OpenCvCamera;
@@ -60,6 +50,7 @@ import org.openftc.easyopencv.OpenCvPipeline;
 
 import java.util.ArrayList;
 import java.util.List;
+import java.util.concurrent.TimeUnit;
 
 /**
  * This file contains an example of an iterative (Non-Linear) "OpMode".
@@ -75,8 +66,8 @@ import java.util.List;
  * Remove or comment out the @Disabled line to add this opmode to the Driver Station OpMode list
  */
 
-@Autonomous(name="OpenCVBlockRed" , group="Red")
-public class OpenCVBlock extends OpMode
+@Autonomous(name="OpenCVBlockBlue", group="Blue")
+public class OpenCVBlockB extends OpMode
 {// Declare OpMode members.
     private ElapsedTime runtime = new ElapsedTime();
     private Hardware robot = new Hardware();
@@ -130,7 +121,7 @@ public class OpenCVBlock extends OpMode
         cameraMonitorViewId = hardwareMap.appContext.getResources().getIdentifier("cameraMonitorViewId", "id", hardwareMap.appContext.getPackageName());
         phoneCam  = OpenCvCameraFactory.getInstance().createInternalCamera(OpenCvInternalCamera.CameraDirection.FRONT, cameraMonitorViewId);
         phoneCam.openCameraDevice();//open camera
-        phoneCam.setPipeline(new OpenCVBlock.StageSwitchingPipeline());//different stages
+        phoneCam.setPipeline(new OpenCVBlockB.StageSwitchingPipeline());//different stages
         phoneCam.startStreaming(rows, cols, OpenCvCameraRotation.SIDEWAYS_LEFT);//display on RC
         // create a sound parameter that holds the desired player parameters.
 
@@ -160,9 +151,9 @@ public class OpenCVBlock extends OpMode
         if( valMid == 0 && valLeft == 255 && valRight == 255 ){
             adjust = 0;
         }else if( valMid == 255 && valLeft == 0 && valRight == 255 ){
-            adjust = -650;
+            adjust = -450;
         }else if( valMid == 255 && valLeft == 255 && valRight == 0 ){
-            adjust =  450;
+            adjust = 650;
         }else{
             adjust = 0;
         }
@@ -233,26 +224,26 @@ public class OpenCVBlock extends OpMode
             }
         }else if( stage == 5 ){
             // 6 back, grab
-            robot.autoGrab.setTargetPosition(-288/2);
+            robot.autoGrab.setTargetPosition(-175);
             robot.autoGrab.setPower(1);
             if(!robot.autoGrab.isBusy() || (runtime.time(TimeUnit.SECONDS) > timeOfNewStage + 2) ) {
-                robot.leftFront.setTargetPosition(2250);
-                robot.leftBack.setTargetPosition(-2250);
-                robot.rightFront.setTargetPosition(-2250);
-                robot.rightBack.setTargetPosition(2250);
+                robot.leftFront.setTargetPosition(1750);
+                robot.leftBack.setTargetPosition(-1750);
+                robot.rightFront.setTargetPosition(-1750);
+                robot.rightBack.setTargetPosition(1750);
                 robot.setMotorPowers(1, 1, 1, 1);
-                if (Math.abs(robot.leftFront.getCurrentPosition() - 2250) < 50) {
+                if (Math.abs(robot.leftFront.getCurrentPosition() - 1750) < 50) {
                     nextStage();
                 }
             }
         }else if( stage == 6 ){
             // 48 + adjust
-            robot.leftFront.setTargetPosition( ( 5300 ) );
-            robot.leftBack.setTargetPosition( ( 5300 ) );
-            robot.rightFront.setTargetPosition( ( 5300 ) );
-            robot.rightBack.setTargetPosition( ( 5300 ) );
+            robot.leftFront.setTargetPosition( ( -5750 ) );
+            robot.leftBack.setTargetPosition( ( -5750 ) );
+            robot.rightFront.setTargetPosition( ( -5750 ) );
+            robot.rightBack.setTargetPosition( ( -5750 ) );
             robot.setMotorPowers(1, 1, 1, 1 );
-            if ( Math.abs( robot.leftFront.getCurrentPosition() - ( 5300 ) ) < 50 ) {
+            if ( Math.abs( robot.leftFront.getCurrentPosition() + ( 5750 ) ) < 50 ) {
                 nextStage();
             }
             
@@ -266,10 +257,10 @@ public class OpenCVBlock extends OpMode
             }
         }else if( stage == 8 ){
             // Move back 24
-            robot.leftFront.setTargetPosition( -1600 );
-            robot.leftBack.setTargetPosition( -1600 );
-            robot.rightFront.setTargetPosition( -1600 );
-            robot.rightBack.setTargetPosition( -1600 );
+            robot.leftFront.setTargetPosition( 1600 );
+            robot.leftBack.setTargetPosition( 1600 );
+            robot.rightFront.setTargetPosition( 1600 );
+            robot.rightBack.setTargetPosition( 1600 );
             robot.setMotorPowers(1, 1, 1, 1 );
             if ( Math.abs( robot.leftFront.getCurrentPosition() + 1600 ) < 50 ) {
                 nextStage();
@@ -285,7 +276,7 @@ public class OpenCVBlock extends OpMode
 
 
     /*
-     * Code to run ONCE after the driver hits STOP
+     * Code to run ONCE after the driver hits STOP z
      */
     @Override
     public void stop() {

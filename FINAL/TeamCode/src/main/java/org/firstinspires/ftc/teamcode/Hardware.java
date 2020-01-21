@@ -245,19 +245,39 @@ public class Hardware {
     }
     public void mecanumDrive(double x, double y, double rot) {
         double nX, nY;
-        nX = (Math.abs(x - prevXPower) > 0.1) ? prevXPower + Math.signum(x - prevXPower) * 0.1 : x;
-        nY = (Math.abs(y - prevYPower) > 0.1) ? prevYPower + Math.signum(y - prevYPower) * 0.1 : y;
+        // Updated from 0.1 to 0.2, testing to amp up accel
+        nX = (Math.abs(x - prevXPower) > 0.2) ? prevXPower + Math.signum(x - prevXPower) * 0.2 : x;
+        nY = (Math.abs(y - prevYPower) > 0.2) ? prevYPower + Math.signum(y - prevYPower) * 0.2 : y;
 
         double r = Math.hypot(-nX, nY);
         double robotAngle = Math.atan2(nY, -nX) - Math.PI / 4;
         double rightX = rot;
-        final double v1 = r * Math.cos(robotAngle) - rightX;
-        final double v2 = r * Math.sin(robotAngle) - rightX;
-        final double v3 = r * Math.sin(robotAngle) + rightX;
-        final double v4 = r * Math.cos(robotAngle) + rightX;
+        double v1 = r * Math.cos(robotAngle) - rightX;
+        double v2 = r * Math.sin(robotAngle) - rightX;
+        double v3 = r * Math.sin(robotAngle) + rightX;
+        double v4 = r * Math.cos(robotAngle) + rightX;
+        double[] vals = {v1,v2,v3,v4};
+
+        // Calculate maximum out of the 4 values
+        double max = 0;
+        for( double v : vals ){
+            if( Math.abs( v ) > max ){
+                max = Math.abs( v );
+            }
+        }
+
+        // As long as the robot is in fact moving and is not just turning
+        // Set all values to at most 1, mult by r to account for the magnitude input
+
+        // Might need to make these deadbands instead of a hard zero
+        if( max != 0 && r != 0 ){
+            v1 = ( v1 / max ) * r;
+            v2 = ( v2 / max ) * r;
+            v3 = ( v3 / max ) * r;
+            v4 = ( v4 / max ) * r;
+        }
         setMotorPowers(v1,v2,v3,v4);
         // NOW: leftFront, leftBack, rightFront, rightBack
-        // NEED: leftFront leftRear rightRear rightFront
         prevXPower = nX;
         prevYPower = nY;
     }

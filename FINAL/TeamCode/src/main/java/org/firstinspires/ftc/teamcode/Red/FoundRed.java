@@ -58,6 +58,8 @@ public class FoundRed extends OpMode
 {// Declare OpMode members.
     private ElapsedTime runtime = new ElapsedTime();
     private Hardware robot = new Hardware();
+
+    int delay = 0;
     //private DcMotor leftFront, leftBack, rightFront, rightBack, slide, claw, arm;
     //SLIDE MOTOR
     // 1120 Ticks/rev
@@ -126,24 +128,25 @@ public class FoundRed extends OpMode
         // First, rotate the  robot to be parallel to the face of the block
 
         double t = runtime.time(TimeUnit.SECONDS);
-        if(t<2){
-            robot.levelArm();
+
+        if( t < 2 + delay ){
+            //robot.levelArm();
         }
-            if( t < 3 ){
+            if( t < 3 + delay){
                 robot.mecanumDrive(0.15,-0.5,0);
-            }else if( t < 6 ){
+            }else if( t < 6 + delay){
                 robot.hardBrake();
                 robot.foundationControls(false,true);
-            }else if( t < 9 ){
+            }else if( t < 9 + delay){
                 robot.foundationControls(false,false);
                 robot.mecanumDrive(0.2,0.75,0);
-            }else if( t < 10 ){
-                robot.mecanumDrive(0,-0.3,0);
-            }else if( t < 13 ) {
+            }else if( t < 10 + delay){
+                robot.mecanumDrive(0,-0.1,0);
+            }else if( t < 13 + delay) {
                 robot.foundationControls(true,false);
-            }else if( t < 17 ){
+            }else if( t < 17 + delay){
                 robot.foundationControls(false,false);
-                robot.mecanumDrive(-0.5,0,0);
+                robot.mecanumDriveFieldOrient(-0.75,0,0);
             }else{
                robot.mecanumDrive(0,0,0);
             }

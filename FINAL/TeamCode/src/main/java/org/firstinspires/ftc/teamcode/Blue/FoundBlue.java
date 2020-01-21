@@ -27,7 +27,7 @@
  * OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
 
-package org.firstinspires.ftc.teamcode.Auton.Blue;
+package org.firstinspires.ftc.teamcode.Blue;
 
 import com.qualcomm.robotcore.eventloop.opmode.Autonomous;
 import com.qualcomm.robotcore.eventloop.opmode.Disabled;
@@ -58,10 +58,8 @@ public class FoundBlue extends OpMode
 {// Declare OpMode members.
     private ElapsedTime runtime = new ElapsedTime();
     private Hardware robot = new Hardware();
-    boolean stage1 = false;
-    boolean stage2= false;
-    boolean hitColor = false;
 
+    int delay = 0;
     //private DcMotor leftFront, leftBack, rightFront, rightBack, slide, claw, arm;
     //SLIDE MOTOR
     // 1120 Ticks/rev
@@ -131,37 +129,27 @@ public class FoundBlue extends OpMode
         // First, rotate the  robot to be parallel to the face of the block
 
         double t = runtime.time(TimeUnit.SECONDS);
-        if( t < 1 ){
-            robot.slide.setPower(0.3);
-        }else if( t < 2 ){
-            robot.slide.setPower(0);
+        if( t < 2 + delay ){
+            //robot.levelArm();
         }
-        if( t > 2.5 && t <5){
-            robot.claw.setPower(0.5);
-        }else if( t < 5.5 ){
-            robot.claw.setPower(0);
+        if( t < 3 + delay ){
+            robot.mecanumDrive(-0.15,-0.5,0);
+        }else if( t < 6 + delay ){
+            robot.hardBrake();
+            robot.foundationControls(false,true);
+        }else if( t < 9 + delay ){
+            robot.foundationControls(false,false);
+            robot.mecanumDrive(-0.2,0.75,-0.2);
+        }else if( t < 10 + delay ){
+            robot.mecanumDrive(0,-0.1,0);
+        }else if( t < 13 + delay ) {
+            robot.foundationControls(true,false);
+        }else if( t < 17 + delay ){
+            robot.foundationControls(false,false);
+            robot.mecanumDriveFieldOrient(0.75,0,0);
+        }else{
+            robot.mecanumDrive(0,0,0);
         }
-            if( t < 2.5 ){
-                robot.mecanumDrive(-0.15,-0.5,0);
-            }else if( t < 4.5 ){
-                robot.hardBrake();
-                robot.foundationControls(false,true);
-            }else if( t < 7.5 ){
-                robot.foundationControls(false,false);
-                robot.mecanumDrive(-0.2,0.75,0);
-            }else if( t < 8 ){
-
-                robot.mecanumDrive(0,-0.3,0);
-            }else if( t < 10 ) {
-                robot.foundationControls(true,false);
-
-            }else if(t<14){
-                robot.foundationControls(false,false);
-                robot.mecanumDrive(0.5,0,0);
-            }else{
-                robot.mecanumDrive(0,0,0);
-            }
-
     }
 
 

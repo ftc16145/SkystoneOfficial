@@ -27,18 +27,14 @@
  * OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
 
-package org.firstinspires.ftc.teamcode.Red;
+package org.firstinspires.ftc.teamcode.Blue;
 
 import com.qualcomm.robotcore.eventloop.opmode.Autonomous;
-import com.qualcomm.robotcore.eventloop.opmode.Disabled;
 import com.qualcomm.robotcore.eventloop.opmode.OpMode;
-import com.qualcomm.robotcore.hardware.DcMotor;
 import com.qualcomm.robotcore.hardware.DcMotorEx;
-import com.qualcomm.robotcore.hardware.HardwareMap;
 import com.qualcomm.robotcore.util.ElapsedTime;
 
 import org.firstinspires.ftc.teamcode.Hardware;
-import org.firstinspires.ftc.teamcode.VuforiaSkyStoneTrack;
 
 import java.util.concurrent.TimeUnit;
 
@@ -56,21 +52,16 @@ import java.util.concurrent.TimeUnit;
  * Remove or comment out the @Disabled line to add this opmode to the Driver Station OpMode list
  */
 
-@Autonomous(name="Found Red Block", group="Red")
-@Disabled
-public class FoundRedBlock extends OpMode
+@Autonomous(name="Found Blue Rot", group="Blue")
+
+public class FoundBlueFix extends OpMode
 {// Declare OpMode members.
     private ElapsedTime runtime = new ElapsedTime();
     private Hardware robot = new Hardware();
-    boolean stage1 = false;
-    boolean stage2= false;
-    boolean hitColor = false;
-    int stage =0;
-    double timeOfNewStage = 0;
-    VuforiaSkyStoneTrack nav = new VuforiaSkyStoneTrack();
-    boolean first = true;
-    double accelBlock = 0;
-    double error = 0;
+    boolean rotated = false;
+    int delay = 0;
+    int stage = 1;
+    double timeOfNewStage;
     //private DcMotor leftFront, leftBack, rightFront, rightBack, slide, claw, arm;
     //SLIDE MOTOR
     // 1120 Ticks/rev
@@ -86,7 +77,13 @@ public class FoundRedBlock extends OpMode
 
 
     //public Drivetrain drive;
-
+    private void nextStage(){
+        robot.setDriveModes(DcMotorEx.RunMode.STOP_AND_RESET_ENCODER);
+        robot.setDriveModes(DcMotorEx.RunMode.RUN_TO_POSITION);
+        stage++;
+        timeOfNewStage = runtime.time(TimeUnit.SECONDS);
+        robot.setMotorPowers(0,0,0,0);
+    }
     /*
      * Code to run ONCE when the driver hits INIT
      */
@@ -94,7 +91,7 @@ public class FoundRedBlock extends OpMode
     public void init() {
         robot.init( hardwareMap, telemetry );
         telemetry.addData("Status", "Initialized" );
-        nav.init(hardwareMap);
+
 
         // create a sound parameter that holds the desired player parameters.
 
@@ -114,12 +111,7 @@ public class FoundRedBlock extends OpMode
 
 
     }
-    private void nextStage(){
-        stage++;
-        timeOfNewStage = runtime.time(TimeUnit.SECONDS);
-        robot.setMotorPowers(0,0,0,0);
-        first = true;
-    }
+
     /*
      * Code to run REPEATEDLY after the driver hits INIT, but before they hit PLAY
      */
@@ -135,7 +127,6 @@ public class FoundRedBlock extends OpMode
     public void start() {
         runtime.reset();
 
-
     }
     /*
      * Code to run REPEATEDLY after the driver hits PLAY but before they hit STOP
@@ -145,124 +136,48 @@ public class FoundRedBlock extends OpMode
         // First, rotate the  robot to be parallel to the face of the block
 
         double t = runtime.time(TimeUnit.SECONDS);
-        if(stage == 1) {
-            if (t < 2) {
-                robot.levelArm();
-            }
-            if (t < 2.5) {
-                robot.mecanumDrive(0.15, -0.5, 0);
-            } else if (t < 4.5) {
-                robot.hardBrake();
-                robot.foundationControls(false, true);
-            } else if (t < 7.5) {
-                robot.foundationControls(false, false);
-                robot.mecanumDrive(0.2, 0.75, 0);
-            } else if (t < 8) {
-                robot.mecanumDrive(0, -0.3, 0);
-            } else if (t < 10) {
-                robot.foundationControls(true, false);
-            } else if (t < 14) {
-                robot.foundationControls(false, false);
-                robot.mecanumDrive(-0.5, 0, 0);
-            } else if (t < 16) {
-                robot.mecanumDrive(0, -0.3, 0);
-                if (first) {
-                    nav.activate();
-                }
-                first = false;
-            } else if (t < 18) {
-                robot.foundationControls(false, false);
-                robot.mecanumDrive(0, -0.5, 0);
-                if(nav.getPosition().isPositionValid){
-                    robot.hardBrake();
-                    nextStage();
-                }
-            }else {
+        if( stage == 1 ){
+            if( t >= delay ){
                 nextStage();
             }
-        }else if( stage == 2 ){
-            VuforiaSkyStoneTrack.Position pos = nav.getPosition();
-            if(pos.isPositionValid){
-                accelBlock = 0.1;
-                error = pos.y;
-                double dir = Math.signum(error);
-                robot.mecanumDrive(dir*0.5,0,0);
-                if(Math.abs(error) < 0.5){
-                    robot.setArmPosition(0,0);
-                    nextStage();
-                }
+        } else if( stage == 2 ) {
+            robot.mecanumDrive(-0.15, -0.5, 0);
+            if (t > timeOfNewStage + 3) {
+                nextStage();
             }
-        }else if( stage == 3 ){
-            if(!(robot.arm.isBusy() || robot.slide.isBusy())){
-                robot.arm.setPower(0);
-                robot.slide.setPower(0);
-                robot.setDriveModes(DcMotorEx.RunMode.RUN_TO_POSITION);
-                for( DcMotorEx m : robot.drivetrain ) {
-                    // (24/(4*Math.PI))*1120 == 2140
-                    m.setTargetPosition(1340);
-                    accelBlock = 0.1;
-                    m.setPower(accelBlock);
-                }
-                if(accelBlock < 1){
-                    accelBlock += 0.1;
-                }
-                if( !(robot.leftFront.isBusy() || robot.leftBack.isBusy() || robot.rightFront.isBusy() || robot.rightBack.isBusy()) ){
-                    robot.setDriveModes(DcMotorEx.RunMode.RUN_USING_ENCODER);
-                    robot.mecanumDrive(0,0,0);
-                    robot.claw.setMode(DcMotorEx.RunMode.RUN_USING_ENCODER);
-                    robot.claw.setPower(-0.8);
-                    nextStage();
-                }
+        }else if( stage == 3 ) {
+            robot.hardBrake();
+            robot.foundationControls(false, true);
+            if (t > timeOfNewStage + 3) {
+                nextStage();
             }
-        }else if( stage == 4 ){
-            robot.setDriveModes(DcMotorEx.RunMode.STOP_AND_RESET_ENCODER);
-            robot.setDriveModes(DcMotorEx.RunMode.RUN_TO_POSITION);
-            for( DcMotorEx m : robot.drivetrain ) {
-                m.setTargetPosition(-1340);
-                accelBlock = 0.1;
-                m.setPower(accelBlock);
-            }
-            if(accelBlock < 1){
-                accelBlock += 0.1;
-            }
-            if( !(robot.leftFront.isBusy() || robot.leftBack.isBusy() || robot.rightFront.isBusy() || robot.rightBack.isBusy()) ){
-                robot.setDriveModes(DcMotorEx.RunMode.RUN_USING_ENCODER);
-                robot.mecanumDrive(0,0,0);
+        }else if( stage == 4 ) {
+            robot.foundationControls(false, false);
+            robot.mecanumDrive(-0.2, 0.75, 0);
+            if (t > timeOfNewStage + 3) {
                 nextStage();
             }
         }else if( stage == 5 ){
-            if( runtime.time(TimeUnit.SECONDS) > timeOfNewStage + 3 ){
+            double error = Math.toDegrees(robot.yaw())+90;
+            if( Math.abs(error) < 5 ){
                 nextStage();
             }else{
-                robot.mecanumDrive(0.75,0,0);
+                robot.mecanumDrive(0,0,error*-0.2);
             }
-        }else if( stage == 6 ){
-            robot.setDriveModes(DcMotorEx.RunMode.STOP_AND_RESET_ENCODER);
-            robot.setDriveModes(DcMotorEx.RunMode.RUN_TO_POSITION);
-            for( DcMotorEx m : robot.drivetrain ) {
-                m.setTargetPosition(1340);
-                accelBlock = 0.1;
-                m.setPower(accelBlock);
-            }
-            if(accelBlock < 1){
-                accelBlock += 0.1;
-            }
-            if( !(robot.leftFront.isBusy() || robot.leftBack.isBusy() || robot.rightFront.isBusy() || robot.rightBack.isBusy()) ){
-                robot.setDriveModes(DcMotorEx.RunMode.RUN_USING_ENCODER);
-                robot.mecanumDrive(0,0,0);
-                robot.operateClaw(true);
+        }else if( stage == 6 ) {
+            robot.foundationControls(true,false);
+            if (t > timeOfNewStage + 3) {
                 nextStage();
             }
         }else if( stage == 7 ){
-            if( runtime.time(TimeUnit.SECONDS) > timeOfNewStage + 2 ){
+            robot.foundationControls(false,false);
+            robot.mecanumDriveFieldOrient(0,0.75,0);
+            if (t > timeOfNewStage + 4) {
                 nextStage();
-            }else{
-                robot.mecanumDrive(-1,-0.75,0);
             }
         }else{
             robot.mecanumDrive(0,0,0);
         }
-
     }
 
 
