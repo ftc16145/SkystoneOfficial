@@ -194,12 +194,8 @@ public class OpenCVBlockB extends OpMode
         }else if( stage == 2 ) {
             // 26
             robot.levelArm();
-            robot.leftFront.setTargetPosition(-2320);
-            robot.leftBack.setTargetPosition(2320);
-            robot.rightFront.setTargetPosition(2320);
-            robot.rightBack.setTargetPosition(-2320);
-            robot.setMotorPowers(1, 1, 1, 1);
-            if (Math.abs(robot.leftFront.getCurrentPosition() + 2320) < 50) {
+            robot.driveDirection( Hardware.Direction.kRight, 26, 1 );
+            if ( robot.isAtDriveTarget() ) {
                 nextStage();
             }
         }else if( stage == 3 ) {
@@ -214,12 +210,8 @@ public class OpenCVBlockB extends OpMode
             }
         }else if( stage == 4 ){
             //6
-            robot.leftFront.setTargetPosition(-1750);
-            robot.leftBack.setTargetPosition(1750);
-            robot.rightFront.setTargetPosition(1750);
-            robot.rightBack.setTargetPosition(-1750);
-            robot.setMotorPowers(1, 1, 1, 1);
-            if (Math.abs(robot.leftFront.getCurrentPosition() + 1750) < 50) {
+            robot.driveDirection( Hardware.Direction.kRight,6,1 );
+            if ( robot.isAtDriveTarget() ) {
                 nextStage();
             }
         }else if( stage == 5 ){
@@ -227,23 +219,15 @@ public class OpenCVBlockB extends OpMode
             robot.autoGrab.setTargetPosition(-175);
             robot.autoGrab.setPower(1);
             if(!robot.autoGrab.isBusy() || (runtime.time(TimeUnit.SECONDS) > timeOfNewStage + 2) ) {
-                robot.leftFront.setTargetPosition(1750);
-                robot.leftBack.setTargetPosition(-1750);
-                robot.rightFront.setTargetPosition(-1750);
-                robot.rightBack.setTargetPosition(1750);
-                robot.setMotorPowers(1, 1, 1, 1);
-                if (Math.abs(robot.leftFront.getCurrentPosition() - 1750) < 50) {
+                robot.driveDirection( Hardware.Direction.kLeft,25,1 );
+                if ( robot.isAtDriveTarget() ) {
                     nextStage();
                 }
             }
         }else if( stage == 6 ){
             // 48 + adjust
-            robot.leftFront.setTargetPosition( ( -5750 ) );
-            robot.leftBack.setTargetPosition( ( -5750 ) );
-            robot.rightFront.setTargetPosition( ( -5750 ) );
-            robot.rightBack.setTargetPosition( ( -5750 ) );
-            robot.setMotorPowers(1, 1, 1, 1 );
-            if ( Math.abs( robot.leftFront.getCurrentPosition() + ( 5750 ) ) < 50 ) {
+            robot.driveDirection( Hardware.Direction.kReverse,60,1 );
+            if ( robot.isAtDriveTarget() ) {
                 nextStage();
             }
             
@@ -257,12 +241,8 @@ public class OpenCVBlockB extends OpMode
             }
         }else if( stage == 8 ){
             // Move back 24
-            robot.leftFront.setTargetPosition( 1600 );
-            robot.leftBack.setTargetPosition( 1600 );
-            robot.rightFront.setTargetPosition( 1600 );
-            robot.rightBack.setTargetPosition( 1600 );
-            robot.setMotorPowers(1, 1, 1, 1 );
-            if ( Math.abs( robot.leftFront.getCurrentPosition() + 1600 ) < 50 ) {
+            robot.driveDirection( Hardware.Direction.kForward,18,1 );
+            if ( robot.isAtDriveTarget() ) {
                 nextStage();
             }
         }else{

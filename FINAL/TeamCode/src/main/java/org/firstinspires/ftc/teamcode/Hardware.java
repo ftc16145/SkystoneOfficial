@@ -12,6 +12,7 @@ import com.qualcomm.robotcore.hardware.DcMotorEx;
 import com.qualcomm.robotcore.hardware.DcMotorSimple;
 import com.qualcomm.robotcore.hardware.DistanceSensor;
 import com.qualcomm.robotcore.hardware.HardwareMap;
+import com.qualcomm.robotcore.hardware.TouchSensor;
 import com.qualcomm.robotcore.util.ElapsedTime;
 
 import org.firstinspires.ftc.robotcore.external.ClassFactory;
@@ -90,6 +91,8 @@ public class Hardware {
         public DistanceSensor distance = null;
         public BNO055IMU imu = null;
 
+        double targetAng = 0;
+
     // Info for the class
         HardwareMap hwMap = null;
         Telemetry tel = null;
@@ -146,16 +149,24 @@ public class Hardware {
             }
         }
     }
+
     public void setDriveModes( DcMotorEx.RunMode r ){
         for( DcMotorEx m : drivetrain ){
             m.setMode(r);
         }
     }
+
+    public void resetDriveMode( DcMotorEx.RunMode r ){
+        setDriveModes( DcMotorEx.RunMode.STOP_AND_RESET_ENCODER );
+        setDriveModes( r );
+    }
+
     public void setScoreModes( DcMotorEx.RunMode r ){
         for( DcMotorEx m : scoring ){
-            m.setMode(r);
+            m.setMode( r );
         }
     }
+
     public void init( HardwareMap hardware, Telemetry atel ){
         hwMap = hardware;
         tel = atel;
@@ -216,26 +227,18 @@ public class Hardware {
         params.waitForNonLoopingSoundsToFinish = true;
         playSound("ss_light_saber");
     }
+
     public void initLoop(){
-        //if(auto) {
-            //visionLoop();
-        //    if (option == 'A') {
-        //        positionModifier = 8;
-        //    } else if (option == 'B') {
-        //        positionModifier = 0;
-        //    } else if (option == 'C') {
-        //        positionModifier = -8;
-        //    } else {
-        //        positionModifier = 0;
-        //    }
-        //}
+
     }
+
     public void setMotorPowers( double lf, double lb, double rf, double rb ){
         leftFront.setPower( lf );
         rightFront.setPower( rf );
         leftBack.setPower( lb );
         rightBack.setPower( rb );
     }
+
     public double yaw(){
         return imu.getAngularOrientation(AxesReference.INTRINSIC, AxesOrder.ZYX, AngleUnit.RADIANS).firstAngle;
     }
@@ -243,6 +246,7 @@ public class Hardware {
     public void hardBrake(){
         setMotorPowers(0,0,0,0);
     }
+
     public void mecanumDrive(double x, double y, double rot) {
         double nX, nY;
         // Updated from 0.1 to 0.2, testing to amp up accel
@@ -280,6 +284,60 @@ public class Hardware {
         // NOW: leftFront, leftBack, rightFront, rightBack
         prevXPower = nX;
         prevYPower = nY;
+
+    }
+
+    public enum Direction{
+        kForward,kLeft,kRight,kReverse
+    }
+
+    public void driveDirection( Direction d, double inches, double power ){
+        double encoder = inches/(4*Math.PI)*1120;
+        switch( d ){
+            case kForward:
+                for( DcMotorEx m : drivetrain ){
+                    m.setTargetPosition( (int) -encoder );
+                }
+                break;
+            case kReverse:
+                for( DcMotorEx m : drivetrain ){
+                    m.setTargetPosition( (int) encoder );
+                }
+                break;
+            case kLeft:
+                leftFront.setTargetPosition( (int) encoder );
+                leftBack.setTargetPosition( (int) -encoder );
+                rightFront.setTargetPosition( (int) -encoder );
+                rightBack.setTargetPosition( (int) encoder );
+                break;
+            case kRight:
+                leftFront.setTargetPosition( (int) -encoder );
+                leftBack.setTargetPosition( (int) encoder );
+                rightFront.setTargetPosition( (int) encoder );
+                rightBack.setTargetPosition( (int) -encoder );
+                break;
+        }
+        if( isAtDriveTarget() ){
+            hardBrake();
+        }else {
+            mecanumDrive(0, power, 0);
+        }
+    }
+
+    public boolean isAtDriveTarget(){
+        return Math.abs(leftFront.getCurrentPosition() - leftFront.getTargetPosition()) < 50;
+    }
+
+    public void rotateDrive( double ang, double power ){
+        if( isAtRotateTarget() ) {
+            hardBrake();
+        }else{
+            mecanumDrive(0, 0, (Math.toDegrees(yaw()) - ang) * -0.2 * power);
+        }
+    }
+
+    public boolean isAtRotateTarget(){
+        return Math.abs( Math.toDegrees( yaw() ) - targetAng ) <= 5;
     }
 
     public void mecanumDriveFieldOrient(double x, double y, double rot) {
@@ -302,6 +360,7 @@ public class Hardware {
             found.setPower(0);
         }
     }
+
     public void spoolControl( boolean up, boolean down ){
         if (up) {
             arm.setPower(-0.75);
@@ -311,9 +370,11 @@ public class Hardware {
             arm.setPower(0);
         }
     }
+
     public void spoolControl( double power ){
         arm.setPower( power );
     }
+
     public void clawControl( boolean open, boolean close ){
         if (open) {
             clawControl(0.8);
@@ -323,9 +384,11 @@ public class Hardware {
             clawControl(0);
         }
     }
+
     public void clawControl( double power ){
         claw.setPower( power );
     }
+
     public void slideControl( boolean out, boolean in ){
         if (out) {
             slideControl(0.8);
@@ -335,14 +398,17 @@ public class Hardware {
             slideControl(0);
         }
     }
+
     public void slideControl( double power ){
         slide.setPower( power );
     }
+
     public void armMechanismControls(boolean clawOpen, boolean clawClose, boolean armUp, boolean armDown, double slideControl) {
         clawControl( clawOpen, clawClose );
         spoolControl( armUp, armDown );
         slideControl( slideControl );
     }
+
     public void setSideGrab( boolean open ){
         autoGrab.setTargetPosition( open ? 0 : 144 );
         autoGrab.setPower(1);
@@ -367,6 +433,7 @@ public class Hardware {
             arm.setPower(0.8);
 
     }
+
     public void levelArm(){
         arm.setTargetPosition(0);
         arm.setPower(1);
@@ -375,6 +442,7 @@ public class Hardware {
             slide.setPower(0.5);
         }
     }
+
     public void operateClaw(boolean open){
         claw.setTargetPosition(open ? -240 : 0);
         claw.setPower(0.8);
